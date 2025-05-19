@@ -16,6 +16,18 @@ const PropertySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  placeRating: {
+    type: String,
+    required: true
+  },
+  propertyBuilt: {
+    type: String,
+    required: true
+  },
+  bookingSince: {
+    type: String,
+    required: true
+  },
   rentalForm: {
     type: String,
     required: true,
@@ -26,7 +38,7 @@ const PropertySchema = new mongoose.Schema({
   location: {
     country: { type: String, required: true },
     street: { type: String, required: true },
-    roomNumber: { type: String },
+    roomNumber: { type: String, required: true },
     city: { type: String, required: true },
     state: { type: String, required: true },
     stateRef: { 
@@ -56,8 +68,15 @@ const PropertySchema = new mongoose.Schema({
   
   // Page 4 - Amenities
   amenities: {
-    general: [String],
-    other: [String],
+    mandatory : [String],
+    basicFacilities: [String],
+    generalServices: [String],
+    commonArea: [String],
+    foodBeverages: [String],
+    healthWellness: [String],
+    MediaTechnology: [String],
+    paymentServices: [String],
+    security: [String],
     safety: [String]
   },
   
