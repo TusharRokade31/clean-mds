@@ -84,11 +84,11 @@ export default function SearchComponent() {
   };
 
   return (
-    <div className="relative w-full  lg:hidden mx-auto ">
+    <div className="relative w-full lg:hidden mx-auto ">
       {/* Search Input Trigger */}
       <div 
         onClick={handleOpenSearch}
-        className="flex items-center mt-2 rounded-full bg-white border  border-[#00000025] shadow-md p-[3px] md:p-2 cursor-pointer"
+        className="flex items-center  mx-2  md:mx-4 rounded-full bg-white border  border-[#00000025] shadow-md p-[3px] md:p-2 cursor-pointer"
       >
         <FiSearch className="ml-2 text-gray-600" />
         <div className="ml-4 text-left">

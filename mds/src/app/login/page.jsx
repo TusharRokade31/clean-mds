@@ -84,7 +84,7 @@ const PageLogin = ({}) => {
 
   return (
     <div className="px-4">
-      <div className="container mb-24 lg:mb-32">
+      <div className="mb-24 lg:mb-32">
         <h2 className="mt-24 lg:mt-40 mb-10 flex items-center justify-center text-3xl font-semibold  text-neutral-900 dark:text-neutral-100 md:text-5xl ">
           {"Login"}
         </h2>

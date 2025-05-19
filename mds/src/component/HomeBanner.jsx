@@ -6,10 +6,10 @@ import SearchBar from "./SearchBar";
 
 const HomeBanner = () => {
   return (
-    <div className="container relative mb-2 mx-auto lg:px-32 px-4  pt-10  lg:pt-16 space-y-24 lg:mb-2 lg:space-y-28">
+    <div className="container relative mb-2 mx-auto px-4  pt-16 lg:mb-2 ">
       <div className="nc-SectionHero relative flex flex-col-reverse lg:flex-col pt-12  lg:pt-16">
         <div className="flex flex-col lg:flex-row lg:items-center">
-          <div className="flex flex-shrink-0 flex-col items-start  pb-14  lg:me-10 lg:w-1/2 lg:pb-64 xl:me-0 xl:pe-14">
+          <div className="flex flex-shrink-0 flex-col items-start  `lg:me-10 lg:w-1/2 lg:pb-64 xl:me-0 xl:pe-14">
             <h2 className="text-4xl font-medium !leading-[114%] md:text-5xl xl:text-7xl">
               Find Your <br /> Divine Stay
             </h2>

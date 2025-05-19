@@ -10,7 +10,7 @@ const StaysType = () => {
 
 
   const scrollRight = () => {
-    const container = document.getElementById('trending-scroll-container');
+    const container = document.getElementById('stays-scroll-container');
     if (container) {
       container.scrollBy({ left: 300, behavior: 'smooth' });
     }
@@ -36,7 +36,7 @@ const StaysType = () => {
           <div className="flex justify-center py-10">No featured destinations found</div>
         ) : (
           <div 
-          id="trending-scroll-container"
+          id="stays-scroll-container"
           className="flex overflow-x-auto scrollbar-none snap-x snap-mandatory scroll-smooth pb-4"
         >
           {stays.map((destination) => (

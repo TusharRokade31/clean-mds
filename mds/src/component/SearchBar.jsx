@@ -180,7 +180,7 @@ export default function SearchBar() {
   const totalGuests = guests.adults + guests.children + guests.infants;
 
   return (
-    <div className="max-w-5xl hidden lg:block px-14 lg:px-32 sm:px-6 x-4 relative">
+    <div className="max-w-4xl hidden lg:block px-14 sm:px-6 relative">
       <div className="relative bg-white rounded-full shadow-xl flex items-center p-2">
         <div className="flex flex-1 items-center divide-x divide-gray-200">
           {/* Location Input */}

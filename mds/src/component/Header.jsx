@@ -27,12 +27,12 @@ const Header = () => {
 
   return (
     <header className="border-b z-10 fixed top-0 right-0 left-0 bg-white/30 backdrop-blur-2xl border-[#e5e7eb]">
-      <nav className="flex h-20 justify-between items-center mx-auto px-2 lg:px-32 sm:px-4 lg:container">
-        <div className="lg:flex hidden justify-center gap-x-3 sm:gap-x-8 md:flex lg:gap-x-10 items-center">
+      <nav className="flex h-20 justify-between items-center mx-auto px-2 sm:px-4 lg:container">
+        <div className="flex justify-center gap-x-3 sm:gap-x-8 lg:gap-x-10 items-center">
           <Link href="/">
-            <img src={logo.src} className="w-32" />
+            <img src={logo.src} className="w-20 " />
           </Link>
-          <div className="h-7 self-center border-s border-neutral-300 dark:border-neutral-600 block"></div>
+          
         </div>
 
         {/* Mobile Search Bar */}
@@ -42,17 +42,9 @@ const Header = () => {
         <NavMenu />
 
         {/* Mobile Navigation - Toggle Menu */}
-        <div className="flex md:hidden items-center gap-x-4">
+        <div className="flex lg:hidden items-center gap-x-4">
           {/* Mobile Authentication or Avatar Dropdown */}
-          {!isAuthenticated ? (
-            <Link href="/login">
-              <button className="rounded-full bg-[#4f46e5] cursor-pointer text-white py-2 px-4">
-                Log in
-              </button>
-            </Link>
-          ) : (
-            <AvatarDropdown />
-          )}
+        
 
           {/* Hamburger Menu Button */}
           <button 
@@ -89,7 +81,7 @@ const Header = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-white/30  z-50 md:hidden"
+        className="fixed inset-0 bg-white/30  z-50 lg:hidden"
         onClick={toggleMenu}
       />
       
@@ -98,9 +90,9 @@ const Header = () => {
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 20 }}
-        className="fixed top-0 right-0 h-screen w-64 bg-white shadow-lg z-40 md:hidden overflow-y-auto"
+        className="fixed top-0 right-0 h-screen w-64 bg-white shadow-lg z-40 lg:hidden overflow-y-auto"
       >
-        <div className="flex flex-col pt-24 px-6 gap-6">
+        <div className="flex flex-col pt-12 px-6 gap-6">
           <Link href="/about" className="text-lg font-medium text-gray-800 hover:text-indigo-600 transition-colors">
             About us
           </Link>

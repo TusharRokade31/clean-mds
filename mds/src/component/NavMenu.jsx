@@ -8,7 +8,7 @@ const NavMenu = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   return (
-    <div className="hidden md:flex text-[#374151] gap-x-1 items-center">
+    <div className="hidden lg:flex text-[#374151] gap-x-1 items-center">
       <h3 className="border border-[#9ca3af5b] cursor-pointer hover:border-[#9ca3af] rounded-full py-1.5 px-4">
         About us
       </h3>
