@@ -2,20 +2,28 @@
 import express from 'express';
 import { 
   deleteProperty, 
-  finalizeProperty, 
+  // finalizeProperty, 
   getAllProperties, 
   getProperty, 
   initializeProperty, 
   reviewProperty, 
-  updatePropertyStep1, 
-  updatePropertyStep2, 
-  updatePropertyStep3, 
-  updatePropertyStep4, 
-  updatePropertyStep5, 
-  updatePropertyStep6, 
-  updatePropertyStep7, 
-  updatePropertyStep8, 
-  updatePropertyStep9,
+  // updatePropertyStep1, 
+  // updatePropertyStep2, 
+  // updatePropertyStep3, 
+  // updatePropertyStep4, 
+  // updatePropertyStep5, 
+  // updatePropertyStep6, 
+  // updatePropertyStep7, 
+  // updatePropertyStep8, 
+  // updatePropertyStep9,
+  saveBasicInfo,
+  saveLocation,
+  saveAmenities,
+  addRoom,
+  updateRoom,
+  deleteRoom,
+  completePropertyListing,
+
   // New routes I suggested
   getPropertiesByState,
   getPropertiesByCity,
@@ -26,12 +34,81 @@ import {
   getDraftProperties
 } from '../controllers/propertyController.js';
 import { protect } from '../middleware/authMiddleware.js';
+import { check } from 'express-validator' ;
 import { upload } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
 // Initialize a new property
 router.post('/', protect, initializeProperty);
+
+router.put(
+  '/:propertyId/basic-info',
+  protect,
+  [
+    check('propertyType', 'Property type is required').not().isEmpty(),
+    check('placeName', 'Place name is required').not().isEmpty(),
+    check('placeRating', 'Place rating is required').not().isEmpty(),
+    check('propertyBuilt', 'Property built year is required').not().isEmpty(),
+    check('bookingSince', 'Booking since date is required').not().isEmpty(),
+    check('rentalForm', 'Rental form is required').not().isEmpty()
+  ],
+  saveBasicInfo
+);
+
+// Step 2: Save Location
+router.put(
+  '/:propertyId/location',
+  protect,
+  [
+    check('country', 'Country is required').not().isEmpty(),
+    check('street', 'Street address is required').not().isEmpty(),
+    check('city', 'City is required').not().isEmpty(),
+    check('state', 'State is required').not().isEmpty(),
+    check('postalCode', 'Postal code is required').not().isEmpty()
+  ],
+  saveLocation
+);
+
+// Step 3: Save Amenities
+router.put(
+  '/:propertyId/amenities',
+  protect,
+  saveAmenities
+);
+
+// Step 4: Room Management
+router.post(
+  '/:propertyId/rooms',
+  protect,
+  [
+    check('roomType', 'Room type is required').not().isEmpty(),
+    check('roomName', 'Room name is required').not().isEmpty(),
+    check('roomSize', 'Room size is required').isNumeric(),
+    check('sizeUnit', 'Size unit is required').not().isEmpty()
+  ],
+  addRoom
+);
+
+router.put(
+  '/:propertyId/rooms/:roomId',
+  protect,
+  updateRoom
+);
+
+router.delete(
+  '/:propertyId/rooms/:roomId',
+  protect,
+  deleteRoom
+);
+
+// Complete Property Listing
+router.put(
+  '/:propertyId/complete',
+  protect,
+  completePropertyListing
+);
+
 
 // Get all properties
 router.get('/', protect, getAllProperties);
@@ -44,27 +121,27 @@ router.get('/draft', protect, getDraftProperties); // Protect route so only auth
 router.get('/:id', protect, getProperty);
 
 // Update property by steps
-router.put('/:id/step1', protect, updatePropertyStep1);
-router.put('/:id/step2', protect, updatePropertyStep2);
-router.put('/:id/step3', protect, updatePropertyStep3);
-router.put('/:id/step4', protect, updatePropertyStep4);
-router.put('/:id/step5', protect, updatePropertyStep5);
-router.put('/:id/step6', protect, updatePropertyStep6);
+// router.put('/:id/step1', protect, updatePropertyStep1);
+// router.put('/:id/step2', protect, updatePropertyStep2);
+// router.put('/:id/step3', protect, updatePropertyStep3);
+// router.put('/:id/step4', protect, updatePropertyStep4);
+// router.put('/:id/step5', protect, updatePropertyStep5);
+// router.put('/:id/step6', protect, updatePropertyStep6);
 
 // For step 7 - handle file uploads
-router.put(
-  '/:id/step7', 
-  protect, 
-  upload.fields([
-    { name: 'cover', maxCount: 1 },
-    { name: 'additional', maxCount: 10 }
-  ]),
-  updatePropertyStep7
-);
+// router.put(
+//   '/:id/step7', 
+//   protect, 
+//   upload.fields([
+//     { name: 'cover', maxCount: 1 },
+//     { name: 'additional', maxCount: 10 }
+//   ]),
+//   updatePropertyStep7
+// );
 
-router.put('/:id/step8', protect, updatePropertyStep8);
-router.put('/:id/step9', protect, updatePropertyStep9);
-router.put('/:id/finalize', protect, finalizeProperty);
+// router.put('/:id/step8', protect, updatePropertyStep8);
+// router.put('/:id/step9', protect, updatePropertyStep9);
+// router.put('/:id/finalize', protect, finalizeProperty);
 
 // Admin routes
 router.put('/:id/review', protect, reviewProperty);

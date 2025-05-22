@@ -88,12 +88,12 @@ export default function SearchComponent() {
       {/* Search Input Trigger */}
       <div 
         onClick={handleOpenSearch}
-        className="flex items-center  mx-2  md:mx-4 rounded-full bg-white border  border-[#00000025] shadow-md p-[3px] md:p-2 cursor-pointer"
+        className="flex items-center  mx-2  md:mx-4 rounded-full bg-white border  border-[#00000025] shadow-md  p-1 sm:p-2 cursor-pointer"
       >
         <FiSearch className="ml-2 text-gray-600" />
-        <div className="ml-4 text-left">
+        <div className="ml-4 sm:py-0 py-2 text-left">
           <div className="font-medium text-black">Where to?</div>
-          <div className="text-sm text-gray-500">Anywhere • Any week • Add guests</div>
+          <div className="text-sm hidden sm:block text-gray-500">Anywhere • Any week • Add guests</div>
         </div>
         <div className="ml-auto mr-2">
           <HiOutlineAdjustments className="text-gray-600" />

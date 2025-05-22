@@ -20,8 +20,6 @@ const safetyAmenities = [
   'Emergency exit', 'Security cameras', '24/7 security'
 ];
 
-
-
 const Mandatory = [
   {
     name: 'Air Conditioning',
@@ -76,7 +74,8 @@ const Mandatory = [
       'Shallow end',
       'Indoor Pool',
       'Fully secluded outdoor pool',
-      'Women-only pool',]
+      'Women-only pool',
+    ]
   },
 
 
@@ -147,9 +146,6 @@ const Mandatory = [
   },
 ]
 
-
-
-
 const BasicFacilities = [
 
   {
@@ -164,62 +160,198 @@ const BasicFacilities = [
     Suboptions: []
   },
 
-   {
+  {
     name: 'Kitchen/Kitchenette',
     options: [],
     Suboptions: ['Cooking appliances','Microwave', 'Utensils', 'Toaster', 'Induction', 'Cutlery']
   },
+
+  {
+    name: 'Power backup',
+    options: ['Genset', 'Inverter'],
+    Suboptions: []
+  },
   
- 
-  
-  'Power backup',
-  'Refrigerator',
-  'Washing Machine',
+  {
+    name: 'Refrigerator',
+    options: [],
+    Suboptions: []
+  },
+
+  {
+    name: 'Washing Machine',
+    options: [],
+    Suboptions: []
+  },
+
 ];
 
 const GeneralServices = [
-  'Bellboy service',
-  'Caretaker',
-  'Luggage storage',
-  'Specially abled assistance',
-  'Wake-up Call / Service',
-  'Pool/ Beach towels',
+  {
+    name: 'Bellboy service',
+    options: [],
+    Suboptions: []
+  },
+  {
+    name: 'Caretaker',
+    options: [],
+    Suboptions: []
+  },
+
+  {
+    name: 'Luggage storage',
+    options: [],
+    Suboptions: []
+  },
+  {
+    name: 'Specially abled assistance',
+    options: [],
+    Suboptions: ['Auditory Guidance', 'Wheelchair',   'Braille', 'Tactile signs', ]
+  },
+
+  {
+    name: 'Wake-up Call / Service',
+    options: [],
+    Suboptions: []
+  },
+  
+  {
+    name: 'Pool/ Beach towels',
+    options: [],
+    Suboptions: []
+  },
+  
+  
 ]
 const CommanArea = [
-  'Balcony/ Terrace',
-  'Fireplace',
-  'Lawn',
-  'Seating Area',
-  'Prayer Room',
-  'Living Room',
-  'Sitout Area',
-  'Bonfire Pit',
+  {
+    name: 'Balcony/ Terrace',
+    options: [],
+    Suboptions: []
+  },
+  {
+    name: 'Fireplace',
+    options: ['Indoor', 'Outdoor', 'Comman'],
+    Suboptions: ['Free', 'Paid']
+  },
+  {
+    name: 'Lawn',
+    options: [],
+    Suboptions: []
+  },  
+  {
+    name: 'Seating Area',
+    options: [],
+    Suboptions: []
+  },    
+  {
+    name: 'Prayer Room',
+    options: [],
+    Suboptions: []
+  },    
+  {
+    name: 'Living Room',
+    options: [],
+    Suboptions: []
+  },    
+  {
+    name: 'Sitout Area',
+    options: ['Balcony','Verandah','Seating Arrangements on the Lawn', 'Poolside sit-out-area', 'Patio'],
+    Suboptions: []
+  },    
+  {
+    name: 'Bonfire Pit',
+    options: [],
+    Suboptions: []
+  },  
+  
 ]
 
 
 const FoodandBeverages = [
-  'Dining Area/Bhojnalay',
-  `Kid's Menu`,
-  'Breakfast',
-  'Food Options Available ',
+  {
+    name: 'Dining Area/Bhojnalay',
+    options: ['Balcony','Verandah','Seating Arrangements on the Lawn', 'Poolside sit-out-area', 'Patio'],
+    Suboptions: []
+  },
+
+  {
+    name: `Kid's Menu`,
+    options: [],
+    Suboptions: []
+  },
+
+  {
+    name: 'Breakfast',
+    options: [],
+    Suboptions: ['Indian Veg food', 'Jain food']
+  },  
+  
+  {
+    name: 'Food Options Available ',
+    options: [],
+    Suboptions: ['Veg', 'Jain', 'Sativik']
+  },  
+  
 ]
 
 const Healthandwellness = [
-  'Activity Centre',
-  'Yoga',
-  'Meditation Room',
+  {
+    name: 'Activity Centre',
+    options: [],
+    Suboptions: []
+  }, 
+
+    {
+    name: 'Yoga',
+    options: [],
+    Suboptions: []
+  }, 
+
+
+    {
+    name: 'Meditation Room',
+    options: [],
+    Suboptions: []
+  }, 
+
+
+  
+  
+  
 ]
 
 
 const Security = [
-  'Security alarms',
-  'Security Guard',
-  'Carbon Monoxide Detector',
+
+  {
+    name: 'Security alarms',
+    options: [],
+    Suboptions: []
+  }, 
+
+    {
+    name: 'Security Guard',
+    options: [],
+    Suboptions: []
+  }, 
+
+  {
+    name: 'Carbon Monoxide Detector',
+    options: [],
+    Suboptions: []
+  }, 
+  
 ]
 
 
 const MediaTechnology = [
-  'TV'
+    {
+    name: 'TV',
+    options: [],
+    Suboptions: ['LED','LCD','Flat Screen', 'International Channles', 'HD Channles' ,'Satelite Tv', 'Remote Controlled', 'Cable', 'Smart Tv', 'Non-Smart LED Tv', 'Non-Smart LCD Tv' ]
+  }, 
+  
 ]
 
 const PaymentServices = [

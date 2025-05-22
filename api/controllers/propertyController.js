@@ -3,48 +3,17 @@ import fs from 'fs';
 import path from 'path';
 import City from '../models/City.js';
 import State from '../models/State.js';
+import mongoose from 'mongoose';
+import { validationResult } from 'express-validator';
 
-// Create new property (initial step)
-export const initializeProperty = async (req, res) => {
-  try {
-    const newProperty = new Property({
-      host: req.user.id,
-      status: 'draft',
-      currentStep: 1,
-      // Add placeholders for required fields
-      propertyType: 'Hotel', // default value
-      placeName: 'Draft Property',
-      rentalForm: 'Entire place',
-      location: {
-        country: 'Draft',
-        street: 'Draft',
-        city: 'Draft',
-        state: 'Draft',
-        postalCode: 'Draft'
-      },
-      size: {
-        acreage: 1
-      },
-      description: 'Draft description',
-      pricing: {
-        weekdayPrice: 0,
-        weekendPrice: 0
-      }
-    });
-    
-    const property = await newProperty.save();
-    
-    res.status(201).json({
-      success: true,
-      data: property
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
+const errorResponse = (res, statusCode, message, errors = null) => {
+  return res.status(statusCode).json({
+    success: false,
+    message,
+    errors
+  });
 };
+
 
 // Get all properties (for admin or host)
 export const getAllProperties = async (req, res) => {
@@ -109,7 +78,7 @@ export const getProperty = async (req, res) => {
     }
     
     // Check if user owns the property or is admin
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (property.owner.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to access this property'
@@ -128,134 +97,149 @@ export const getProperty = async (req, res) => {
   }
 };
 
-// Update property - step 1
-export const updatePropertyStep1 = async (req, res) => {
+
+// Initialize a new property for multistep form
+export const initializeProperty = async (req, res) => {
   try {
-    const { propertyType, placeName, rentalForm } = req.body;
-    
-    let property = await Property.findById(req.params.id);
-    
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      });
-    }
-    
-    // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this property'
-      });
-    }
-    
-    property.propertyType = propertyType;
-    property.placeName = placeName;
-    property.rentalForm = rentalForm;
-    property.currentStep = property.currentStep < 2 ? 2 : property.currentStep;
-    property.updatedAt = Date.now();
-    
-    await property.save();
-    
-    res.status(200).json({
-      success: true,
-      data: property
+    const userId = req.user.id;
+
+    // Check for existing draft
+    const existingDraft = await Property.findOne({ 
+      owner: userId, 
+      'formProgress.formCompleted': false 
     });
+
+    // if (existingDraft) {
+    //   return res.status(200).json({
+    //     success: true,
+    //     message: 'Draft property found',
+    //     property: existingDraft
+    //   });
+    // }
+
+    // Create a new draft with required fields initialized
+    const newProperty = await Property.create({
+      owner: userId,
+      propertyType: 'Hotel',
+      placeName: 'Draft Property',
+      placeRating: '5.0',
+      propertyBuilt: '2024',
+      bookingSince: '2024-01-01',
+      rentalForm: 'Entire place',
+      location: {
+        country: 'India',
+        street: 'Draft Street',
+        city: 'Draft City',
+        state: 'Draft State',
+        postalCode: '000000'
+      },
+      amenities: {
+        mandatory: new Map(),
+        basicFacilities: new Map(),
+        generalServices: new Map(),
+        commonArea: new Map(),
+        foodBeverages: new Map(),
+        healthWellness: new Map(),
+        mediaTechnology: new Map(),
+        paymentServices: new Map(),
+        security: new Map(),
+        safety: new Map()
+      },
+      rooms: [], // start with an empty array
+      formProgress: {
+        step1Completed: false,
+        step2Completed: false,
+        step3Completed: false,
+        step4Completed: false,
+        formCompleted: false
+      }
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'New property draft created',
+      property: newProperty
+    });
+
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
+      message: 'Server error',
       error: error.message
     });
   }
 };
 
-
-// export const updatePropertyStep1 = async (req, res) => {
-//   try {
-//     const { propertyType, placeName, rentalForm } = req.body;
-    
-//     let property = await Property.findById(req.params.id);
-    
-//     if (!property) {
-//       return res.status(404).json({
-//         success: false,
-//         error: 'Property not found'
-//       });
-//     }
-    
-//     // Check ownership (host or admin)
-//     if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-//       return res.status(403).json({
-//         success: false,
-//         error: 'Not authorized to update this property'
-//       });
-//     }
-    
-//     // Validate propertyType enum if needed (optional, Mongoose will do this on save)
-//     const allowedPropertyTypes = ['Hotel', 'Cottage', 'Villa', 'Cabin', 'Farm stay', 'Houseboat', 'Lighthouse'];
-//     if (propertyType && !allowedPropertyTypes.includes(propertyType)) {
-//       return res.status(400).json({
-//         success: false,
-//         error: 'Invalid property type'
-//       });
-//     }
-
-//     // Validate rentalForm enum
-//     const allowedRentalForms = ['Entire place', 'Private room', 'Share room'];
-//     if (rentalForm && !allowedRentalForms.includes(rentalForm)) {
-//       return res.status(400).json({
-//         success: false,
-//         error: 'Invalid rental form'
-//       });
-//     }
-
-//     // Update fields
-//     if (propertyType) property.propertyType = propertyType;
-//     if (placeName) property.placeName = placeName;
-//     if (rentalForm) property.rentalForm = rentalForm;
-
-//     // Move to step 2 if currentStep is less than 2
-//     property.currentStep = property.currentStep < 2 ? 2 : property.currentStep;
-//     property.updatedAt = Date.now();
-    
-//     await property.save();
-    
-//     res.status(200).json({
-//       success: true,
-//       data: property
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       error: error.message
-//     });
-//   }
-// };
-
-// Update property - step 2 (Location)
-export const updatePropertyStep2 = async (req, res) => {
+// Save Step 1: Basic Info
+export const saveBasicInfo = async (req, res) => {
   try {
-    const { country, street, roomNumber, city, state, postalCode, coordinates } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return errorResponse(res, 400, 'Validation errors', errors.array());
+    }
+
+    const { propertyId } = req.params;
+    const { propertyType, placeName, placeRating, propertyBuilt, bookingSince, rentalForm } = req.body;
     
-    let property = await Property.findById(req.params.id);
+    // Check if property exists and belongs to user
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
     
     if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      });
+      return errorResponse(res, 404, 'Property not found or unauthorized');
     }
     
-    // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this property'
-      });
-    }
+    // Update property with basic info
+    property.propertyType = propertyType;
+    property.placeName = placeName;
+    property.placeRating = placeRating;
+    property.propertyBuilt = propertyBuilt;
+    property.bookingSince = bookingSince;
+    property.rentalForm = rentalForm;
+    property.formProgress.step1Completed = true;
     
-    // Find state by name
+    await property.save();
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Basic info saved successfully',
+      property
+    });
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      return errorResponse(res, 400, 'Validation error', error.message);
+    }
+    return errorResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+// Save Step 2: Location
+export const saveLocation = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return errorResponse(res, 400, 'Validation errors', errors.array());
+    }
+
+    const { propertyId } = req.params;
+    const { 
+      country, street, roomNumber, city, state, 
+      postalCode, coordinates 
+    } = req.body;
+    
+    // Check if property exists and belongs to user
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
+    
+    if (!property) {
+      return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+
+        // Find state by name
     let stateRef = null;
     if (state) {
       const stateDoc = await State.findOne({ name: { $regex: new RegExp(state, 'i') } });
@@ -276,6 +260,7 @@ export const updatePropertyStep2 = async (req, res) => {
       }
     }
     
+    // Update property with location info
     property.location = {
       country,
       street,
@@ -287,380 +272,231 @@ export const updatePropertyStep2 = async (req, res) => {
       postalCode,
       coordinates
     };
-    property.currentStep = property.currentStep < 3 ? 3 : property.currentStep;
-    property.updatedAt = Date.now();
+    property.formProgress.step2Completed = true;
     
     await property.save();
     
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      data: property
+      message: 'Location saved successfully',
+      property
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    if (error instanceof mongoose.Error.ValidationError) {
+      return errorResponse(res, 400, 'Validation error', error.message);
+    }
+    return errorResponse(res, 500, 'Server error', error.message);
   }
 };
 
-// Update property - step 3 (Size)
-export const updatePropertyStep3 = async (req, res) => {
+// Save Step 3: Property Amenities
+export const saveAmenities = async (req, res) => {
   try {
-    const { acreage, guests, bedrooms, beds, bathrooms, kitchens } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return errorResponse(res, 400, 'Validation errors', errors.array());
+    }
+
+    const { propertyId } = req.params;
+    const { amenities } = req.body;
     
-    let property = await Property.findById(req.params.id);
+    // Check if property exists and belongs to user
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
     
     if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      });
+      return errorResponse(res, 404, 'Property not found or unauthorized');
     }
     
-    // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this property'
-      });
-    }
-    
-    property.size = {
-      acreage,
-      guests,
-      bedrooms,
-      beds,
-      bathrooms,
-      kitchens
-    };
-    property.currentStep = property.currentStep < 4 ? 4 : property.currentStep;
-    property.updatedAt = Date.now();
+    // Process amenities data
+    // The data should be structured as:
+    // { mandatory: { AirConditioning: { available: true, option: 'room controlled', subOptions: ['All-Weather'] } } }
+    property.amenities = amenities;
+    property.formProgress.step3Completed = true;
     
     await property.save();
     
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      data: property
+      message: 'Amenities saved successfully',
+      property
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    if (error instanceof mongoose.Error.ValidationError) {
+      return errorResponse(res, 400, 'Validation error', error.message);
+    }
+    return errorResponse(res, 500, 'Server error', error.message);
   }
 };
 
-// Update property - step 4 (Amenities)
-export const updatePropertyStep4 = async (req, res) => {
+// Add a Room
+export const addRoom = async (req, res) => {
   try {
-    const { general, other, safety } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return errorResponse(res, 400, 'Validation errors', errors.array());
+    }
+
+    const { propertyId } = req.params;
+    const roomData = req.body;
     
-    let property = await Property.findById(req.params.id);
+    // Check if property exists and belongs to user
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
     
     if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      });
+      return errorResponse(res, 404, 'Property not found or unauthorized');
     }
     
-    // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this property'
-      });
-    }
-    
-    property.amenities = {
-      general,
-      other,
-      safety
-    };
-    property.currentStep = property.currentStep < 5 ? 5 : property.currentStep;
-    property.updatedAt = Date.now();
+    // Add room to property
+    property.rooms.push(roomData);
+    property.formProgress.step4Completed = property.rooms.length > 0;
     
     await property.save();
     
-    res.status(200).json({
+    return res.status(201).json({
       success: true,
-      data: property
+      message: 'Room added successfully',
+      room: property.rooms[property.rooms.length - 1],
+      property
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    if (error instanceof mongoose.Error.ValidationError) {
+      return errorResponse(res, 400, 'Validation error', error.message);
+    }
+    return errorResponse(res, 500, 'Server error', error.message);
   }
 };
 
-// Update property - step 5 (Rules)
-export const updatePropertyStep5 = async (req, res) => {
+// Update a Room
+export const updateRoom = async (req, res) => {
   try {
-    const { smoking, pets, partyOrganizing, cooking, additionalRules } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return errorResponse(res, 400, 'Validation errors', errors.array());
+    }
+
+    const { propertyId, roomId } = req.params;
+    const roomData = req.body;
     
-    let property = await Property.findById(req.params.id);
+    // Check if property exists and belongs to user
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
     
     if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      });
+      return errorResponse(res, 404, 'Property not found or unauthorized');
     }
     
-    // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this property'
-      });
+    // Find room index
+    const roomIndex = property.rooms.findIndex(room => room._id.toString() === roomId);
+    
+    if (roomIndex === -1) {
+      return errorResponse(res, 404, 'Room not found');
     }
     
-    // Update property rules with the correct enum values
-    property.rules = {
-      smoking: smoking === true ? 'Allow' : 'Do not allow',
-      pets: pets === true ? 'Allow' : 'Do not allow',
-      partyOrganizing: partyOrganizing === true ? 'Allow' : 'Do not allow',
-      cooking: cooking === true ? 'Allow' : 'Do not allow',
-      additionalRules: Array.isArray(additionalRules) 
-        ? additionalRules 
-        : additionalRules ? [additionalRules] : []
-    };
-    
-    property.currentStep = property.currentStep < 6 ? 6 : property.currentStep;
-    property.updatedAt = Date.now();
+    // Update room data
+    Object.keys(roomData).forEach(key => {
+      property.rooms[roomIndex][key] = roomData[key];
+    });
     
     await property.save();
     
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      data: property
+      message: 'Room updated successfully',
+      room: property.rooms[roomIndex],
+      property
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    if (error instanceof mongoose.Error.ValidationError) {
+      return errorResponse(res, 400, 'Validation error', error.message);
+    }
+    return errorResponse(res, 500, 'Server error', error.message);
   }
 };
 
-// Update property - step 6 (Description)
-export const updatePropertyStep6 = async (req, res) => {
+// Delete a Room
+export const deleteRoom = async (req, res) => {
   try {
-    const { description } = req.body;
+    const { propertyId, roomId } = req.params;
     
-    let property = await Property.findById(req.params.id);
+    // Check if property exists and belongs to user
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
     
     if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      });
+      return errorResponse(res, 404, 'Property not found or unauthorized');
     }
     
-    // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this property'
-      });
+    // Find room index
+    const roomIndex = property.rooms.findIndex(room => room._id.toString() === roomId);
+    
+    if (roomIndex === -1) {
+      return errorResponse(res, 404, 'Room not found');
     }
     
-    property.description = description;
-    property.currentStep = property.currentStep < 7 ? 7 : property.currentStep;
-    property.updatedAt = Date.now();
+    // Remove room
+    property.rooms.splice(roomIndex, 1);
+    property.formProgress.step4Completed = property.rooms.length > 0;
     
     await property.save();
     
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      data: property
+      message: 'Room deleted successfully',
+      property
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    return errorResponse(res, 500, 'Server error', error.message);
   }
 };
 
-// Update property - step 7 (Images)
-export const updatePropertyStep7 = async (req, res) => {
+// Complete Property Listing
+export const completePropertyListing = async (req, res) => {
   try {
-    let property = await Property.findById(req.params.id);
+    const { propertyId } = req.params;
+    
+    // Check if property exists and belongs to user
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
     
     if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
+      return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+    
+    // Check if all steps are completed
+    const { step1Completed, step2Completed, step3Completed, step4Completed } = property.formProgress;
+    
+    if (!step1Completed || !step2Completed || !step3Completed || !step4Completed) {
+      return errorResponse(res, 400, 'Cannot complete listing - some steps are incomplete', {
+        step1Completed,
+        step2Completed,
+        step3Completed,
+        step4Completed
       });
     }
     
-    // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this property'
-      });
-    }
-    
-    // Handle file uploads
-    if (req.files) {
-      // Cover image
-      if (req.files.cover) {
-        property.images.cover = req.files.cover[0].path;
-      }
-      
-      // Additional images
-      if (req.files.additional) {
-        const additionalPaths = req.files.additional.map(file => file.path);
-        property.images.additional = additionalPaths;
-      }
-    }
-    
-    property.currentStep = property.currentStep < 8 ? 8 : property.currentStep;
-    property.updatedAt = Date.now();
-    
+    // Mark property as complete
+    property.formProgress.formCompleted = true;
     await property.save();
     
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      data: property
+      message: 'Property listing completed successfully',
+      property
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-// Update property - step 8 (Pricing)
-export const updatePropertyStep8 = async (req, res) => {
-  try {
-    const { currency, weekdayPrice, weekendPrice, monthlyDiscount } = req.body;
-    
-    let property = await Property.findById(req.params.id);
-    
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      });
-    }
-    
-    // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this property'
-      });
-    }
-    
-    property.pricing = {
-      currency,
-      weekdayPrice,
-      weekendPrice,
-      monthlyDiscount
-    };
-    property.currentStep = property.currentStep < 9 ? 9 : property.currentStep;
-    property.updatedAt = Date.now();
-    
-    await property.save();
-    
-    res.status(200).json({
-      success: true,
-      data: property
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-// Update property - step 9 (Availability)
-export const updatePropertyStep9 = async (req, res) => {
-  try {
-    const { minNights, maxNights, blockedDates } = req.body;
-    
-    let property = await Property.findById(req.params.id);
-    
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      });
-    }
-    
-    // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this property'
-      });
-    }
-    
-    property.availability = {
-      minNights,
-      maxNights,
-      blockedDates: blockedDates.map(date => new Date(date))
-    };
-    property.currentStep = property.currentStep < 10 ? 10 : property.currentStep;
-    property.updatedAt = Date.now();
-    
-    await property.save();
-    
-    res.status(200).json({
-      success: true,
-      data: property
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-// Final submission - step 10
-export const finalizeProperty = async (req, res) => {
-  try {
-    let property = await Property.findById(req.params.id);
-    
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      });
-    }
-    
-    // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this property'
-      });
-    }
-    
-    // Update status to pending for review
-    property.status = 'pending';
-    property.currentStep = 10;
-    property.updatedAt = Date.now();
-    
-    await property.save();
-    
-    res.status(200).json({
-      success: true,
-      data: property
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    return errorResponse(res, 500, 'Server error', error.message);
   }
 };
 
@@ -754,8 +590,6 @@ export const deleteProperty = async (req, res) => {
     });
   }
 };
-
-
 
 // Get properties by state
 export const getPropertiesByState = async (req, res) => {

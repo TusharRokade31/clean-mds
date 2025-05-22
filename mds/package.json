@@ -9,12 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@headlessui/react": "^2.2.2",
     "@heroicons/react": "^2.2.0",
+    "@mui/icons-material": "^7.1.0",
+    "@mui/material": "^7.1.0",
     "@react-oauth/google": "^0.12.2",
     "@reduxjs/toolkit": "^2.8.1",
     "axios": "^1.9.0",
-    "framer-motion": "^12.10.4",
+    "framer-motion": "^12.12.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.509.0",
     "next": "15.3.2",
@@ -30,6 +34,8 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/node": "22.15.19",
+    "@types/react": "19.1.4",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "tailwindcss": "^4"

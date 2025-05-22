@@ -18,9 +18,6 @@ const Header = () => {
     return null;
   }
 
-
-  const { isAuthenticated } = useSelector((state) => state.auth);
-
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };

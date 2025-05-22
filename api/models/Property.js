@@ -1,185 +1,323 @@
+// PropertySchema.js
 import mongoose from 'mongoose';
-import State from './State.js';
+const Schema = mongoose.Schema;
 import City from './City.js'
-import Stay from './Stay.js';
+import State from './State.js';
 
+// Amenity selection schema (for handling Yes/No + options)
+const AmenitySelectionSchema = new Schema({
+  available: {
+    type: Boolean,
+    default: false
+  },
+  option: {
+    type: String,
+    default: null
+  },
+  subOptions: [{
+    type: String
+  }]
+});
 
-const PropertySchema = new mongoose.Schema({
-  // Page 1 - Basic Info
+// Room schema
+const RoomSchema = new Schema({
+  roomType: { 
+    type: String, 
+    required: [true, 'Room type is required'] 
+  },
+  roomName: { 
+    type: String, 
+    required: [true, 'Room name is required'] 
+  },
+  roomSize: { 
+    type: Number,
+    required: [true, 'Room size is required']
+  },
+  sizeUnit: {
+    type: String,
+    enum: ['sqft', 'sqm'],
+    required: [true, 'Size unit is required']
+  },
+  description: { 
+    type: String 
+  },
+  
+  // Sleeping arrangement
+  beds: [{
+    bedType: { 
+      type: String,
+      required: [true, 'Bed type is required']
+    },
+    count: { 
+      type: Number,
+      required: [true, 'Bed count is required'],
+      min: [1, 'Must have at least one bed']
+    },
+    accommodates: { 
+      type: Number,
+      required: [true, 'Number of people the bed accommodates is required']
+    }
+  }],
+  
+  // Alternative sleeping arrangement
+  alternativeBeds: [{
+    bedType: { type: String },
+    count: { type: Number, min: 0 },
+    accommodates: { type: Number, min: 0 }
+  }],
+  
+  // Occupancy
+  occupancy: {
+    baseAdults: { 
+      type: Number, 
+      required: [true, 'Base adults count is required'],
+      min: [1, 'Must accommodate at least one adult']
+    },
+    maximumAdults: { 
+      type: Number, 
+      required: [true, 'Maximum adults count is required'] 
+    },
+    maximumChildren: { 
+      type: Number, 
+      required: [true, 'Maximum children count is required'] 
+    },
+    maximumOccupancy: { 
+      type: Number, 
+      required: [true, 'Maximum occupancy is required'] 
+    }
+  },
+  
+  // Bathroom details
+  bathrooms: {
+    count: { 
+      type: Number, 
+      required: [true, 'Bathroom count is required'],
+      min: [0, 'Bathroom count cannot be negative']
+    },
+    private: { 
+      type: Boolean, 
+      default: true 
+    }
+  },
+  
+  // Meal plan
+  mealPlan: {
+    available: { type: Boolean, default: false },
+    planType: { type: String }
+  },
+  
+  // Room pricing
+  pricing: {
+    baseAdultsCharge: { 
+      type: Number, 
+      required: [true, 'Base charge for adults is required'] 
+    },
+    extraAdultsCharge: { 
+      type: Number, 
+      required: [true, 'Extra adult charge is required'] 
+    },
+    childCharge: { 
+      type: Number, 
+      required: [true, 'Child charge is required'] 
+    }
+  },
+  
+  // Room availability
+  availability: [{
+    startDate: { 
+      type: Date, 
+      required: [true, 'Start date is required'] 
+    },
+    endDate: { 
+      type: Date, 
+      required: [true, 'End date is required'] 
+    },
+    availableUnits: {
+      type: Number,
+      required: [true, 'Available units is required'],
+      min: [0, 'Available units cannot be negative']
+    }
+  }],
+  
+  // Room amenities with Yes/No selection
+  amenities: {
+    mandatory: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    popularWithGuests: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    bathroom: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    roomFeatures: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    kitchenAppliances: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    bedsAndBlanket: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    safetyAndSecurity: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    otherFacilities: {
+      type: Map,
+      of: AmenitySelectionSchema
+    }
+  }
+}, {
+  timestamps: true
+});
+
+// Property Schema
+const PropertySchema = new Schema({
+  // Step 1 - Basic Info
   propertyType: {
-    type:  mongoose.Schema.Types.ObjectId,
-    ref: 'Stay',
-    required: true,
+    type: String,
+    required: [true, 'Property type is required'],
     enum: ['Hotel', 'Cottage', 'Villa', 'Cabin', 'Farm stay', 'Houseboat', 'Lighthouse']
   },
   placeName: {
     type: String,
-    required: true
+    required: [true, 'Place name is required']
   },
   placeRating: {
     type: String,
-    required: true
+    required: [true, 'Place rating is required']
   },
   propertyBuilt: {
     type: String,
-    required: true
+    required: [true, 'Property built year is required']
   },
   bookingSince: {
     type: String,
-    required: true
+    required: [true, 'Booking since date is required']
   },
   rentalForm: {
     type: String,
-    required: true,
+    required: [true, 'Rental form is required'],
     enum: ['Entire place', 'Private room', 'Share room']
   },
   
-  // Page 2 - Location
+  // Step 2 - Location
   location: {
-    country: { type: String, required: true },
-    street: { type: String, required: true },
-    roomNumber: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
+    country: { 
+      type: String, 
+      required: [true, 'Country is required'] 
+    },
+    street: { 
+      type: String, 
+      required: [true, 'Street address is required'] 
+    },
+    roomNumber: { 
+      type: String 
+    },
+    city: { 
+      type: String, 
+      required: [true, 'City is required'] 
+    },
+    state: { 
+      type: String, 
+      required: [true, 'State is required'] 
+    },
     stateRef: { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: State
+      type: Schema.Types.ObjectId, 
+      ref: State 
     },
     cityRef: { 
-      type: mongoose.Schema.Types.ObjectId, 
+      type: Schema.Types.ObjectId, 
       ref: City
     },
-    postalCode: { type: String, required: true },
+    postalCode: { 
+      type: String, 
+      required: [true, 'Postal code is required'] 
+    },
     coordinates: {
       lat: { type: Number },
       lng: { type: Number }
     }
   },
-  
-  // Page 3 - Size
-  size: {
-    acreage: { type: Number, required: true },
-    guests: { type: Number, default: 1 },
-    bedrooms: { type: Number, default: 1 },
-    beds: { type: Number, default: 1 },
-    bathrooms: { type: Number, default: 1 },
-    kitchens: { type: Number, default: 1 }
-  },
-  
-  // Page 4 - Amenities
+
+  // Step 3 - Property Amenities
   amenities: {
-    mandatory : [String],
-    basicFacilities: [String],
-    generalServices: [String],
-    commonArea: [String],
-    foodBeverages: [String],
-    healthWellness: [String],
-    MediaTechnology: [String],
-    paymentServices: [String],
-    security: [String],
-    safety: [String]
-  },
-  
-  // Page 5 - Rules
-  rules: {
-    smoking: { type: String, enum: ['Do not allow', 'Allow', 'Charge'], default: 'Do not allow' },
-    pets: { type: String, enum: ['Do not allow', 'Allow', 'Charge'], default: 'Do not allow' },
-    partyOrganizing: { type: String, enum: ['Do not allow', 'Allow', 'Charge'], default: 'Do not allow' },
-    cooking: { type: String, enum: ['Do not allow', 'Allow', 'Charge'], default: 'Do not allow' },
-    additionalRules: [String]
-  },
-  
-  // Page 6 - Description
-  description: {
-    type: String,
-    required: true
-  },
-  
-  // Page 7 - Images
-  images: {
-    cover: { type: String },
-    additional: [String]
-  },
-  
-  // Page 8 - Pricing
-  pricing: {
-    currency: { type: String, default: 'USD' },
-    weekdayPrice: { type: Number, required: true },
-    weekendPrice: { type: Number, required: true },
-    monthlyDiscount: { type: Number, default: 0 }
-  },
-  
-  // Page 9 - Availability
-  availability: {
-    minNights: { type: Number, default: 1 },
-    maxNights: { type: Number, default: 99 },
-    blockedDates: [Date] 
+    mandatory: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    basicFacilities: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    generalServices: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    commonArea: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    foodBeverages: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    healthWellness: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    mediaTechnology: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    paymentServices: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    security: {
+      type: Map,
+      of: AmenitySelectionSchema
+    },
+    safety: {
+      type: Map,
+      of: AmenitySelectionSchema
+    }
   },
 
-  // For Indian properties
-indianSpecifics: {
-  gstRegistered: { type: Boolean, default: false },
-  gstNumber: { type: String },
-  nearbyLandmarks: [String],
-  localLanguagesSpoken: [String]
-},
-
-// For reviews and ratings
-ratings: {
-  average: { type: Number, default: 0 },
-  cleanliness: { type: Number, default: 0 },
-  communication: { type: Number, default: 0 },
-  checkIn: { type: Number, default: 0 },
-  accuracy: { type: Number, default: 0 },
-  location: { type: Number, default: 0 },
-  value: { type: Number, default: 0 },
-  reviewCount: { type: Number, default: 0 }
-},
-
-// For Indian seasons and festivals pricing
-seasonalPricing: [{
-  season: { type: String, enum: ['Summer', 'Monsoon', 'Winter', 'Spring'] },
-  startDate: Date,
-  endDate: Date,
-  priceMultiplier: { type: Number, default: 1 }
-}],
-
-festivalPricing: [{
-  festival: String,
-  date: Date,
-  priceMultiplier: { type: Number, default: 1.5 }
-}],
+  // Step 4 - Rooms (multiple rooms can be added to a property)
+  rooms: [RoomSchema],
   
-  // Additional fields
-  host: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+  // Tracking form completion status
+  formProgress: {
+    step1Completed: { type: Boolean, default: false },
+    step2Completed: { type: Boolean, default: false },
+    step3Completed: { type: Boolean, default: false },
+    step4Completed: { type: Boolean, default: false },
+    formCompleted: { type: Boolean, default: false }
   },
-  status: {
+  
+    status: {
     type: String,
     enum: ['draft', 'pending', 'published', 'rejected'],
     default: 'draft'
   },
-  currentStep: {
-    type: Number,
-    default: 1,
-    min: 1,
-    max: 10
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'Property must belong to a user']
   }
 }, {
   timestamps: true
 });
 
 const Property = mongoose.model('Property', PropertySchema);
-
 
 export default Property;

@@ -1,5 +1,4 @@
 // src/redux/features/property/propertySlice.ts
-// src/redux/features/property/propertySlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { propertyAPI } from './propertyAPI';
 
@@ -28,6 +27,7 @@ export const initializeProperty = createAsyncThunk(
     }
   }
 );
+
 
 export const getAllProperties = createAsyncThunk(
   'property/getAllProperties',
@@ -149,113 +149,6 @@ export const updateRoom = createAsyncThunk(
 
 
 
-export const updatePropertyStep1 = createAsyncThunk(
-  'property/updatePropertyStep1',
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.updatePropertyStep1(id, data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update property');
-    }
-  }
-);
-
-export const updatePropertyStep2 = createAsyncThunk(
-  'property/updatePropertyStep2',
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.updatePropertyStep2(id, data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update property location');
-    }
-  }
-);
-
-export const updatePropertyStep3 = createAsyncThunk(
-  'property/updatePropertyStep3',
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.updatePropertyStep3(id, data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update property size');
-    }
-  }
-);
-
-export const updatePropertyStep4 = createAsyncThunk(
-  'property/updatePropertyStep4',
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.updatePropertyStep4(id, data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update property amenities');
-    }
-  }
-);
-
-export const updatePropertyStep5 = createAsyncThunk(
-  'property/updatePropertyStep5',
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.updatePropertyStep5(id, data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update property rules');
-    }
-  }
-);
-
-export const updatePropertyStep6 = createAsyncThunk(
-  'property/updatePropertyStep6',
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.updatePropertyStep6(id, data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update property description');
-    }
-  }
-);
-
-export const updatePropertyStep7 = createAsyncThunk(
-  'property/updatePropertyStep7',
-  async ({ id, formData }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.updatePropertyStep7(id, formData);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to upload property images');
-    }
-  }
-);
-
-export const updatePropertyStep8 = createAsyncThunk(
-  'property/updatePropertyStep8',
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.updatePropertyStep8(id, data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update property pricing');
-    }
-  }
-);
-
-export const updatePropertyStep9 = createAsyncThunk(
-  'property/updatePropertyStep9',
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.updatePropertyStep9(id, data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update property availability');
-    }
-  }
-);
 
 export const finalizeProperty = createAsyncThunk(
   'property/finalizeProperty',
@@ -427,8 +320,7 @@ const propertySlice = createSlice({
       state.error = action.payload;
     });
 
-    // Update property step handlers (common pattern for steps 1-9)
-    const handleStepUpdate = (builder, thunk) => {
+   const handlePropertyUpdate = (builder, thunk) => {
       builder.addCase(thunk.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -450,17 +342,12 @@ const propertySlice = createSlice({
       });
     };
 
-    // Apply the pattern to all step update thunks
-    handleStepUpdate(builder, updatePropertyStep1);
-    handleStepUpdate(builder, updatePropertyStep2);
-    handleStepUpdate(builder, updatePropertyStep3);
-    handleStepUpdate(builder, updatePropertyStep4);
-    handleStepUpdate(builder, updatePropertyStep5);
-    handleStepUpdate(builder, updatePropertyStep6);
-    handleStepUpdate(builder, updatePropertyStep7);
-    handleStepUpdate(builder, updatePropertyStep8);
-    handleStepUpdate(builder, updatePropertyStep9);
-    handleStepUpdate(builder, finalizeProperty);
+
+    handlePropertyUpdate(builder, updateBasicInfo)
+    handlePropertyUpdate(builder, updateLocation)
+    handlePropertyUpdate(builder, updateAmenities)
+    handlePropertyUpdate(builder, addRooms)
+    handlePropertyUpdate(builder, updateRoom)
 
     // Delete property
     builder.addCase(deleteProperty.pending, (state) => {

@@ -5,9 +5,13 @@ import { BarChart3, Users, Home, Settings, Menu, X, Bell, Search, ChevronDown, C
 import Image from "next/image"
 import Link from "next/link"
 import AvatarDropdown from "@/component/AvatarDropdown"
+import { usePathname } from "next/navigation"
 
 export default function HotelDashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const pathname = usePathname();
+
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -18,9 +22,8 @@ export default function HotelDashboardLayout({ children }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-[#1035ac] text-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-[#1035ac] text-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex h-16 items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-2 font-bold text-xl">
@@ -45,14 +48,16 @@ export default function HotelDashboardLayout({ children }) {
             <button className="rounded-md p-1 hover:bg-gray-100 lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu className="h-6 w-6" />
             </button>
-            <div className="relative w-64 max-w-xs lg:w-80">
+            {pathname == '/host' && <div className="relative w-64 max-w-xs lg:w-80">
               <input
                 type="text"
                 placeholder="Search bookings, guests..."
                 className="h-9 w-full rounded-md border border-gray-300 pl-9 pr-4 focus:border-[#1035ac] focus:outline-none focus:ring-1 focus:ring-[#1035ac]"
               />
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            </div>
+            </div>}
+
+
           </div>
           <div className="flex items-center gap-3">
             <button className="relative rounded-full p-1 hover:bg-gray-100">
@@ -60,8 +65,8 @@ export default function HotelDashboardLayout({ children }) {
               <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500"></span>
             </button>
             <div className="flex items-center gap-2">
-              <AvatarDropdown/>
-             
+              <AvatarDropdown />
+
             </div>
           </div>
         </header>
@@ -148,13 +153,12 @@ export default function HotelDashboardLayout({ children }) {
   )
 }
 
-function NavItem({ icon, label, active}) {
+function NavItem({ icon, label, active }) {
   return (
     <Link
       href={`/host/${label.toLowerCase()}`}
-      className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${
-        active ? "bg-blue-800" : "hover:bg-blue-800"
-      }`}
+      className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${active ? "bg-blue-800" : "hover:bg-blue-800"
+        }`}
     >
       {icon}
       <span>{label}</span>
