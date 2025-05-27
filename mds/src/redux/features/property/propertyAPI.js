@@ -33,6 +33,10 @@ export const propertyAPI = {
     return response.data;
   },
 
+   deleteRoom: async (propertyId, roomId) => {
+    return await axiosInstance.delete(`/properties/${propertyId}/rooms/${roomId}`);
+  },
+
   // Update property rooms
   updateRoom: async (id, data) => {
     const response = await axiosInstance.put(`/properties/${id}/rooms/${roomId}`, data);

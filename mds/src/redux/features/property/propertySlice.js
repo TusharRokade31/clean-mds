@@ -134,6 +134,19 @@ export const addRooms = createAsyncThunk(
 );
 
 
+export const deleteRoom = createAsyncThunk(
+  'property/deleteRoom',
+  async ({ propertyId, roomId }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.deleteRoom(propertyId, roomId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete room');
+    }
+  }
+);
+
+
 
 export const updateRoom = createAsyncThunk(
   'property/updateRoom',
@@ -335,6 +348,24 @@ const propertySlice = createSlice({
     handlePropertyUpdate(builder, updateAmenities)
     handlePropertyUpdate(builder, addRooms)
     handlePropertyUpdate(builder, updateRoom)
+
+    // delete room
+      builder.addCase(deleteRoom.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.error = null;
+        // Update current property with the response
+        if (action.payload) {
+          state.currentProperty = action.payload;
+        }
+      })
+      builder.addCase(deleteRoom.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      builder.addCase(deleteRoom.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
 
     // Delete property
     builder.addCase(deleteProperty.pending, (state) => {

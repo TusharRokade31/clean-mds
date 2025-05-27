@@ -10,7 +10,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import { useDispatch } from 'react-redux';
-import { addRooms, updateRoom } from '@/redux/features/property/propertySlice';
+import { addRooms, deleteRoom, updateRoom } from '@/redux/features/property/propertySlice';
 
 export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, onSave, onBack }) {
   const dispatch = useDispatch();
@@ -208,6 +208,8 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
 
   const handleUpdateRoom = async () => {
     if (!validateRoomData()) return;
+    console.log(formErrors)
+    console.log(currentRoomData)
     
     try {
       // Get the room ID if it exists (for existing rooms)
@@ -218,7 +220,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
         id: propertyId,
         data: {
           roomId,
-          ...currentRoomData
+          roomToUpdate
         }
       }));
       
@@ -241,28 +243,34 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
   };
 
   const handleDeleteRoom = async (index) => {
-    const roomToDelete = localRooms[index];
-    const roomId = roomToDelete._id || roomToDelete.id;
-    
-    // If room has an ID, it's saved in backend, so we need to call delete API
-    if (roomId) {
-      try {
-        // You'll need to implement deleteRoom action
-        // const result = await dispatch(deleteRoom({ propertyId, roomId }));
-        // For now, just remove locally
+  const roomToDelete = localRooms[index];
+  const roomId = roomToDelete._id || roomToDelete.id;
+  
+  // If room has an ID, it's saved in backend, so we need to call delete API
+  if (roomId && propertyId) {
+    try {
+      const result = await dispatch(deleteRoom({ 
+        propertyId, 
+        roomId 
+      }));
+      
+      if (result.type.endsWith('/fulfilled')) {
+        // Remove from local state after successful deletion
         const updatedRooms = localRooms.filter((_, i) => i !== index);
         setLocalRooms(updatedRooms);
         onAddRoom(updatedRooms);
-      } catch (error) {
-        console.error('Failed to delete room:', error);
       }
-    } else {
-      // Room not saved yet, just remove locally
-      const updatedRooms = localRooms.filter((_, i) => i !== index);
-      setLocalRooms(updatedRooms);
-      onAddRoom(updatedRooms);
+    } catch (error) {
+      console.error('Failed to delete room:', error);
+      // You might want to show an error message to the user
     }
-  };
+  } else {
+    // Room not saved yet, just remove locally
+    const updatedRooms = localRooms.filter((_, i) => i !== index);
+    setLocalRooms(updatedRooms);
+    onAddRoom(updatedRooms);
+  }
+};
 
   const handleEditRoom = (index) => {
     const roomToEdit = localRooms[index];
