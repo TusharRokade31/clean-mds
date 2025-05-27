@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Button, Typography, Divider, TextField, FormControl, 
   InputLabel, Select, MenuItem, FormHelperText, Grid, 
@@ -8,55 +8,69 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import { useDispatch } from 'react-redux';
+import { addRooms, updateRoom } from '@/redux/features/property/propertySlice';
 
-export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDeleteRoom, errors }) {
+export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, onSave, onBack }) {
+  const dispatch = useDispatch();
   const [isAddingRoom, setIsAddingRoom] = useState(false);
-  const [currentRoomData, setCurrentRoomData] = useState({
-    roomType: '',
-    roomName: '',
-    roomSize: '',
-    sizeUnit: 'sqft',
-    description: '',
-    beds: [{ bedType: '', count: 1, accommodates: 1 }],
-    alternativeBeds: [],
-    occupancy: {
-      baseAdults: 1,
-      maximumAdults: 1,
-      maximumChildren: 0,
-      maximumOccupancy: 1
-    },
-    bathrooms: {
-      count: 1,
-      private: true
-    },
-    mealPlan: {
-      available: false,
-      planType: ''
-    },
-    pricing: {
-      baseAdultsCharge: '',
-      extraAdultsCharge: '',
-      childCharge: ''
-    },
-    availability: [{
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-      availableUnits: 1
-    }],
-    amenities: {
-      mandatory: {},
-      popularWithGuests: {},
-      bathroom: {},
-      roomFeatures: {},
-      kitchenAppliances: {},
-      bedsAndBlanket: {},
-      safetyAndSecurity: {},
-      otherFacilities: {}
-    }
-  });
-  
-  const [selectedRoomIndex, setSelectedRoomIndex] = useState(-1);
+  const [isEditingRoom, setIsEditingRoom] = useState(false);
+  const [editingRoomIndex, setEditingRoomIndex] = useState(-1);
+  const [currentRoomData, setCurrentRoomData] = useState(getInitialRoomData());
   const [formErrors, setFormErrors] = useState({});
+  const [localRooms, setLocalRooms] = useState(rooms);
+  
+  // Update local rooms when props change
+  useEffect(() => {
+    setLocalRooms(rooms);
+  }, [rooms]);
+
+  function getInitialRoomData() {
+    return {
+      roomType: '',
+      roomName: '',
+      roomSize: '',
+      sizeUnit: 'sqft',
+      description: '',
+      beds: [{ bedType: '', count: 1, accommodates: 1 }],
+      alternativeBeds: [],
+      occupancy: {
+        baseAdults: 1,
+        maximumAdults: 1,
+        maximumChildren: 0,
+        maximumOccupancy: 1
+      },
+      bathrooms: {
+        count: 1,
+        private: true
+      },
+      mealPlan: {
+        available: false,
+        planType: ''
+      },
+      pricing: {
+        baseAdultsCharge: '',
+        extraAdultsCharge: '',
+        childCharge: ''
+      },
+      availability: [{
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+        availableUnits: 1
+      }],
+      amenities: {
+        mandatory: {},
+        popularWithGuests: {},
+        bathroom: {},
+        roomFeatures: {},
+        kitchenAppliances: {},
+        bedsAndBlanket: {},
+        safetyAndSecurity: {},
+        otherFacilities: {}
+      }
+    };
+  }
   
   const bedTypes = [
     'Single Bed', 'Double Bed', 'Queen Bed', 'King Bed', 'Bunk Bed', 
@@ -166,95 +180,189 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
     return Object.keys(errors).length === 0;
   };
   
-  const handleAddRoom = () => {
-    if (validateRoomData()) {
-      onAddRoom(currentRoomData);
-      setIsAddingRoom(false);
-      setCurrentRoomData({
-        roomType: '',
-        roomName: '',
-        roomSize: '',
-        sizeUnit: 'sqft',
-        description: '',
-        beds: [{ bedType: '', count: 1, accommodates: 1 }],
-        alternativeBeds: [],
-        occupancy: {
-          baseAdults: 1,
-          maximumAdults: 1,
-          maximumChildren: 0,
-          maximumOccupancy: 1
-        },
-        bathrooms: {
-          count: 1,
-          private: true
-        },
-        mealPlan: {
-          available: false,
-          planType: ''
-        },
-        pricing: {
-          baseAdultsCharge: '',
-          extraAdultsCharge: '',
-          childCharge: ''
-        },
-        availability: [{
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-          availableUnits: 1
-        }],
-        amenities: {
-          mandatory: {},
-          popularWithGuests: {},
-          bathroom: {},
-          roomFeatures: {},
-          kitchenAppliances: {},
-          bedsAndBlanket: {},
-          safetyAndSecurity: {},
-          otherFacilities: {}
-        }
-      });
+  const handleAddRoom = async () => {
+    if (!validateRoomData()) return;
+    
+    try {
+      // Call the API to add the room
+      const result = await dispatch(addRooms({
+        id: propertyId,
+        data: currentRoomData // Send single room object
+      }));
+      
+      if (result.type.endsWith('/fulfilled')) {
+        // Update local state
+        const updatedRooms = [...localRooms, currentRoomData];
+        setLocalRooms(updatedRooms);
+        onAddRoom(updatedRooms); // Update parent component
+        
+        // Reset form
+        setIsAddingRoom(false);
+        setCurrentRoomData(getInitialRoomData());
+        setFormErrors({});
+      }
+    } catch (error) {
+      console.error('Failed to add room:', error);
     }
+  };
+
+  const handleUpdateRoom = async () => {
+    if (!validateRoomData()) return;
+    
+    try {
+      // Get the room ID if it exists (for existing rooms)
+      const roomToUpdate = localRooms[editingRoomIndex];
+      const roomId = roomToUpdate._id || roomToUpdate.id;
+      
+      const result = await dispatch(updateRoom({
+        id: propertyId,
+        data: {
+          roomId,
+          ...currentRoomData
+        }
+      }));
+      
+      if (result.type.endsWith('/fulfilled')) {
+        // Update local state
+        const updatedRooms = [...localRooms];
+        updatedRooms[editingRoomIndex] = currentRoomData;
+        setLocalRooms(updatedRooms);
+        onAddRoom(updatedRooms); // Update parent component
+        
+        // Reset form
+        setIsEditingRoom(false);
+        setEditingRoomIndex(-1);
+        setCurrentRoomData(getInitialRoomData());
+        setFormErrors({});
+      }
+    } catch (error) {
+      console.error('Failed to update room:', error);
+    }
+  };
+
+  const handleDeleteRoom = async (index) => {
+    const roomToDelete = localRooms[index];
+    const roomId = roomToDelete._id || roomToDelete.id;
+    
+    // If room has an ID, it's saved in backend, so we need to call delete API
+    if (roomId) {
+      try {
+        // You'll need to implement deleteRoom action
+        // const result = await dispatch(deleteRoom({ propertyId, roomId }));
+        // For now, just remove locally
+        const updatedRooms = localRooms.filter((_, i) => i !== index);
+        setLocalRooms(updatedRooms);
+        onAddRoom(updatedRooms);
+      } catch (error) {
+        console.error('Failed to delete room:', error);
+      }
+    } else {
+      // Room not saved yet, just remove locally
+      const updatedRooms = localRooms.filter((_, i) => i !== index);
+      setLocalRooms(updatedRooms);
+      onAddRoom(updatedRooms);
+    }
+  };
+
+  const handleEditRoom = (index) => {
+    const roomToEdit = localRooms[index];
+    setCurrentRoomData(roomToEdit);
+    setEditingRoomIndex(index);
+    setIsEditingRoom(true);
+    setIsAddingRoom(true); // Reuse the same form
+  };
+
+  const handleCancelForm = () => {
+    setIsAddingRoom(false);
+    setIsEditingRoom(false);
+    setEditingRoomIndex(-1);
+    setCurrentRoomData(getInitialRoomData());
+    setFormErrors({});
   };
   
   return (
     <div>
       <Typography variant="h5" gutterBottom>Room Details</Typography>
-      
+
+      {localRooms.length === 0 && !isAddingRoom && (
+        <div className="text-center py-8">
+          <Typography variant="body1" color="text.secondary" gutterBottom>
+            No rooms added yet. Please add at least one room to continue.
+          </Typography>
+        </div>
+      )}
+
       {/* List of added rooms */}
-      {rooms.length > 0 && (
+      {localRooms.length > 0 && !isAddingRoom && (
         <div className="mb-6">
-          <Typography variant="h6" gutterBottom>Added Rooms</Typography>
+          <Typography variant="h6" gutterBottom>Added Rooms ({localRooms.length})</Typography>
           <Grid container spacing={3}>
-            {rooms.map((room, index) => (
-              <Grid item xs={12} md={6} key={index}>
+            {localRooms.map((room, index) => (
+              <Grid item size={{xs:12 ,md:6}} key={index}>
                 <Card variant="outlined">
                   <CardContent>
                     <div className="flex justify-between items-center mb-2">
                       <Typography variant="h6">{room.roomName}</Typography>
-                      <IconButton 
-                        size="small" 
-                        color="error"
-                        onClick={() => onDeleteRoom && onDeleteRoom(index)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                      <div className="flex gap-1">
+                        <IconButton 
+                          size="small" 
+                          color="primary"
+                          onClick={() => handleEditRoom(index)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          color="error"
+                          onClick={() => handleDeleteRoom(index)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </div>
                     </div>
-                    <Typography variant="body2" color="text.secondary">
+                    
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
                       {room.roomType} · {room.roomSize} {room.sizeUnit}
                     </Typography>
+                    
+                    {room.description && (
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        {room.description}
+                      </Typography>
+                    )}
+                    
                     <Divider className="my-2" />
-                    <Typography variant="body2">
-                      <strong>Beds:</strong> {room.beds.map(bed => 
-                        `${bed.count} ${bed.bedType} (fits ${bed.accommodates})`
-                      ).join(', ')}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Occupancy:</strong> {room.occupancy.baseAdults} adults (max {room.occupancy.maximumAdults}), 
-                      up to {room.occupancy.maximumChildren} children
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Price:</strong> ₹{room.pricing.baseAdultsCharge} per night
-                    </Typography>
+                    
+                    <div className="space-y-1">
+                      <Typography variant="body2">
+                        <strong>Beds:</strong> {room.beds.map(bed => 
+                          `${bed.count}x ${bed.bedType} (${bed.accommodates} guests)`
+                        ).join(', ')}
+                      </Typography>
+                      
+                      <Typography variant="body2">
+                        <strong>Occupancy:</strong> {room.occupancy.baseAdults}-{room.occupancy.maximumAdults} adults
+                        {room.occupancy.maximumChildren > 0 && `, up to ${room.occupancy.maximumChildren} children`}
+                        {` (max ${room.occupancy.maximumOccupancy} total)`}
+                      </Typography>
+                      
+                      <Typography variant="body2">
+                        <strong>Bathroom:</strong> {room.bathrooms.count} 
+                        {room.bathrooms.private ? ' private' : ' shared'}
+                      </Typography>
+                      
+                      {room.mealPlan.available && (
+                        <Typography variant="body2">
+                          <strong>Meal Plan:</strong> {room.mealPlan.planType || 'Available'}
+                        </Typography>
+                      )}
+                      
+                      <Typography variant="body2">
+                        <strong>Price:</strong> ₹{room.pricing.baseAdultsCharge} per night
+                        {room.pricing.extraAdultsCharge && ` (+₹${room.pricing.extraAdultsCharge} per extra adult)`}
+                        {room.pricing.childCharge && ` (+₹${room.pricing.childCharge} per child)`}
+                      </Typography>
+                    </div>
                   </CardContent>
                 </Card>
               </Grid>
@@ -263,14 +371,16 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
         </div>
       )}
       
-      {/* Add new room form */}
+      {/* Add/Edit room form */}
       {isAddingRoom ? (
         <Paper className="p-4 mb-4">
-          <Typography variant="h6" gutterBottom>Add New Room</Typography>
+          <Typography variant="h6" gutterBottom>
+            {isEditingRoom ? 'Edit Room' : 'Add New Room'}
+          </Typography>
           
           <Grid container spacing={3}>
             {/* Basic Room Details */}
-            <Grid item xs={12} md={6}>
+            <Grid item size={{xs:12 ,md:6}}>
               <FormControl fullWidth error={!!formErrors.roomType} className="mb-4">
                 <InputLabel>Room Type *</InputLabel>
                 <Select
@@ -324,7 +434,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
               </Grid>
             </Grid>
             
-            <Grid item xs={12} md={6}>
+            <Grid item size={{xs:12 ,md:6}}>
               <TextField
                 fullWidth
                 label="Description"
@@ -337,12 +447,12 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
             </Grid>
             
             {/* Bed Configuration */}
-            <Grid item xs={12}>
+            <Grid item size={{xs:12}}>
               <Typography variant="subtitle1" gutterBottom>Bed Configuration *</Typography>
               
               {currentRoomData.beds.map((bed, index) => (
                 <Grid container spacing={2} key={index} className="mb-3 items-end">
-                  <Grid item xs={12} sm={4}>
+                  <Grid item size={{xs:12}} sm={4}>
                     <FormControl fullWidth error={!!formErrors.beds?.[index]?.bedType}>
                       <InputLabel>Bed Type *</InputLabel>
                       <Select
@@ -360,7 +470,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
                     </FormControl>
                   </Grid>
                   
-                  <Grid item xs={6} sm={3}>
+                  <Grid item size={{xs:12, md:6}}>
                     <TextField
                       fullWidth
                       label="Count *"
@@ -373,7 +483,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
                     />
                   </Grid>
                   
-                  <Grid item xs={6} sm={3}>
+                  <Grid item size={{xs:12, md:6}}>
                     <TextField
                       fullWidth
                       label="Accommodates *"
@@ -386,7 +496,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
                     />
                   </Grid>
                   
-                  <Grid item xs={12} sm={2} className="flex justify-end">
+                  <Grid item size={{xs:12}} sm={2} className="flex justify-end">
                     <IconButton 
                       color="error" 
                       onClick={() => removeBed(index)}
@@ -409,12 +519,12 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
             </Grid>
             
             {/* Occupancy */}
-            <Grid item xs={12}>
+            <Grid item size={{xs:12}}>
               <Divider className="my-3" />
               <Typography variant="subtitle1" gutterBottom>Occupancy</Typography>
               
               <Grid container spacing={3}>
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{xs:12, md:6}}>
                   <TextField
                     fullWidth
                     label="Base Adults *"
@@ -425,7 +535,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
                   />
                 </Grid>
                 
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{xs:12, md:6}}>
                   <TextField
                     fullWidth
                     label="Maximum Adults *"
@@ -436,7 +546,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
                   />
                 </Grid>
                 
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{xs:12, md:6}}>
                   <TextField
                     fullWidth
                     label="Maximum Children"
@@ -447,7 +557,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
                   />
                 </Grid>
                 
-                <Grid item xs={6} sm={3}>
+                <Grid item size={{xs:12, md:6}}>
                   <TextField
                     fullWidth
                     label="Maximum Occupancy"
@@ -461,7 +571,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
             </Grid>
             
             {/* Bathroom */}
-            <Grid item xs={12} md={6}>
+            <Grid item size={{xs:12 ,md:6}}>
               <Typography variant="subtitle1" gutterBottom>Bathroom</Typography>
               
               <Grid container spacing={2}>
@@ -491,7 +601,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
             </Grid>
             
             {/* Meal Plan */}
-            <Grid item xs={12} md={6}>
+            <Grid item size={{xs:12 ,md:6}}>
               <Typography variant="subtitle1" gutterBottom>Meal Plan</Typography>
               
               <FormControlLabel
@@ -517,12 +627,12 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
             </Grid>
             
             {/* Pricing */}
-            <Grid item xs={12}>
+            <Grid item size={{xs:12}}>
               <Divider className="my-3" />
               <Typography variant="subtitle1" gutterBottom>Pricing</Typography>
               
               <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
+                <Grid item size={{xs:12}} md={4}>
                   <TextField
                     fullWidth
                     label="Base Price (per night) *"
@@ -535,7 +645,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
                   />
                 </Grid>
                 
-                <Grid item xs={12} md={4}>
+                <Grid item size={{xs:12}} md={4}>
                   <TextField
                     fullWidth
                     label="Extra Adult Charge"
@@ -546,7 +656,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
                   />
                 </Grid>
                 
-                <Grid item xs={12} md={4}>
+                <Grid item size={{xs:12}} md={4}>
                   <TextField
                     fullWidth
                     label="Child Charge"
@@ -563,16 +673,16 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
           <div className="flex justify-end mt-4 gap-2">
             <Button 
               variant="outlined" 
-              onClick={() => setIsAddingRoom(false)}
+              onClick={handleCancelForm}
             >
               Cancel
             </Button>
             <Button 
               variant="contained" 
               color="primary" 
-              onClick={handleAddRoom}
+              onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
             >
-              Add Room
+              {isEditingRoom ? 'Update Room' : 'Add Room'}
             </Button>
           </div>
         </Paper>
@@ -588,7 +698,7 @@ export default function RoomsForm({ rooms = [], onAddRoom, onUpdateRoom, onDelet
           </Button>
         </div>
       )}
-      
+
       {errors && errors.rooms && (
         <Typography color="error" className="mt-4">
           {errors.rooms}

@@ -17,6 +17,7 @@ export function middleware(request) {
   
   // Check for dashboard paths
   const isDashboardPath = path.startsWith('/admin')
+  const isHostPath = path.startsWith('/host')
   
   if (isPublicPath && token) {
     return NextResponse.redirect(new URL('/', request.url))
@@ -41,6 +42,14 @@ export function middleware(request) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
   }
+
+   if (isProtectedPaths) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    
+  
+  }
   
   return NextResponse.next()
 }
@@ -51,6 +60,7 @@ export const config = {
     '/login',
     '/signup',
     '/admin/:path*',
+    '/host/:path*',
     '/account', 
     '/account-billing', 
     '/account-password', 

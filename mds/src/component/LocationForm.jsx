@@ -16,7 +16,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
   
   // Fetch cities when state changes
   useEffect(() => {
-    if (formData.state) {
+    if (formData?.state) {
       // Mock cities data based on state
       const stateCities = {
         'Delhi': ['New Delhi', 'Gurgaon'],
@@ -25,52 +25,52 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
         'Tamil Nadu': ['Chennai', 'Coimbatore']
       };
       
-      setCities(stateCities[formData.state] || []);
+      setCities(stateCities[formData?.state] || []);
     } else {
       setCities([]);
     }
-  }, [formData.state]);
+  }, [formData?.state]);
 
   return (
     <div>
       <Typography variant="h5" gutterBottom>Property Location</Typography>
       
       <Grid container spacing={3}>
-        <Grid item xs={12}>
+        <Grid item size={{xs:6}}>
           <TextField
             fullWidth
             label="Country"
-            value={formData.country || ''}
+            value={formData?.country || ''}
             onChange={(e) => onChange('country', e.target.value)}
-            error={!!errors.country}
-            helperText={errors.country}
+            error={!!errors?.country}
+            helperText={errors?.country}
           />
         </Grid>
         
-        <Grid item xs={12}>
+        <Grid item size={{xs:6}}>
           <TextField
             fullWidth
             label="Street Address"
-            value={formData.street || ''}
+            value={formData?.street || ''}
             onChange={(e) => onChange('street', e.target.value)}
-            error={!!errors.street}
-            helperText={errors.street}
+            error={!!errors?.street}
+            helperText={errors?.street}
           />
         </Grid>
         
-        <Grid item xs={12} md={6}>
+        <Grid item size={{xs:6}} md={6}>
           <TextField
             fullWidth
             label="Room/Suite Number (optional)"
-            value={formData.roomNumber || ''}
+            value={formData?.roomNumber || ''}
             onChange={(e) => onChange('roomNumber', e.target.value)}
           />
         </Grid>
         
-        <Grid item xs={12} md={6}>
+        <Grid item size={{xs:6}} md={6}>
           <Autocomplete
             options={states}
-            value={formData.state || null}
+            value={formData?.state || null}
             onChange={(_, newValue) => {
               onChange('state', newValue);
               // Reset city when state changes
@@ -80,42 +80,42 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
               <TextField 
                 {...params} 
                 label="State"
-                error={!!errors.state}
-                helperText={errors.state}
+                error={!!errors?.state}
+                helperText={errors?.state}
               />
             )}
           />
         </Grid>
         
-        <Grid item xs={12} md={6}>
+        <Grid item size={{xs:6}} md={6}>
           <Autocomplete
             options={cities}
-            value={formData.city || null}
+            value={formData?.city || null}
             onChange={(_, newValue) => onChange('city', newValue)}
-            disabled={!formData.state}
+            disabled={!formData?.state}
             renderInput={(params) => (
               <TextField 
                 {...params} 
                 label="City"
-                error={!!errors.city}
-                helperText={errors.city}
+                error={!!errors?.city}
+                helperText={errors?.city}
               />
             )}
           />
         </Grid>
         
-        <Grid item xs={12} md={6}>
+        <Grid item size={{xs:6}} md={6}>
           <TextField
             fullWidth
             label="Postal Code"
-            value={formData.postalCode || ''}
+            value={formData?.postalCode || ''}
             onChange={(e) => onChange('postalCode', e.target.value)}
-            error={!!errors.postalCode}
-            helperText={errors.postalCode}
+            error={!!errors?.postalCode}
+            helperText={errors?.postalCode}
           />
         </Grid>
         
-        <Grid item xs={12} className="flex justify-end mt-4">
+        <Grid item size={{xs:6}} className="flex justify-end mt-4">
           <Button 
             variant="contained" 
             color="primary" 

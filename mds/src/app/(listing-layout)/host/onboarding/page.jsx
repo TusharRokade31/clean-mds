@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { useTheme } from '@mui/material/styles';
 import { 
   Tabs, Tab, Typography, Box, Button, 
-  Stepper, Step, StepLabel, Paper
+  Stepper, Step, StepLabel, Paper, Alert
 } from '@mui/material';
 import { 
   initializeProperty, 
@@ -13,7 +13,8 @@ import {
   updateBasicInfo,
   updateLocation,
   updateAmenities,
-  addRooms
+  addRooms,
+  updateRoom
 } from '@/redux/features/property/propertySlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useRouter } from 'next/navigation';
@@ -22,7 +23,6 @@ import BasicInfoForm from '@/component/BasicInfoForm';
 import LocationForm from '@/component/LocationForm';
 import AmenitiesForm from '@/component/AmenitiesForm';
 import RoomsForm from '@/component/RoomsForm';
-
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -60,16 +60,32 @@ function a11yProps(index) {
 export default function PropertyForm() {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
-  const [formErrors, setFormErrors] = useState({});
   const { id } = useParams();
   const router = useRouter();
   const dispatch = useDispatch();
   
   const { currentProperty, isLoading, error, draftProperties } = useSelector(state => state.property);
+  console.log(currentProperty, "from main page")
+  console.log(draftProperties)
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [formData, setFormData] = useState({
-    basicInfo: {},
-    location: {},
+    basicInfo: {
+      propertyType: '',
+      placeName: '',
+      placeRating: '',
+      propertyBuilt: '',
+      bookingSince: '',
+      rentalForm: ''
+    },
+    location: {
+      country: '',
+      street: '',
+      roomNumber: '',
+      city: '',
+      state: '',
+      postalCode: '',
+      coordinates: { lat: null, lng: null }
+    },
     amenities: {
       mandatory: {},
       basicFacilities: {},
@@ -84,37 +100,25 @@ export default function PropertyForm() {
     },
     rooms: []
   });
-  
+  console.log(formData.basicInfo)
   const hasInitializedRef = useRef(false);
 
   // Initialize property data
   useEffect(() => {
-    let isInitializing = false;
-    
-    if (!hasInitializedRef.current && !isInitializing) {
-      isInitializing = true;
+    if (!hasInitializedRef.current) {
       hasInitializedRef.current = true;
       
-      const timer = setTimeout(() => {
-        if (id) {
-          dispatch(getProperty(id));
-        } else {
-          dispatch(getDraftProperties()).then(result => {
-            if (result.payload && result.payload.data && result.payload.data.length > 0) {
-              setShowDraftModal(true);
-            } else {
-              dispatch(initializeProperty());
-            }
-          }).catch(err => {
-            console.error("Error fetching draft properties:", err);
+      if (id) {
+        dispatch(getProperty(id));
+      } else {
+        dispatch(getDraftProperties())
+          if (dispatch(getDraftProperties()).unwrap()) {
+            setShowDraftModal(true);
+          } else {
             dispatch(initializeProperty());
-          });
-        }
-      }, 10);
-      
-      return () => {
-        clearTimeout(timer);
-      };
+          }
+        
+      }
     }
   }, [dispatch, id]);
   
@@ -128,8 +132,8 @@ export default function PropertyForm() {
 
   // Update form data when property data is loaded
   useEffect(() => {
-    if (currentProperty && currentProperty.property) {
-      const property = currentProperty.property;
+    if (currentProperty) {
+      const property = currentProperty;
       
       // Set initial tab based on form progress
       if (property.formProgress) {
@@ -139,7 +143,7 @@ export default function PropertyForm() {
         else if (!property.formProgress.step4Completed) setActiveTab(3);
       }
       
-      // Initialize form data
+      // Initialize form data with property data
       setFormData({
         basicInfo: {
           propertyType: property.propertyType || '',
@@ -149,7 +153,15 @@ export default function PropertyForm() {
           bookingSince: property.bookingSince || '',
           rentalForm: property.rentalForm || ''
         },
-        location: property.location || {},
+        location: {
+          country: property.location?.country || '',
+          street: property.location?.street || '',
+          roomNumber: property.location?.roomNumber || '',
+          city: property.location?.city || '',
+          state: property.location?.state || '',
+          postalCode: property.location?.postalCode || '',
+          coordinates: property.location?.coordinates || { lat: null, lng: null }
+        },
         amenities: property.amenities || {
           mandatory: {},
           basicFacilities: {},
@@ -162,92 +174,13 @@ export default function PropertyForm() {
           security: {},
           safety: {}
         },
-        rooms: property.rooms || []
+        rooms: property.rooms || {}
       });
     }
   }, [currentProperty]);
 
   const handleTabChange = (event, newValue) => {
-    // Check if moving forward
-    if (newValue > activeTab) {
-      // Validate current tab before allowing to move forward
-      const isValid = validateCurrentTab(activeTab);
-      if (!isValid) return;
-    }
-    
     setActiveTab(newValue);
-  };
-
-  const validateCurrentTab = (tab) => {
-    let isValid = true;
-    const errors = {};
-    
-    switch(tab) {
-      case 0: // Basic Info
-        if (!formData.basicInfo.propertyType) {
-          errors.propertyType = 'Property type is required';
-          isValid = false;
-        }
-        if (!formData.basicInfo.placeName) {
-          errors.placeName = 'Place name is required';
-          isValid = false;
-        }
-        if (!formData.basicInfo.placeRating) {
-          errors.placeRating = 'Rating is required';
-          isValid = false;
-        }
-        if (!formData.basicInfo.propertyBuilt) {
-          errors.propertyBuilt = 'Built year is required';
-          isValid = false;
-        }
-        if (!formData.basicInfo.bookingSince) {
-          errors.bookingSince = 'Booking since date is required';
-          isValid = false;
-        }
-        if (!formData.basicInfo.rentalForm) {
-          errors.rentalForm = 'Rental form is required';
-          isValid = false;
-        }
-        break;
-        
-      case 1: // Location
-        if (!formData.location.country) {
-          errors.country = 'Country is required';
-          isValid = false;
-        }
-        if (!formData.location.street) {
-          errors.street = 'Street is required';
-          isValid = false;
-        }
-        if (!formData.location.city) {
-          errors.city = 'City is required';
-          isValid = false;
-        }
-        if (!formData.location.state) {
-          errors.state = 'State is required';
-          isValid = false;
-        }
-        if (!formData.location.postalCode) {
-          errors.postalCode = 'Postal code is required';
-          isValid = false;
-        }
-        break;
-        
-      case 2: // Amenities
-        // Check if mandatory amenities are selected
-        // This would depend on your specific requirements
-        break;
-        
-      case 3: // Rooms
-        if (formData.rooms.length === 0) {
-          errors.rooms = 'At least one room is required';
-          isValid = false;
-        }
-        break;
-    }
-    
-    setFormErrors(errors);
-    return isValid;
   };
 
   const handleInputChange = (section, field, value) => {
@@ -260,60 +193,63 @@ export default function PropertyForm() {
     }));
   };
 
-  const handleSaveBasicInfo = async () => {
-    if (!validateCurrentTab(0)) return;
+  const handleSaveAndNext = async (tabIndex) => {
+    if (!currentProperty?._id) return;
+
+    let result;
     
-    if (currentProperty && currentProperty.property) {
-      await dispatch(updateBasicInfo({
-        id: currentProperty.property._id,
-        data: formData.basicInfo
-      }));
-      
-      setActiveTab(1);
-    }
-  };
+    switch(tabIndex) {
+      case 0: // Basic Info
+        result = await dispatch(updateBasicInfo({
+          id: currentProperty._id,
+          data: formData.basicInfo
+        }));
+        break;
+        
+      case 1: // Location
+        result = await dispatch(updateLocation({
+          id: currentProperty._id,
+          data: formData.location
+        }));
+        break;
+        
+      case 2: // Amenities
+        result = await dispatch(updateAmenities({
+          id: currentProperty._id,
+          data: { amenities: formData.amenities }
+        }));
+        break;
 
-  const handleSaveLocation = async () => {
-    if (!validateCurrentTab(1)) return;
+      case 3: // Rooms
+  if (formData.rooms.length === 0) {
+    alert('Please add at least one room before continuing');
+    return;
+  }
+  // Don't dispatch addRooms here since it's already handled in RoomsForm
+  // Just proceed to next step or completion
+  if (tabIndex < 3) {
+    setActiveTab(tabIndex + 1);
+  } else {
+    // Handle completion
+    console.log('Property listing completed');
+    // Navigate to success page or show completion message
+  }
+  break;
+        
+      default:
+        return;
+    }
     
-    if (currentProperty && currentProperty.property) {
-      await dispatch(updateLocation({
-        id: currentProperty.property._id,
-        data: formData.location
-      }));
-      
-      setActiveTab(2);
+   if (result.type.endsWith('/fulfilled')) {
+    if (tabIndex < 3) {
+      setActiveTab(tabIndex + 1);
+    } else {
+      // Handle completion
+      console.log('Property listing completed');
+      // Navigate to success page or show completion message
     }
-  };
-
-  const handleSaveAmenities = async () => {
-    if (!validateCurrentTab(2)) return;
-    
-    if (currentProperty && currentProperty.property) {
-      await dispatch(updateAmenities({
-        id: currentProperty.property._id,
-        data: { amenities: formData.amenities }
-      }));
-      
-      setActiveTab(3);
-    }
-  };
-
-  const handleAddRoom = async (roomData) => {
-    if (currentProperty && currentProperty.property) {
-      await dispatch(addRooms({
-        id: currentProperty.property._id,
-        data: roomData
-      }));
-      
-      // Update rooms in formData
-      setFormData(prev => ({
-        ...prev,
-        rooms: [...prev.rooms, roomData]
-      }));
-    }
-  };
-
+  }
+};
   const selectDraftProperty = (propertyId) => {
     dispatch(getProperty(propertyId));
     setShowDraftModal(false);
@@ -328,31 +264,33 @@ export default function PropertyForm() {
     if (!showDraftModal) return null;
     
     return (
-      <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 shadow-2xl max-w-md w-full">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 shadow-2xl max-w-md w-full mx-4">
           <h2 className="text-xl font-bold mb-4">Continue your listing</h2>
           <p className="mb-4">You have unfinished property listings. Would you like to continue working on one of them?</p>
           
           <div className="max-h-60 overflow-y-auto mb-4">
-            {draftProperties && draftProperties.data && draftProperties.data.map(property => (
+            {draftProperties?.map(property => (
               <div 
                 key={property._id} 
                 className="p-3 border border-gray-200 rounded-md mb-2 hover:bg-gray-50 cursor-pointer"
                 onClick={() => selectDraftProperty(property._id)}
               >
-                <h3 className="font-medium">{property.propertyType || 'Draft property'}</h3>
-                <p className="text-sm text-gray-500">Last updated: {new Date(property.updatedAt).toLocaleString()}</p>
+                <h3 className="font-medium">{property.placeName || property.propertyType || 'Draft property'}</h3>
+                <p className="text-sm text-gray-500">
+                  Last updated: {new Date(property.updatedAt).toLocaleDateString()}
+                </p>
               </div>
             ))}
           </div>
           
           <div className="flex justify-between">
-            <button 
-              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+            <Button 
+              variant="outlined"
               onClick={createNewProperty}
             >
               Create new listing
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -367,19 +305,17 @@ export default function PropertyForm() {
     );
   }
 
-  const steps = ['Basic Info', 'Location', 'Amenities', 'Rooms', 'Photos', 'Policies', 'Finance & Legal'];
+  const steps = ['Basic Info', 'Location', 'Amenities', 'Rooms'];
 
   return (
     <>
       <DraftPropertyModal />
       <Paper className="max-w-7xl mx-auto my-8 p-4">
-        <Stepper activeStep={activeTab} alternativeLabel className="mb-8">
-          {steps.map((label, index) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         
         <Box sx={{ width: '100%' }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -391,19 +327,27 @@ export default function PropertyForm() {
               textColor="primary"
               indicatorColor="primary"
               aria-label="property form tabs"
-            >
-              {steps.map((step, index) => (
-                <Tab key={index} label={step} {...a11yProps(index)} />
-              ))}
-            </Tabs>
+          >
+            {steps.map((step, index) => (
+              <Tab 
+                key={index}   
+                label={step} 
+                {...a11yProps(index)}
+                // Allow navigation to previous completed steps
+                disabled={
+                  index > 0 && 
+                  !currentProperty?.formProgress?.[`step${index}Completed`] &&
+                  index > activeTab
+                }
+              />
+            ))}
+          </Tabs>
           </Box>
           
           <TabPanel value={activeTab} index={0} dir={theme.direction}>
             <BasicInfoForm 
               formData={formData.basicInfo}
               onChange={(field, value) => handleInputChange('basicInfo', field, value)}
-              errors={formErrors}
-              onSave={handleSaveBasicInfo}
             />
           </TabPanel>
           
@@ -411,79 +355,73 @@ export default function PropertyForm() {
             <LocationForm 
               formData={formData.location}
               onChange={(field, value) => handleInputChange('location', field, value)}
-              errors={formErrors}
-              onSave={handleSaveLocation}
             />
           </TabPanel>
           
           <TabPanel value={activeTab} index={2} dir={theme.direction}>
             <AmenitiesForm 
               formData={formData.amenities}
-              onChange={(category, amenity, value) => {
+              onChange={(updatedAmenities) => {
                 setFormData(prev => ({
                   ...prev,
-                  amenities: {
-                    ...prev.amenities,
-                    [category]: {
-                      ...prev.amenities[category],
-                      [amenity]: value
-                    }
-                  }
+                  amenities: updatedAmenities
                 }));
               }}
-              errors={formErrors}
-              onSave={handleSaveAmenities}
             />
           </TabPanel>
           
-          <TabPanel value={activeTab} index={3} dir={theme.direction}>
-            <RoomsForm 
-              rooms={formData.rooms}
-              onAddRoom={handleAddRoom}
-              errors={formErrors}
-            />
-          </TabPanel>
-          
-          <TabPanel value={activeTab} index={4} dir={theme.direction}>
-            Photos and Videos Form (Coming Soon)
-          </TabPanel>
-          
-          <TabPanel value={activeTab} index={5} dir={theme.direction}>
-            Policies Form (Coming Soon)
-          </TabPanel>
-          
-          <TabPanel value={activeTab} index={6} dir={theme.direction}>
-            Finance & Legal Form (Coming Soon)
-          </TabPanel>
+<TabPanel value={activeTab} index={3} dir={theme.direction}>
+  <RoomsForm 
+    rooms={formData.rooms}
+    propertyId={currentProperty?._id}
+    onAddRoom={(updatedRooms) => {
+      setFormData(prev => ({
+        ...prev,
+        rooms: updatedRooms
+      }));
+    }}
+    onSave={() => handleSaveAndNext(3)}
+    onBack={() => setActiveTab(2)}
+    // errors={error}
+  />
+</TabPanel>
         </Box>
         
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-          <Button
-            variant="outlined"
-            disabled={activeTab === 0}
-            onClick={() => setActiveTab(prevTab => prevTab - 1)}
-          >
-            Previous
-          </Button>
-          
-          <Button
-            variant="contained"
-            onClick={() => {
-              if (activeTab === steps.length - 1) {
-                // Submit the entire form
-                console.log('Submit form', formData);
-              } else {
-                // Move to next tab after validation
-                const isValid = validateCurrentTab(activeTab);
-                if (isValid) {
-                  setActiveTab(prevTab => prevTab + 1);
-                }
-              }
-            }}
-          >
-            {activeTab === steps.length - 1 ? 'Submit' : 'Next'}
-          </Button>
-        </Box>
+  <Button
+    variant="outlined"
+    disabled={activeTab === 0}
+    onClick={() => setActiveTab(prev => prev - 1)}
+  >
+    Previous
+  </Button>
+  
+  {activeTab < 3 && (
+    <Button
+      variant="contained"
+      onClick={() => handleSaveAndNext(activeTab)}
+      disabled={isLoading}
+    >
+      Save & Continue
+    </Button>
+  )}
+  
+  {activeTab === 3 && (
+    <Button
+      variant="contained"
+      onClick={() => {
+        if (formData.rooms.length > 0) {
+          handleSaveAndNext(activeTab);
+        } else {
+          alert('Please add at least one room to complete the listing');
+        }
+      }}
+      disabled={isLoading || formData.rooms.length === 0}
+    >
+      Complete Listing
+    </Button>
+  )}
+</Box>
       </Paper>
     </>
   );

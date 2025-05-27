@@ -10,10 +10,9 @@ const AmenitySelectionSchema = new Schema({
     type: Boolean,
     default: false
   },
-  option: {
+  option: [{
     type: String,
-    default: null
-  },
+  }],
   subOptions: [{
     type: String
   }]
