@@ -33,13 +33,44 @@ export const propertyAPI = {
     return response.data;
   },
 
-   deleteRoom: async (propertyId, roomId) => {
+  deleteRoom: async (propertyId, roomId) => {
     return await axiosInstance.delete(`/properties/${propertyId}/rooms/${roomId}`);
   },
 
   // Update property rooms
   updateRoom: async (id, data) => {
     const response = await axiosInstance.put(`/properties/${id}/rooms/${roomId}`, data);
+    return response.data;
+  },
+
+
+    // Media upload methods
+  uploadPropertyMedia: async (propertyId, formData) => {
+    const response = await axiosInstance.post(`/properties/${propertyId}/media/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  updateMediaItem: async (propertyId, mediaId, data) => {
+    const response = await axiosInstance.put(`/properties/${propertyId}/media/${mediaId}`, data);
+    return response.data;
+  },
+
+  deleteMediaItem: async (propertyId, mediaId) => {
+    const response = await axiosInstance.delete(`/properties/${propertyId}/media/${mediaId}`);
+    return response.data;
+  },
+
+  getMediaByTags: async (propertyId, params) => {
+    const response = await axiosInstance.get(`/properties/${propertyId}/media`, { params });
+    return response.data;
+  },
+
+  completeMediaStep: async (propertyId) => {
+    const response = await axiosInstance.put(`/properties/${propertyId}/media/complete`);
     return response.data;
   },
   

@@ -23,6 +23,7 @@ import BasicInfoForm from '@/component/BasicInfoForm';
 import LocationForm from '@/component/LocationForm';
 import AmenitiesForm from '@/component/AmenitiesForm';
 import RoomsForm from '@/component/RoomsForm';
+import MediaForm from '@/component/MediaForm';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -221,20 +222,28 @@ export default function PropertyForm() {
         break;
 
       case 3: // Rooms
-  if (formData.rooms.length === 0) {
-    alert('Please add at least one room before continuing');
-    return;
-  }
-  // Don't dispatch addRooms here since it's already handled in RoomsForm
-  // Just proceed to next step or completion
-  if (tabIndex < 3) {
-    setActiveTab(tabIndex + 1);
-  } else {
-    // Handle completion
-    console.log('Property listing completed');
-    // Navigate to success page or show completion message
-  }
-  break;
+        if (formData.rooms.length === 0) {
+          alert('Please add at least one room before continuing');
+          return;
+        }
+        // Don't dispatch addRooms here since it's already handled in RoomsForm
+        // Just proceed to next step or completion
+        if (tabIndex < 3) {
+          setActiveTab(tabIndex + 1);
+        } else {
+          // Handle completion
+          console.log('Property listing completed');
+          // Navigate to success page or show completion message
+        }
+        break;
+
+      case 4: // Media
+      // Media completion is handled within MediaForm component
+      // Just proceed to next step
+      if (tabIndex < 6) {
+        setActiveTab(tabIndex + 1);
+      }
+      break;
         
       default:
         return;
@@ -386,8 +395,12 @@ export default function PropertyForm() {
             />
           </TabPanel>
           <TabPanel value={activeTab} index={4} dir={theme.direction}>
-           {`Photos and Videos`}
-          </TabPanel>
+          <MediaForm
+            propertyId={currentProperty?._id}
+            onSave={() => handleSaveAndNext(4)}
+            onBack={() => setActiveTab(3)}    
+          />
+        </TabPanel>
           <TabPanel value={activeTab} index={5} dir={theme.direction}>
            {`Polices`}
           </TabPanel>

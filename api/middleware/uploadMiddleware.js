@@ -83,3 +83,4 @@ export const uploadMedia = multer({
     checkFileType(file, cb);
   }
 });
+
