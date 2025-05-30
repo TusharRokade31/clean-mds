@@ -18,6 +18,41 @@ const AmenitySelectionSchema = new Schema({
   }]
 });
 
+
+const MediaSchema = new Schema({
+  url: {
+    type: String,
+    required: [true, 'Media URL is required']
+  },
+  type: {
+    type: String,
+    enum: ['image', 'video'],
+    required: [true, 'Media type is required']
+  },
+  filename: {
+    type: String,
+    required: [true, 'Filename is required']
+  },
+  tags: [{
+    type: String,
+    trim: true
+  }],
+  isCover: {
+    type: Boolean,
+    default: false
+  },
+  displayOrder: {
+    type: Number,
+    default: 0
+  },
+  uploadedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+
+
 // Room schema
 const RoomSchema = new Schema({
   roomType: { 
@@ -292,6 +327,16 @@ const PropertySchema = new Schema({
 
   // Step 4 - Rooms (multiple rooms can be added to a property)
   rooms: [RoomSchema],
+
+  // Step 5 - Media (Photos and Videos)
+media: {
+  images: [MediaSchema],
+  videos: [MediaSchema],
+  coverImage: {
+    type: Schema.Types.ObjectId,
+    ref: 'Media'  // Reference to the cover image
+  }
+},
   
   // Tracking form completion status
   formProgress: {
@@ -299,6 +344,7 @@ const PropertySchema = new Schema({
     step2Completed: { type: Boolean, default: false },
     step3Completed: { type: Boolean, default: false },
     step4Completed: { type: Boolean, default: false },
+     step5Completed: { type: Boolean, default: false },
     formCompleted: { type: Boolean, default: false }
   },
   

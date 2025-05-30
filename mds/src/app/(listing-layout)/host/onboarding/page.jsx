@@ -305,7 +305,7 @@ export default function PropertyForm() {
     );
   }
 
-  const steps = ['Basic Info', 'Location', 'Amenities', 'Rooms'];
+  const steps = ['Basic Info', 'Location', 'Amenities', 'Rooms',"Photos And Videos", "Policies", "Finance & Legal"];
 
   return (
     <>
@@ -370,21 +370,30 @@ export default function PropertyForm() {
             />
           </TabPanel>
           
-<TabPanel value={activeTab} index={3} dir={theme.direction}>
-  <RoomsForm 
-    rooms={formData.rooms}
-    propertyId={currentProperty?._id}
-    onAddRoom={(updatedRooms) => {
-      setFormData(prev => ({
-        ...prev,
-        rooms: updatedRooms
-      }));
-    }}
-    onSave={() => handleSaveAndNext(3)}
-    onBack={() => setActiveTab(2)}
-    // errors={error}
-  />
-</TabPanel>
+          <TabPanel value={activeTab} index={3} dir={theme.direction}>
+            <RoomsForm 
+              rooms={formData.rooms}
+              propertyId={currentProperty?._id}
+              onAddRoom={(updatedRooms) => {
+                setFormData(prev => ({
+                  ...prev,
+                  rooms: updatedRooms
+                }));
+              }}
+              onSave={() => handleSaveAndNext(3)}
+              onBack={() => setActiveTab(2)}
+              // errors={error}
+            />
+          </TabPanel>
+          <TabPanel value={activeTab} index={4} dir={theme.direction}>
+           {`Photos and Videos`}
+          </TabPanel>
+          <TabPanel value={activeTab} index={5} dir={theme.direction}>
+           {`Polices`}
+          </TabPanel>
+          <TabPanel value={activeTab} index={6} dir={theme.direction}>
+           {`Finance & Legal`}
+          </TabPanel>
         </Box>
         
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
@@ -396,7 +405,7 @@ export default function PropertyForm() {
     Previous
   </Button>
   
-  {activeTab < 3 && (
+  {activeTab < 6 && (
     <Button
       variant="contained"
       onClick={() => handleSaveAndNext(activeTab)}
@@ -406,7 +415,7 @@ export default function PropertyForm() {
     </Button>
   )}
   
-  {activeTab === 3 && (
+  {activeTab === 6 && (
     <Button
       variant="contained"
       onClick={() => {

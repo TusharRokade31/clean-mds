@@ -621,17 +621,30 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                 }
                 label="Meal Plan Available"
               />
-              
-              {currentRoomData.mealPlan.available && (
-                <TextField
-                  fullWidth
-                  label="Plan Type"
-                  value={currentRoomData.mealPlan.planType}
-                  onChange={(e) => handleNestedChange('mealPlan', 'planType', e.target.value)}
-                  placeholder="e.g. Breakfast included, All-inclusive"
-                  className="mt-2"
-                />
-              )}
+
+            {currentRoomData.mealPlan.available && (
+               <FormControl fullWidth>
+                    <InputLabel>Meal</InputLabel>
+                    <Select
+                      value={currentRoomData.mealPlan.planType}
+                      onChange={(e) => handleNestedChange('mealPlan', 'planType', e.target.value)}
+                      label="Plan Type"
+                    >
+                      <MenuItem value="Accommodation only">Accommodation only</MenuItem>
+                      <MenuItem value="Free Breakfast">Free Breakfast</MenuItem>
+                      <MenuItem value="Free Breakfast and Lunch/Dinner">Free Breakfast and Lunch/Dinner</MenuItem>
+                      <MenuItem value="Free Breakfast Lunch And Dinner">Free Breakfast Lunch And Dinner </MenuItem>
+                      <MenuItem value="Free Cooked Breakfast">Free Cooked Breakfast </MenuItem>
+                      <MenuItem value="Free Breakfast, Lunch, Dinner">Free Breakfast, Lunch, Dinner And Custom Inclusion</MenuItem>
+                      <MenuItem value="Free Breakfast And Lunch">Free Breakfast And Lunch </MenuItem>
+                      <MenuItem value="Free Breakfast And Dinner">Free Breakfast And Dinner </MenuItem>
+                      <MenuItem value="Free Lunch">Free Lunch </MenuItem>
+                      <MenuItem value="Free Dinner">Free Dinner </MenuItem>
+                      <MenuItem value="Free  Lunch and Dinner">Free  Lunch and Dinner </MenuItem>
+
+                    </Select>
+                  </FormControl>
+                  )}
             </Grid>
             
             {/* Pricing */}

@@ -31,11 +31,16 @@ import {
   getFeaturedProperties,
   getStateWisePropertyStats,
   checkPropertyAvailability,
-  getDraftProperties
+  getDraftProperties,
+  uploadPropertyMedia,
+  updateMediaItem,
+  deleteMediaItem,
+  getMediaByTags,
+  completeMediaStep
 } from '../controllers/propertyController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { check } from 'express-validator' ;
-import { upload } from '../middleware/uploadMiddleware.js';
+import { upload, uploadMedia } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -102,6 +107,41 @@ router.delete(
   deleteRoom
 );
 
+
+router.post(
+  '/:propertyId/media/upload',
+  protect,
+  uploadMedia.array('media', 20), // Allow up to 20 files
+  uploadPropertyMedia
+);
+
+// Update media item (tags, cover status, display order)
+router.put(
+  '/:propertyId/media/:mediaId',
+  protect,
+  updateMediaItem
+);
+
+// Delete media item
+router.delete(
+  '/:propertyId/media/:mediaId',
+  protect,
+  deleteMediaItem
+);
+
+// Get media by tags
+router.get(
+  '/:propertyId/media',
+  getMediaByTags
+);
+
+// Complete media step
+router.put(
+  '/:propertyId/media/complete',
+  protect,
+  completeMediaStep
+);
+
 // Complete Property Listing
 router.put(
   '/:propertyId/complete',
@@ -119,29 +159,6 @@ router.get('/draft', protect, getDraftProperties); // Protect route so only auth
 
 // Get single property
 router.get('/:id', protect, getProperty);
-
-// Update property by steps
-// router.put('/:id/step1', protect, updatePropertyStep1);
-// router.put('/:id/step2', protect, updatePropertyStep2);
-// router.put('/:id/step3', protect, updatePropertyStep3);
-// router.put('/:id/step4', protect, updatePropertyStep4);
-// router.put('/:id/step5', protect, updatePropertyStep5);
-// router.put('/:id/step6', protect, updatePropertyStep6);
-
-// For step 7 - handle file uploads
-// router.put(
-//   '/:id/step7', 
-//   protect, 
-//   upload.fields([
-//     { name: 'cover', maxCount: 1 },
-//     { name: 'additional', maxCount: 10 }
-//   ]),
-//   updatePropertyStep7
-// );
-
-// router.put('/:id/step8', protect, updatePropertyStep8);
-// router.put('/:id/step9', protect, updatePropertyStep9);
-// router.put('/:id/finalize', protect, finalizeProperty);
 
 // Admin routes
 router.put('/:id/review', protect, reviewProperty);
