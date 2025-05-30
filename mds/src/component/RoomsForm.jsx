@@ -4,13 +4,32 @@ import {
   Button, Typography, Divider, TextField, FormControl, 
   InputLabel, Select, MenuItem, FormHelperText, Grid, 
   Paper, IconButton, Chip, Box, Checkbox, FormControlLabel,
-  Card, CardContent
+  Card, CardContent, Tabs, Tab, RadioGroup, Radio, FormLabel
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import { useDispatch } from 'react-redux';
 import { addRooms, deleteRoom, updateRoom } from '@/redux/features/property/propertySlice';
+
+// Tab Panel Component for Room Amenities
+function TabPanel({ children, value, index, ...other }) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`room-tabpanel-${index}`}
+      aria-labelledby={`room-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 2 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, onSave, onBack }) {
   const dispatch = useDispatch();
@@ -20,6 +39,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
   const [currentRoomData, setCurrentRoomData] = useState(getInitialRoomData());
   const [formErrors, setFormErrors] = useState({});
   const [localRooms, setLocalRooms] = useState(rooms);
+  const [selectedAmenityTab, setSelectedAmenityTab] = useState(0);
   
   // Update local rooms when props change
   useEffect(() => {
@@ -61,16 +81,100 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
       }],
       amenities: {
         mandatory: {},
-        popularWithGuests: {},
-        bathroom: {},
-        roomFeatures: {},
-        kitchenAppliances: {},
-        bedsAndBlanket: {},
-        safetyAndSecurity: {},
-        otherFacilities: {}
+        basicFacilities: {},
+        generalServices: {},
+        commonArea: {},
+        foodBeverages: {},
+        healthWellness: {},
+        security: {},
+        mediaTechnology: {}
       }
     };
   }
+
+  // Room-specific amenity categories (simplified version of property amenities)
+  const roomAmenityCategories = {
+    mandatory: {
+      title: 'Mandatory',
+      items: [
+        {
+          name: 'Air Conditioning',
+          options: ['room controlled', 'centralize'],
+          Suboptions: ['All-Weather (Hot & Cold)']
+        },
+        {
+          name: 'Wifi',
+          options: ['Free', 'Paid'],
+          Suboptions: ['Speed Suitable for Working', 'Speed Suitable for Surfing']
+        },
+        {
+          name: 'TV',
+          options: ['LED', 'LCD', 'Smart TV'],
+          Suboptions: ['International Channels', 'HD Channels', 'Satellite TV']
+        }
+      ]
+    },
+    basicFacilities: {
+      title: 'Basic Facilities',
+      items: [
+        {
+          name: 'Refrigerator',
+          options: ['Mini fridge', 'Full size'],
+          Suboptions: []
+        },
+        {
+          name: 'Kitchen/Kitchenette',
+          options: [],
+          Suboptions: ['Microwave', 'Toaster', 'Cooking appliances', 'Cutlery']
+        },
+        {
+          name: 'Safe',
+          options: ['Digital', 'Key lock'],
+          Suboptions: []
+        }
+      ]
+    },
+    bathroom: {
+      title: 'Bathroom',
+      items: [
+        {
+          name: 'Hair Dryer',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Toiletries',
+          options: ['Basic', 'Premium'],
+          Suboptions: ['Shampoo', 'Soap', 'Towels']
+        },
+        {
+          name: 'Hot Water',
+          options: ['24 Hours', 'Limited duration'],
+          Suboptions: []
+        }
+      ]
+    },
+    roomFeatures: {
+      title: 'Room Features',
+      items: [
+        {
+          name: 'Balcony',
+          options: ['Private', 'Shared'],
+          Suboptions: ['Sea view', 'Garden view', 'City view']
+        },
+        {
+          name: 'Work Desk',
+          options: [],
+          Suboptions: ['Chair', 'Lamp']
+        },
+        {
+          name: 'Wardrobe',
+          options: [],
+          Suboptions: ['Hangers', 'Safe inside']
+        }
+      ]
+    }
+  };
   
   const bedTypes = [
     'Single Bed', 'Double Bed', 'Queen Bed', 'King Bed', 'Bunk Bed', 
@@ -97,6 +201,183 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
         [field]: value
       }
     }));
+  };
+
+  // Handle availability changes
+  const handleAvailabilityChange = (index, field, value) => {
+    const updatedAvailability = [...currentRoomData.availability];
+    updatedAvailability[index] = { 
+      ...updatedAvailability[index], 
+      [field]: value 
+    };
+    
+    setCurrentRoomData(prev => ({
+      ...prev,
+      availability: updatedAvailability
+    }));
+  };
+
+  // const addAvailabilityPeriod = () => {
+  //   setCurrentRoomData(prev => ({
+  //     ...prev,
+  //     availability: [
+  //       ...prev.availability,
+  //       {
+  //         startDate: new Date().toISOString().split('T')[0],
+  //         endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+  //         availableUnits: 1
+  //       }
+  //     ]
+  //   }));
+  // };
+
+  const removeAvailabilityPeriod = (index) => {
+    if (currentRoomData.availability.length <= 1) return;
+    
+    const updatedAvailability = currentRoomData.availability.filter((_, i) => i !== index);
+    setCurrentRoomData(prev => ({
+      ...prev,
+      availability: updatedAvailability
+    }));
+  };
+
+  // Handle room amenity changes
+  const getRoomAmenityValue = (category, amenityName) => {
+    const key = amenityName.replace(/[^a-zA-Z0-9]/g, '');
+    return currentRoomData?.amenities?.[category]?.[key] || { 
+      available: false,
+      option: [],
+      subOptions: []
+    };
+  };
+
+  const handleRoomAmenityChange = (category, amenityName, updates) => {
+    const key = amenityName.replace(/[^a-zA-Z0-9]/g, '');
+    
+    setCurrentRoomData(prev => ({
+      ...prev,
+      amenities: {
+        ...prev.amenities,
+        [category]: {
+          ...prev.amenities[category],
+          [key]: updates
+        }
+      }
+    }));
+  };
+
+  // Count selected amenities for each category
+  const getRoomSelectedCount = (category) => {
+    const categoryData = currentRoomData?.amenities?.[category];
+    if (!categoryData) return 0;
+    
+    return Object.values(categoryData).filter(amenity => amenity.available).length;
+  };
+
+  const renderRoomAmenityOptions = (category, amenity) => {
+    const amenityValue = getRoomAmenityValue(category, amenity.name);
+    const hasOptions = amenity.options && amenity.options.length > 0;
+    const hasSuboptions = amenity.Suboptions && amenity.Suboptions.length > 0;
+    
+    return (
+      <Grid container spacing={2} sx={{ mb: 2, pb: 2, borderBottom: '1px solid #e0e0e0' }}>
+        <Grid item xs={12}>
+          <FormControl component="fieldset">
+            <FormLabel component="legend" sx={{ fontWeight: 'bold', mb: 1 }}>
+              {amenity.name}
+            </FormLabel>
+            <RadioGroup
+              value={amenityValue.available ? 'yes' : 'no'}
+              onChange={(e) => {
+                const isAvailable = e.target.value === 'yes';
+                handleRoomAmenityChange(category, amenity.name, {
+                  available: isAvailable,
+                  option: isAvailable ? amenityValue.option : [],
+                  subOptions: isAvailable ? amenityValue.subOptions : []
+                });
+              }}
+              row
+            >
+              <FormControlLabel value="no" control={<Radio />} label="No" />
+              <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+            </RadioGroup>
+          </FormControl>
+        </Grid>
+
+        {amenityValue.available && hasOptions && (
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth>
+              <InputLabel>Select Options</InputLabel>
+              <Select
+                multiple
+                value={amenityValue.option || []}
+                label="Select Options"
+                onChange={(e) => {
+                  const value = typeof e.target.value === 'string' 
+                    ? e.target.value.split(',') 
+                    : e.target.value;
+                  
+                  handleRoomAmenityChange(category, amenity.name, {
+                    ...amenityValue,
+                    option: value
+                  });
+                }}
+                renderValue={(selected) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip key={value} label={value} size="small" />
+                    ))}
+                  </Box>
+                )}
+              >
+                {amenity.options.map((option, index) => (
+                  <MenuItem key={index} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        )}
+
+        {amenityValue.available && hasSuboptions && 
+         (!hasOptions || (hasOptions && amenityValue.option?.length > 0)) && (
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth>
+              <InputLabel>Additional Options</InputLabel>
+              <Select
+                multiple
+                value={amenityValue.subOptions || []}
+                label="Additional Options"
+                onChange={(e) => {
+                  const value = typeof e.target.value === 'string' 
+                    ? e.target.value.split(',') 
+                    : e.target.value;
+                  
+                  handleRoomAmenityChange(category, amenity.name, {
+                    ...amenityValue,
+                    subOptions: value
+                  });
+                }}
+                renderValue={(selected) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip key={value} label={value} size="small" color="secondary" />
+                    ))}
+                  </Box>
+                )}
+              >
+                {amenity.Suboptions.map((suboption, index) => (
+                  <MenuItem key={index} value={suboption}>
+                    {suboption}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        )}
+      </Grid>
+    );
   };
   
   const handleBedChange = (index, field, value) => {
@@ -175,6 +456,22 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
     if (!currentRoomData.pricing.baseAdultsCharge || currentRoomData.pricing.baseAdultsCharge <= 0) {
       errors.baseAdultsCharge = 'Base price is required';
     }
+
+    // Validate availability
+    if (currentRoomData.availability.length === 0) {
+      errors.availability = 'At least one availability period is required';
+    } else {
+      const availabilityErrors = [];
+      currentRoomData.availability.forEach((period, index) => {
+        if (!period.startDate) availabilityErrors[index] = { ...availabilityErrors[index], startDate: 'Start date is required' };
+        if (!period.endDate) availabilityErrors[index] = { ...availabilityErrors[index], endDate: 'End date is required' };
+        if (!period.availableUnits || period.availableUnits <= 0) availabilityErrors[index] = { ...availabilityErrors[index], availableUnits: 'Available units must be at least 1' };
+        if (period.startDate && period.endDate && new Date(period.startDate) >= new Date(period.endDate)) {
+          availabilityErrors[index] = { ...availabilityErrors[index], endDate: 'End date must be after start date' };
+        }
+      });
+      if (availabilityErrors.some(error => error)) errors.availability = availabilityErrors;
+    }
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -184,19 +481,16 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
     if (!validateRoomData()) return;
     
     try {
-      // Call the API to add the room
       const result = await dispatch(addRooms({
         id: propertyId,
-        data: currentRoomData // Send single room object
+        data: currentRoomData
       }));
       
       if (result.type.endsWith('/fulfilled')) {
-        // Update local state
         const updatedRooms = [...localRooms, currentRoomData];
         setLocalRooms(updatedRooms);
-        onAddRoom(updatedRooms); // Update parent component
+        onAddRoom(updatedRooms);
         
-        // Reset form
         setIsAddingRoom(false);
         setCurrentRoomData(getInitialRoomData());
         setFormErrors({});
@@ -208,11 +502,8 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
 
   const handleUpdateRoom = async () => {
     if (!validateRoomData()) return;
-    console.log(formErrors)
-    console.log(currentRoomData)
     
     try {
-      // Get the room ID if it exists (for existing rooms)
       const roomToUpdate = localRooms[editingRoomIndex];
       const roomId = roomToUpdate._id || roomToUpdate.id;
       
@@ -220,18 +511,16 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
         id: propertyId,
         data: {
           roomId,
-          roomToUpdate
+          roomToUpdate: currentRoomData
         }
       }));
       
       if (result.type.endsWith('/fulfilled')) {
-        // Update local state
         const updatedRooms = [...localRooms];
         updatedRooms[editingRoomIndex] = currentRoomData;
         setLocalRooms(updatedRooms);
-        onAddRoom(updatedRooms); // Update parent component
+        onAddRoom(updatedRooms);
         
-        // Reset form
         setIsEditingRoom(false);
         setEditingRoomIndex(-1);
         setCurrentRoomData(getInitialRoomData());
@@ -243,41 +532,37 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
   };
 
   const handleDeleteRoom = async (index) => {
-  const roomToDelete = localRooms[index];
-  const roomId = roomToDelete._id || roomToDelete.id;
-  
-  // If room has an ID, it's saved in backend, so we need to call delete API
-  if (roomId && propertyId) {
-    try {
-      const result = await dispatch(deleteRoom({ 
-        propertyId, 
-        roomId 
-      }));
-      
-      if (result.type.endsWith('/fulfilled')) {
-        // Remove from local state after successful deletion
-        const updatedRooms = localRooms.filter((_, i) => i !== index);
-        setLocalRooms(updatedRooms);
-        onAddRoom(updatedRooms);
+    const roomToDelete = localRooms[index];
+    const roomId = roomToDelete._id || roomToDelete.id;
+    
+    if (roomId && propertyId) {
+      try {
+        const result = await dispatch(deleteRoom({ 
+          propertyId, 
+          roomId 
+        }));
+        
+        if (result.type.endsWith('/fulfilled')) {
+          const updatedRooms = localRooms.filter((_, i) => i !== index);
+          setLocalRooms(updatedRooms);
+          onAddRoom(updatedRooms);
+        }
+      } catch (error) {
+        console.error('Failed to delete room:', error);
       }
-    } catch (error) {
-      console.error('Failed to delete room:', error);
-      // You might want to show an error message to the user
+    } else {
+      const updatedRooms = localRooms.filter((_, i) => i !== index);
+      setLocalRooms(updatedRooms);
+      onAddRoom(updatedRooms);
     }
-  } else {
-    // Room not saved yet, just remove locally
-    const updatedRooms = localRooms.filter((_, i) => i !== index);
-    setLocalRooms(updatedRooms);
-    onAddRoom(updatedRooms);
-  }
-};
+  };
 
   const handleEditRoom = (index) => {
     const roomToEdit = localRooms[index];
     setCurrentRoomData(roomToEdit);
     setEditingRoomIndex(index);
     setIsEditingRoom(true);
-    setIsAddingRoom(true); // Reuse the same form
+    setIsAddingRoom(true);
   };
 
   const handleCancelForm = () => {
@@ -286,6 +571,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
     setEditingRoomIndex(-1);
     setCurrentRoomData(getInitialRoomData());
     setFormErrors({});
+    setSelectedAmenityTab(0);
   };
   
   return (
@@ -359,16 +645,12 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                         {room.bathrooms.private ? ' private' : ' shared'}
                       </Typography>
                       
-                      {room.mealPlan.available && (
-                        <Typography variant="body2">
-                          <strong>Meal Plan:</strong> {room.mealPlan.planType || 'Available'}
-                        </Typography>
-                      )}
-                      
                       <Typography variant="body2">
                         <strong>Price:</strong> ₹{room.pricing.baseAdultsCharge} per night
-                        {room.pricing.extraAdultsCharge && ` (+₹${room.pricing.extraAdultsCharge} per extra adult)`}
-                        {room.pricing.childCharge && ` (+₹${room.pricing.childCharge} per child)`}
+                      </Typography>
+
+                      <Typography variant="body2">
+                        <strong>Availability:</strong> {room.availability?.length || 0} period(s)
                       </Typography>
                     </div>
                   </CardContent>
@@ -387,7 +669,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
           </Typography>
           
           <Grid container spacing={3}>
-            {/* Basic Room Details */}
+            {/* Basic Room Details - Same as before */}
             <Grid item size={{xs:12 ,md:6}}>
               <FormControl fullWidth error={!!formErrors.roomType} className="mb-4">
                 <InputLabel>Room Type *</InputLabel>
@@ -454,7 +736,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
               />
             </Grid>
             
-            {/* Bed Configuration */}
+            {/* Bed Configuration - Same as before */}
             <Grid item size={{xs:12}}>
               <Typography variant="subtitle1" gutterBottom>Bed Configuration *</Typography>
               
@@ -478,7 +760,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                     </FormControl>
                   </Grid>
                   
-                  <Grid item size={{xs:12, md:6}}>
+                  <Grid item size={{xs:12, md:3}}>
                     <TextField
                       fullWidth
                       label="Count *"
@@ -491,7 +773,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                     />
                   </Grid>
                   
-                  <Grid item size={{xs:12, md:6}}>
+                  <Grid item size={{xs:12, md:3}}>
                     <TextField
                       fullWidth
                       label="Accommodates *"
@@ -526,205 +808,322 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
               </Button>
             </Grid>
             
-            {/* Occupancy */}
+            {/* Occupancy, Bathroom, Meal Plan sections - Same as before */}
             <Grid item size={{xs:12}}>
-              <Divider className="my-3" />
-              <Typography variant="subtitle1" gutterBottom>Occupancy</Typography>
-              
-              <Grid container spacing={3}>
-                <Grid item size={{xs:12, md:6}}>
-                  <TextField
-                    fullWidth
-                    label="Base Adults *"
-                    type="number"
-                    value={currentRoomData.occupancy.baseAdults}
-                    onChange={(e) => handleNestedChange('occupancy', 'baseAdults', parseInt(e.target.value))}
-                    InputProps={{ inputProps: { min: 1 } }}
-                  />
-                </Grid>
-                
-                <Grid item size={{xs:12, md:6}}>
-                  <TextField
-                    fullWidth
-                    label="Maximum Adults *"
-                    type="number"
-                    value={currentRoomData.occupancy.maximumAdults}
-                    onChange={(e) => handleNestedChange('occupancy', 'maximumAdults', parseInt(e.target.value))}
-                    InputProps={{ inputProps: { min: 1 } }}
-                  />
-                </Grid>
-                
-                <Grid item size={{xs:12, md:6}}>
-                  <TextField
-                    fullWidth
-                    label="Maximum Children"
-                    type="number"
-                    value={currentRoomData.occupancy.maximumChildren}
-                    onChange={(e) => handleNestedChange('occupancy', 'maximumChildren', parseInt(e.target.value))}
-                    InputProps={{ inputProps: { min: 0 } }}
-                  />
-                </Grid>
-                
-                <Grid item size={{xs:12, md:6}}>
-                  <TextField
-                    fullWidth
-                    label="Maximum Occupancy"
-                    type="number"
-                    value={currentRoomData.occupancy.maximumOccupancy}
-                    InputProps={{ readOnly: true }}
-                    helperText="Calculated from beds"
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
+                          <Divider className="my-3" />
+                          <Typography variant="subtitle1" gutterBottom>Occupancy</Typography>
+                          
+                          <Grid container spacing={3}>
+                            <Grid item size={{xs:12, md:6}}>
+                              <TextField
+                                fullWidth
+                                label="Base Adults *"
+                                type="number"
+                                value={currentRoomData.occupancy.baseAdults}
+                                onChange={(e) => handleNestedChange('occupancy', 'baseAdults', parseInt(e.target.value))}
+                                InputProps={{ inputProps: { min: 1 } }}
+                              />
+                            </Grid>
+                            
+                            <Grid item size={{xs:12, md:6}}>
+                              <TextField
+                                fullWidth
+                                label="Maximum Adults *"
+                                type="number"
+                                value={currentRoomData.occupancy.maximumAdults}
+                                onChange={(e) => handleNestedChange('occupancy', 'maximumAdults', parseInt(e.target.value))}
+                                InputProps={{ inputProps: { min: 1 } }}
+                              />
+                            </Grid>
+                            
+                            <Grid item size={{xs:12, md:6}}>
+                              <TextField
+                                fullWidth
+                                label="Maximum Children"
+                                type="number"
+                                value={currentRoomData.occupancy.maximumChildren}
+                                onChange={(e) => handleNestedChange('occupancy', 'maximumChildren', parseInt(e.target.value))}
+                                InputProps={{ inputProps: { min: 0 } }}
+                              />
+                            </Grid>
+                            
+                            <Grid item size={{xs:12, md:6}}>
+                              <TextField
+                                fullWidth
+                                label="Maximum Occupancy"
+                                type="number"
+                                value={currentRoomData.occupancy.maximumOccupancy}
+                                InputProps={{ readOnly: true }}
+                                helperText="Calculated from beds"
+                              />
+                            </Grid>
+                          </Grid>
+                        </Grid>
+                        
+                        {/* Bathroom */}
+                        <Grid item size={{xs:12 ,md:6}}>
+                          <Typography variant="subtitle1" gutterBottom>Bathroom</Typography>
+                          
+                          <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                              <TextField
+                                fullWidth
+                                label="Bathroom Count *"
+                                type="number"
+                                value={currentRoomData.bathrooms.count}
+                                onChange={(e) => handleNestedChange('bathrooms', 'count', parseInt(e.target.value))}
+                                InputProps={{ inputProps: { min: 0 } }}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={6}>
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={currentRoomData.bathrooms.private}
+                                    onChange={(e) => handleNestedChange('bathrooms', 'private', e.target.checked)}
+                                  />
+                                }
+                                label="Private Bathroom"
+                              />
+                            </Grid>
+                          </Grid>
+                        </Grid>
+                        
+                        {/* Meal Plan */}
+                        <Grid item size={{xs:12 ,md:6}}>
+                          <Typography variant="subtitle1" gutterBottom>Meal Plan</Typography>
+                          
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={currentRoomData.mealPlan.available}
+                                onChange={(e) => handleNestedChange('mealPlan', 'available', e.target.checked)}
+                              />
+                            }
+                            label="Meal Plan Available"
+                          />
             
-            {/* Bathroom */}
-            <Grid item size={{xs:12 ,md:6}}>
-              <Typography variant="subtitle1" gutterBottom>Bathroom</Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Bathroom Count *"
-                    type="number"
-                    value={currentRoomData.bathrooms.count}
-                    onChange={(e) => handleNestedChange('bathrooms', 'count', parseInt(e.target.value))}
-                    InputProps={{ inputProps: { min: 0 } }}
-                  />
-                </Grid>
-                
-                <Grid item xs={6}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={currentRoomData.bathrooms.private}
-                        onChange={(e) => handleNestedChange('bathrooms', 'private', e.target.checked)}
-                      />
-                    }
-                    label="Private Bathroom"
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
+                        {currentRoomData.mealPlan.available && (
+                           <FormControl fullWidth>
+                                <InputLabel>Meal</InputLabel>
+                                <Select
+                                  value={currentRoomData.mealPlan.planType}
+                                  onChange={(e) => handleNestedChange('mealPlan', 'planType', e.target.value)}
+                                  label="Plan Type"
+                                >
+                                  <MenuItem value="Accommodation only">Accommodation only</MenuItem>
+                                  <MenuItem value="Free Breakfast">Free Breakfast</MenuItem>
+                                  <MenuItem value="Free Breakfast and Lunch/Dinner">Free Breakfast and Lunch/Dinner</MenuItem>
+                                  <MenuItem value="Free Breakfast Lunch And Dinner">Free Breakfast Lunch And Dinner </MenuItem>
+                                  <MenuItem value="Free Cooked Breakfast">Free Cooked Breakfast </MenuItem>
+                                  <MenuItem value="Free Breakfast, Lunch, Dinner">Free Breakfast, Lunch, Dinner And Custom Inclusion</MenuItem>
+                                  <MenuItem value="Free Breakfast And Lunch">Free Breakfast And Lunch </MenuItem>
+                                  <MenuItem value="Free Breakfast And Dinner">Free Breakfast And Dinner </MenuItem>
+                                  <MenuItem value="Free Lunch">Free Lunch </MenuItem>
+                                  <MenuItem value="Free Dinner">Free Dinner </MenuItem>
+                                  <MenuItem value="Free  Lunch and Dinner">Free  Lunch and Dinner </MenuItem>
             
-            {/* Meal Plan */}
-            <Grid item size={{xs:12 ,md:6}}>
-              <Typography variant="subtitle1" gutterBottom>Meal Plan</Typography>
-              
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={currentRoomData.mealPlan.available}
-                    onChange={(e) => handleNestedChange('mealPlan', 'available', e.target.checked)}
-                  />
-                }
-                label="Meal Plan Available"
-              />
+                                </Select>
+                              </FormControl>
+                              )}
+                        </Grid>
+                        
+                        {/* Pricing */}
+                        <Grid item size={{xs:12}}>
+                          <Divider className="my-3" />
+                          <Typography variant="subtitle1" gutterBottom>Pricing</Typography>
+                          
+                          <Grid container spacing={3}>
+                            <Grid item size={{xs:12}} md={4}>
+                              <TextField
+                                fullWidth
+                                label="Base Price (per night) *"
+                                type="number"
+                                value={currentRoomData.pricing.baseAdultsCharge}
+                                onChange={(e) => handleNestedChange('pricing', 'baseAdultsCharge', parseFloat(e.target.value))}
+                                error={!!formErrors.baseAdultsCharge}
+                                helperText={formErrors.baseAdultsCharge}
+                                InputProps={{ startAdornment: '₹' }}
+                              />
+                            </Grid>
+                            
+                            <Grid item size={{xs:12}} md={4}>
+                              <TextField
+                                fullWidth
+                                label="Extra Adult Charge"
+                                type="number"
+                                value={currentRoomData.pricing.extraAdultsCharge}
+                                onChange={(e) => handleNestedChange('pricing', 'extraAdultsCharge', parseFloat(e.target.value))}
+                                InputProps={{ startAdornment: '₹' }}
+                              />
+                            </Grid>
+                            
+                            <Grid item size={{xs:12}} md={4}>
+                              <TextField
+                                fullWidth
+                                label="Child Charge"
+                                type="number"
+                                value={currentRoomData.pricing.childCharge}
+                                onChange={(e) => handleNestedChange('pricing', 'childCharge', parseFloat(e.target.value))}
+                                InputProps={{ startAdornment: '₹' }}
+                              />
+                            </Grid>
+                          </Grid>
+                        </Grid>
 
-            {currentRoomData.mealPlan.available && (
-               <FormControl fullWidth>
-                    <InputLabel>Meal</InputLabel>
-                    <Select
-                      value={currentRoomData.mealPlan.planType}
-                      onChange={(e) => handleNestedChange('mealPlan', 'planType', e.target.value)}
-                      label="Plan Type"
-                    >
-                      <MenuItem value="Accommodation only">Accommodation only</MenuItem>
-                      <MenuItem value="Free Breakfast">Free Breakfast</MenuItem>
-                      <MenuItem value="Free Breakfast and Lunch/Dinner">Free Breakfast and Lunch/Dinner</MenuItem>
-                      <MenuItem value="Free Breakfast Lunch And Dinner">Free Breakfast Lunch And Dinner </MenuItem>
-                      <MenuItem value="Free Cooked Breakfast">Free Cooked Breakfast </MenuItem>
-                      <MenuItem value="Free Breakfast, Lunch, Dinner">Free Breakfast, Lunch, Dinner And Custom Inclusion</MenuItem>
-                      <MenuItem value="Free Breakfast And Lunch">Free Breakfast And Lunch </MenuItem>
-                      <MenuItem value="Free Breakfast And Dinner">Free Breakfast And Dinner </MenuItem>
-                      <MenuItem value="Free Lunch">Free Lunch </MenuItem>
-                      <MenuItem value="Free Dinner">Free Dinner </MenuItem>
-                      <MenuItem value="Free  Lunch and Dinner">Free  Lunch and Dinner </MenuItem>
 
-                    </Select>
-                  </FormControl>
+
+
+
+
+                      </Grid>
+                                              {/* Availability */}
+                      <Grid item xs={12}>
+                        <Divider className="my-3" />
+                        <Typography variant="subtitle1" gutterBottom>Availability</Typography>
+                        
+                        {currentRoomData.availability.map((period, index) => (
+                          <Grid container spacing={2} key={index} className="mb-3 items-end">
+                            <Grid item xs={12} md={3}>
+                              <TextField
+                                fullWidth
+                                label="Start Date *"
+                                type="date"
+                                value={period.startDate}
+                                onChange={(e) => handleAvailabilityChange(index, 'startDate', e.target.value)}
+                                error={!!formErrors.availability?.[index]?.startDate}
+                                helperText={formErrors.availability?.[index]?.startDate}
+                                InputLabelProps={{ shrink: true }}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12} md={3}>
+                              <TextField
+                                fullWidth
+                                label="End Date *"
+                                type="date"
+                                value={period.endDate}
+                                onChange={(e) => handleAvailabilityChange(index, 'endDate', e.target.value)}
+                                error={!!formErrors.availability?.[index]?.endDate}
+                                helperText={formErrors.availability?.[index]?.endDate}
+                                InputLabelProps={{ shrink: true }}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12} md={4}>
+                              <TextField
+                                fullWidth
+                                label="Available Units *"
+                                type="number"
+                                value={period.availableUnits}
+                                onChange={(e) => handleAvailabilityChange(index, 'availableUnits', parseInt(e.target.value))}
+                                error={!!formErrors.availability?.[index]?.availableUnits}
+                                helperText={formErrors.availability?.[index]?.availableUnits}
+                                InputProps={{ inputProps: { min: 1 } }}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12} md={2} className="flex justify-end">
+                              <IconButton 
+                                color="error" 
+                                onClick={() => removeAvailabilityPeriod(index)}
+                                disabled={currentRoomData.availability.length <= 1}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Grid>
+                          </Grid>
+                        ))}
+                        
+                        {/* <Button 
+                          startIcon={<AddIcon />} 
+                          variant="outlined" 
+                          onClick={addAvailabilityPeriod}
+                          className="mt-2"
+                        >
+                          Add Another Availability Period
+                        </Button> */}
+                      </Grid>
+
+                      {/* Room Amenities */}
+                      <Grid item xs={12}>
+                        <Divider className="my-3" />
+                        <Typography variant="subtitle1" gutterBottom>Room Amenities</Typography>
+                        
+                        <Box sx={{ width: '100%', bgcolor: 'background.paper' }}>
+                          {/* Amenity Category Tabs */}
+                          <Tabs
+                            value={selectedAmenityTab}
+                            onChange={(event, newValue) => setSelectedAmenityTab(newValue)}
+                            variant="scrollable"
+                            scrollButtons="auto"
+                            aria-label="Room amenity categories"
+                            sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+                          >
+                            {Object.entries(roomAmenityCategories).map(([category, { title }], index) => {
+                              const selectedCount = getRoomSelectedCount(category);
+                              return (
+                                <Tab
+                                  key={category}
+                                  label={`${title} (${selectedCount})`}
+                                  id={`room-tab-${index}`}
+                                  aria-controls={`room-tabpanel-${index}`}
+                                />
+                              );
+                            })}
+                          </Tabs>
+
+                          {/* Amenity Tab Panels */}
+                          {Object.entries(roomAmenityCategories).map(([category, { title, items }], index) => (
+                            <TabPanel key={category} value={selectedAmenityTab} index={index}>
+                              <Typography variant="h6" gutterBottom>{title}</Typography>
+                              <div>
+                                {items.map((amenity, amenityIndex) => (
+                                  <div key={amenityIndex}>
+                                    {renderRoomAmenityOptions(category, amenity)}
+                                  </div>
+                                ))}
+                              </div>
+                            </TabPanel>
+                          ))}
+                        </Box>
+                      </Grid>
+                      
+                      <div className="flex justify-end mt-4 gap-2">
+                        <Button 
+                          variant="outlined" 
+                          onClick={handleCancelForm}
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          variant="contained" 
+                          color="primary" 
+                          onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
+                        >
+                          {isEditingRoom ? 'Update Room' : 'Add Room'}
+                        </Button>
+                      </div>
+                    </Paper>
+                  ) : (
+                    <div className="flex justify-center my-4">
+                      <Button 
+                        variant="contained" 
+                        color="primary" 
+                        startIcon={<AddIcon />}
+                        onClick={() => setIsAddingRoom(true)}
+                      >
+                        Add a Room
+                      </Button>
+                    </div>
                   )}
-            </Grid>
             
-            {/* Pricing */}
-            <Grid item size={{xs:12}}>
-              <Divider className="my-3" />
-              <Typography variant="subtitle1" gutterBottom>Pricing</Typography>
-              
-              <Grid container spacing={3}>
-                <Grid item size={{xs:12}} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Base Price (per night) *"
-                    type="number"
-                    value={currentRoomData.pricing.baseAdultsCharge}
-                    onChange={(e) => handleNestedChange('pricing', 'baseAdultsCharge', parseFloat(e.target.value))}
-                    error={!!formErrors.baseAdultsCharge}
-                    helperText={formErrors.baseAdultsCharge}
-                    InputProps={{ startAdornment: '₹' }}
-                  />
-                </Grid>
-                
-                <Grid item size={{xs:12}} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Extra Adult Charge"
-                    type="number"
-                    value={currentRoomData.pricing.extraAdultsCharge}
-                    onChange={(e) => handleNestedChange('pricing', 'extraAdultsCharge', parseFloat(e.target.value))}
-                    InputProps={{ startAdornment: '₹' }}
-                  />
-                </Grid>
-                
-                <Grid item size={{xs:12}} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Child Charge"
-                    type="number"
-                    value={currentRoomData.pricing.childCharge}
-                    onChange={(e) => handleNestedChange('pricing', 'childCharge', parseFloat(e.target.value))}
-                    InputProps={{ startAdornment: '₹' }}
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-          
-          <div className="flex justify-end mt-4 gap-2">
-            <Button 
-              variant="outlined" 
-              onClick={handleCancelForm}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
-            >
-              {isEditingRoom ? 'Update Room' : 'Add Room'}
-            </Button>
-          </div>
-        </Paper>
-      ) : (
-        <div className="flex justify-center my-4">
-          <Button 
-            variant="contained" 
-            color="primary" 
-            startIcon={<AddIcon />}
-            onClick={() => setIsAddingRoom(true)}
-          >
-            Add a Room
-          </Button>
-        </div>
-      )}
-
-      {errors && errors.rooms && (
-        <Typography color="error" className="mt-4">
-          {errors.rooms}
-        </Typography>
-      )}
-    </div>
-  );
-}
+                  {errors && errors.rooms && (
+                    <Typography color="error" className="mt-4">
+                      {errors.rooms}
+                    </Typography>
+                  )}
+                </div>
+              );
+            }
