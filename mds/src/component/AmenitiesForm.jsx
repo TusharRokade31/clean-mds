@@ -31,7 +31,6 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
     setSelectedTab(newValue);
   };
 
-  console.log(formData, "from amenities ")
 
   // Updated amenity data structure
   const amenityCategories = {

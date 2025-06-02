@@ -151,11 +151,12 @@ export const deleteRoom = createAsyncThunk(
 
 export const updateRoom = createAsyncThunk(
   'property/updateRoom',
-  async ({ id, data }, { rejectWithValue }) => {
+  async ({ id, roomId, data }, { rejectWithValue }) => {
     try {
-      const response = await propertyAPI.updateRoom(id, data);
+      const response = await propertyAPI.updateRoom(id, roomId, data);
       return response.data;
     } catch (error) {
+      // return console.log(error ,"new error")
       return rejectWithValue(error.response?.data?.message || 'Failed to update property Rooms');
     }
   }

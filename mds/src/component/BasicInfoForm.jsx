@@ -10,8 +10,7 @@ import { useState } from 'react';
 export default function BasicInfoForm({ formData, onChange, errors }) {
   const dispatch = useDispatch();
   const { currentProperty, isLoading, error } = useSelector(state => state.property);
-  // console.log(currentProperty)
-  console.log(formData, "from basic info Comp")
+
   const [localErrors, setLocalErrors] = useState({});
 
   const propertyTypes = [
@@ -38,7 +37,6 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
 
   const handleSave = async () => {
     if (!validateForm()) return;
-    console.log(formData)
     if (currentProperty?._id) {
       const result = await dispatch(updateBasicInfo({
         id: currentProperty._id,
@@ -47,7 +45,7 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
       
       if (result.type.endsWith('/fulfilled')) {
         // Handle success - maybe show success message or navigate
-        console.log('Basic info saved successfully');
+        
       }
     }
   };

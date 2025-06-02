@@ -66,8 +66,6 @@ export default function PropertyForm() {
   const dispatch = useDispatch();
   
   const { currentProperty, isLoading, error, draftProperties } = useSelector(state => state.property);
-  console.log(currentProperty, "from main page")
-  console.log(draftProperties)
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [formData, setFormData] = useState({
     basicInfo: {
@@ -101,7 +99,6 @@ export default function PropertyForm() {
     },
     rooms: []
   });
-  console.log(formData.basicInfo)
   const hasInitializedRef = useRef(false);
 
   // Initialize property data

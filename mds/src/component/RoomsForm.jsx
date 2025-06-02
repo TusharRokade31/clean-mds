@@ -508,12 +508,13 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
       const roomId = roomToUpdate._id || roomToUpdate.id;
       
       const result = await dispatch(updateRoom({
-        id: propertyId,
-        data: {
-          roomId,
-          roomToUpdate: currentRoomData
-        }
-      }));
+        id:propertyId,
+        roomId: roomId,
+        data: currentRoomData
+      })).unwrap();
+
+
+
       
       if (result.type.endsWith('/fulfilled')) {
         const updatedRooms = [...localRooms];

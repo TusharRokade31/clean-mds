@@ -38,7 +38,7 @@ export const propertyAPI = {
   },
 
   // Update property rooms
-  updateRoom: async (id, data) => {
+  updateRoom: async (id, roomId, data) => {
     const response = await axiosInstance.put(`/properties/${id}/rooms/${roomId}`, data);
     return response.data;
   },
