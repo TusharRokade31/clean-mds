@@ -35,7 +35,7 @@ export default function HotelDashboardLayout({ children }) {
           </button>
         </div>
         <nav className="space-y-1 px-2">
-          <NavItem icon={<Home className="h-5 w-5" />} label="My Properties" />
+          <NavItem icon={<Home className="h-5 w-5" />} label="Properties" />
           <NavItem icon={<Calendar className="h-5 w-5" />} label="onboarding" />
         </nav>
       </aside>

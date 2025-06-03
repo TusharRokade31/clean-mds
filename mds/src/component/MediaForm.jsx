@@ -220,7 +220,7 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
   const handleCompleteStep = async () => {
     try {
       await dispatch(completeMediaStep(propertyId)).unwrap();
-      onSave();
+      // onSave();
     } catch (error) {
       console.error('Complete step failed:', error);
     }

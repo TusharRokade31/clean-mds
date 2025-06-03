@@ -729,6 +729,7 @@ export const completeMediaStep = async (req, res) => {
     
     // Check if minimum requirements are met (at least 10 media items)
     const totalMedia = property.media.images.length + property.media.videos.length;
+    console.log(property)
     
     if (totalMedia < 10) {
       return errorResponse(res, 400, `Minimum 10 media items required. Currently have ${totalMedia} items.`);
@@ -758,8 +759,6 @@ export const completeMediaStep = async (req, res) => {
     return errorResponse(res, 500, 'Server error', error.message);
   }
 };
-
-
 
 // Complete Property Listing
 export const completePropertyListing = async (req, res) => {

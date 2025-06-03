@@ -236,6 +236,32 @@ export const deleteProperty = createAsyncThunk(
   }
 );
 
+
+export const finalizeProperty = createAsyncThunk(
+  'property/finalizeProperty',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.finalizeProperty(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to finalize property');
+    }
+  }
+);
+
+
+export const reviewProperty = createAsyncThunk(
+  'property/reviewProperty',
+  async ({id, status} , { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.reviewProperty(id, status);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to review property');
+    }
+  }
+);
+
 export const getPropertiesByState = createAsyncThunk(
   'property/getPropertiesByState',
   async (state, { rejectWithValue }) => {

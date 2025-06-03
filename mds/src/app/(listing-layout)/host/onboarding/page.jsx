@@ -139,6 +139,7 @@ export default function PropertyForm() {
         else if (!property.formProgress.step2Completed) setActiveTab(1);
         else if (!property.formProgress.step3Completed) setActiveTab(2);
         else if (!property.formProgress.step4Completed) setActiveTab(3);
+        else if (!property.formProgress.step5Completed) setActiveTab(4);
       }
       
       // Initialize form data with property data

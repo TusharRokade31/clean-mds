@@ -91,6 +91,13 @@ export const propertyAPI = {
     return response.data;
   },
 
+
+  // Finalize property
+  reviewProperty: async (id, status) => {
+    const response = await axiosInstance.put(`/properties/${id}/review`, status);
+    return response.data;
+  },
+
   // Finalize property
   finalizeProperty: async (id) => {
     const response = await axiosInstance.put(`/properties/${id}/finalize`);
