@@ -61,7 +61,7 @@ function a11yProps(index) {
 export default function PropertyForm() {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
-  const { id } = useParams();
+  const { id } = useParams(); // This will be an array: [] for /onboarding, ['propertyId'] for /onboarding/propertyId
   const router = useRouter();
   const dispatch = useDispatch();
   
@@ -101,24 +101,37 @@ export default function PropertyForm() {
   });
   const hasInitializedRef = useRef(false);
 
+  // Get the property ID from the dynamic route
+  const propertyId = id && id.length > 0 ? id[0] : null;
+
   // Initialize property data
   useEffect(() => {
-    if (!hasInitializedRef.current) {
-      hasInitializedRef.current = true;
+  // Only run if we haven't initialized and don't have a current property
+  if (!hasInitializedRef.current && !currentProperty) {
+    hasInitializedRef.current = true;
+    
+    if (propertyId && propertyId !== 'new') {
+      dispatch(getProperty(propertyId));
+    } else if (propertyId === 'new') {
+      dispatch(initializeProperty());
+    } else {
+      const shouldCheckDrafts = !sessionStorage.getItem('createNew');
       
-      if (id) {
-        dispatch(getProperty(id));
-      } else {
-        dispatch(getDraftProperties())
-          if (dispatch(getDraftProperties()).unwrap()) {
+      if (shouldCheckDrafts) {
+        dispatch(getDraftProperties()).then((result) => {
+          if (result.payload && result.payload.length > 0) {
             setShowDraftModal(true);
           } else {
             dispatch(initializeProperty());
           }
-        
+        });
+      } else {
+        sessionStorage.removeItem('createNew');
+        dispatch(initializeProperty());
       }
     }
-  }, [dispatch, id]);
+  }
+}, [dispatch, propertyId, currentProperty]);
   
   // Handle unmount
   useEffect(() => {
@@ -173,7 +186,7 @@ export default function PropertyForm() {
           security: {},
           safety: {}
         },
-        rooms: property.rooms || {}
+        rooms: property.rooms || []
       });
     }
   }, [currentProperty]);
@@ -224,47 +237,42 @@ export default function PropertyForm() {
           alert('Please add at least one room before continuing');
           return;
         }
-        // Don't dispatch addRooms here since it's already handled in RoomsForm
-        // Just proceed to next step or completion
-        if (tabIndex < 3) {
+        if (tabIndex < 6) {
           setActiveTab(tabIndex + 1);
-        } else {
-          // Handle completion
-          console.log('Property listing completed');
-          // Navigate to success page or show completion message
         }
-        break;
+        return; // Don't proceed with the rest of the function for rooms
 
       case 4: // Media
-      // Media completion is handled within MediaForm component
-      // Just proceed to next step
-      if (tabIndex < 6) {
-        setActiveTab(tabIndex + 1);
-      }
-      break;
+        if (tabIndex < 6) {
+          setActiveTab(tabIndex + 1);
+        }
+        return; // Don't proceed with the rest of the function for media
         
       default:
         return;
     }
     
-   if (result.type.endsWith('/fulfilled')) {
-    if (tabIndex < 3) {
-      setActiveTab(tabIndex + 1);
-    } else {
-      // Handle completion
-      console.log('Property listing completed');
-      // Navigate to success page or show completion message
+    if (result && result.type.endsWith('/fulfilled')) {
+      if (tabIndex < 6) {
+        setActiveTab(tabIndex + 1);
+      } else {
+        // Handle completion
+        console.log('Property listing completed');
+        router.push('/host/properties');
+      }
     }
-  }
-};
+  };
+
   const selectDraftProperty = (propertyId) => {
     dispatch(getProperty(propertyId));
     setShowDraftModal(false);
+    router.replace(`/host/onboarding/${propertyId}`);
   };
   
   const createNewProperty = () => {
     dispatch(initializeProperty());
     setShowDraftModal(false);
+    router.replace('/host/onboarding/new');
   };
 
   const DraftPropertyModal = () => {
@@ -312,7 +320,7 @@ export default function PropertyForm() {
     );
   }
 
-  const steps = ['Basic Info', 'Location', 'Amenities', 'Rooms',"Photos And Videos", "Policies", "Finance & Legal"];
+  const steps = ['Basic Info', 'Location', 'Amenities', 'Rooms', "Photos And Videos", "Policies", "Finance & Legal"];
 
   return (
     <>
@@ -334,21 +342,20 @@ export default function PropertyForm() {
               textColor="primary"
               indicatorColor="primary"
               aria-label="property form tabs"
-          >
-            {steps.map((step, index) => (
-              <Tab 
-                key={index}   
-                label={step} 
-                {...a11yProps(index)}
-                // Allow navigation to previous completed steps
-                disabled={
-                  index > 0 && 
-                  !currentProperty?.formProgress?.[`step${index}Completed`] &&
-                  index > activeTab
-                }
-              />
-            ))}
-          </Tabs>
+            >
+              {steps.map((step, index) => (
+                <Tab 
+                  key={index}   
+                  label={step} 
+                  {...a11yProps(index)}
+                  disabled={
+                    index > 0 && 
+                    !currentProperty?.formProgress?.[`step${index}Completed`] &&
+                    index > activeTab
+                  }
+                />
+              ))}
+            </Tabs>
           </Box>
           
           <TabPanel value={activeTab} index={0} dir={theme.direction}>
@@ -389,59 +396,61 @@ export default function PropertyForm() {
               }}
               onSave={() => handleSaveAndNext(3)}
               onBack={() => setActiveTab(2)}
-              // errors={error}
             />
           </TabPanel>
+          
           <TabPanel value={activeTab} index={4} dir={theme.direction}>
-          <MediaForm
-            propertyId={currentProperty?._id}
-            onSave={() => handleSaveAndNext(4)}
-            onBack={() => setActiveTab(3)}    
-          />
-        </TabPanel>
-          <TabPanel value={activeTab} index={5} dir={theme.direction}>
-           {`Polices`}
+            <MediaForm
+              propertyId={currentProperty?._id}
+              onSave={() => handleSaveAndNext(4)}
+              onBack={() => setActiveTab(3)}    
+            />
           </TabPanel>
+          
+          <TabPanel value={activeTab} index={5} dir={theme.direction}>
+            {`Policies`}
+          </TabPanel>
+          
           <TabPanel value={activeTab} index={6} dir={theme.direction}>
-           {`Finance & Legal`}
+            {`Finance & Legal`}
           </TabPanel>
         </Box>
         
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-  <Button
-    variant="outlined"
-    disabled={activeTab === 0}
-    onClick={() => setActiveTab(prev => prev - 1)}
-  >
-    Previous
-  </Button>
-  
-  {activeTab < 6 && (
-    <Button
-      variant="contained"
-      onClick={() => handleSaveAndNext(activeTab)}
-      disabled={isLoading}
-    >
-      Save & Continue
-    </Button>
-  )}
-  
-  {activeTab === 6 && (
-    <Button
-      variant="contained"
-      onClick={() => {
-        if (formData.rooms.length > 0) {
-          handleSaveAndNext(activeTab);
-        } else {
-          alert('Please add at least one room to complete the listing');
-        }
-      }}
-      disabled={isLoading || formData.rooms.length === 0}
-    >
-      Complete Listing
-    </Button>
-  )}
-</Box>
+          <Button
+            variant="outlined"
+            disabled={activeTab === 0}
+            onClick={() => setActiveTab(prev => prev - 1)}
+          >
+            Previous
+          </Button>
+          
+          {activeTab < 6 && (
+            <Button
+              variant="contained"
+              onClick={() => handleSaveAndNext(activeTab)}
+              disabled={isLoading}
+            >
+              Save & Continue
+            </Button>
+          )}
+          
+          {activeTab === 6 && (
+            <Button
+              variant="contained"
+              onClick={() => {
+                if (formData.rooms.length > 0) {
+                  handleSaveAndNext(activeTab);
+                } else {
+                  alert('Please add at least one room to complete the listing');
+                }
+              }}
+              disabled={isLoading || formData.rooms.length === 0}
+            >
+              Complete Listing
+            </Button>
+          )}
+        </Box>
       </Paper>
     </>
   );
