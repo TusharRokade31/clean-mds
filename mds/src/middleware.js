@@ -24,6 +24,13 @@ export function middleware(request) {
   }
   if (isProtectedPaths && !token) {
     return NextResponse.redirect(new URL('/login', request.url))
+    
+  }
+
+  if (isHostPath) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
   }
   
   // Protect dashboard routes for admin only

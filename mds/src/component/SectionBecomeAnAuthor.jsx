@@ -21,7 +21,7 @@ const SectionBecomeAnAuthor = ({}) => {
 				<h2 className="mt-3 text-3xl font-semibold sm:mt-11 sm:text-4xl">
 				Why Do Devotees Trust Us?
 				</h2>
-				<span className="mt-6 block text-neutral-500 dark:text-neutral-400">
+				<span className="mt-6 block text-neutral-500  ">
 				Across every sacred path and spiritual journey, finding the right place to stay should feel just as peaceful as the destination itself. MyDivineStay brings you thoughtfully selected spiritual stays — trusted by travelers, rooted in tradition, and designed to support your devotion, peace of mind, and comfort, no matter where your faith leads you.
 
 				</span>

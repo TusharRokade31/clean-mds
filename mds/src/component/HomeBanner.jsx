@@ -13,7 +13,7 @@ const HomeBanner = () => {
             <h2 className="text-4xl font-medium !leading-[114%] md:text-5xl xl:text-7xl">
               Find Your <br /> Divine Stay
             </h2>
-            <span className="text-base text-neutral-500 mt-5 dark:text-neutral-400 md:text-lg">
+            <span className="text-base text-neutral-500 mt-5   md:text-lg">
               From Kashi to Kedarnath, Find Peaceful, Affordable, and Trusted
               Religious Stays at Your Fingertips
             </span>

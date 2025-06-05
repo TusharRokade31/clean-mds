@@ -85,7 +85,7 @@ const PageLogin = ({}) => {
   return (
     <div className="px-4">
       <div className="mb-24 lg:mb-32">
-        <h2 className="mt-24 lg:mt-40 mb-10 flex items-center justify-center text-3xl font-semibold  text-neutral-900 dark:text-neutral-100 md:text-5xl ">
+        <h2 className="mt-24 lg:mt-40 mb-10 flex items-center justify-center text-3xl font-semibold  text-neutral-900  md:text-5xl ">
           {"Login"}
         </h2>
         <div className="mx-auto max-w-md space-y-6">
@@ -104,7 +104,7 @@ const PageLogin = ({}) => {
                   src={item.icon}
                   alt={item.name}
                 />
-                <h3 className="flex-grow text-center text-sm font-medium text-neutral-700 dark:text-neutral-300 sm:text-sm">
+                <h3 className="flex-grow text-center text-sm font-medium text-neutral-700  sm:text-sm">
                   {item.name}
                 </h3>
               </a>
@@ -112,16 +112,16 @@ const PageLogin = ({}) => {
           </div>
           {/* OR */}
           <div className="relative text-center">
-            <span className="relative z-10 inline-block bg-white px-4 text-sm font-medium dark:bg-neutral-900 dark:text-neutral-400">
+            <span className="relative z-10 inline-block bg-white px-4 text-sm font-medium   ">
               OR
             </span>
-            <div className="absolute left-0 top-1/2 w-full -translate-y-1/2 border border-neutral-100 dark:border-neutral-800"></div>
+            <div className="absolute left-0 top-1/2 w-full -translate-y-1/2 border border-neutral-100 "></div>
           </div>
           {/* FORM */}
           <form className="grid grid-cols-1 gap-6" onSubmit={handleSubmit}>
             {error && <div className="text-red-500 text-sm">{error}</div>}
             <label className="flex items-start flex-col">
-              <span className="text-neutral-800 dark:text-neutral-200">
+              <span className="text-neutral-800 ">
                 {"Email address"}
               </span>
               <input
@@ -135,7 +135,7 @@ const PageLogin = ({}) => {
               />
             </label>
             <label className="flex items-start flex-col">
-              <div className="flex w-full items-center justify-between text-neutral-800 dark:text-neutral-200">
+              <div className="flex w-full items-center justify-between text-neutral-800 ">
                 {"Password"}
                 <Link href="/login" className="text-sm font-medium underline">
                   {"Forgot password?"}
@@ -160,7 +160,7 @@ const PageLogin = ({}) => {
           </form>
 
           {/* ==== */}
-          <div className=" text-center text-neutral-700 dark:text-neutral-300">
+          <div className=" text-center text-neutral-700 ">
             {`New user?`}
             <Link href="/signup" className="font-semibold ms-1 underline">
               {"Create an account"}

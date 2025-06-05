@@ -86,7 +86,7 @@ const PageSignUp= ({}) => {
   return (
     <div className={`nc-PageSignUp`}>
       <div className="mb-24 lg:mb-32">
-        <h2 className="mt-24 lg:mt-40 mb-10 flex items-center justify-center text-3xl font-semibold leading-[115%] text-neutral-900 dark:text-neutral-100 md:text-5xl md:leading-[115%]">
+        <h2 className="mt-24 lg:mt-40 mb-10 flex items-center justify-center text-3xl font-semibold leading-[115%] text-neutral-900  md:text-5xl md:leading-[115%]">
           {'Signup'}
         </h2>
         <div className="mx-auto max-w-md space-y-6">
@@ -103,7 +103,7 @@ const PageSignUp= ({}) => {
                   src={item.icon}
                   alt={item.name}
                 />
-                <h3 className="flex-grow text-center text-sm font-medium text-neutral-700 dark:text-neutral-300 sm:text-sm">
+                <h3 className="flex-grow text-center text-sm font-medium text-neutral-700  sm:text-sm">
                   {item.name}
                 </h3>
               </a>
@@ -111,10 +111,10 @@ const PageSignUp= ({}) => {
           </div>
           {/* OR */}
           <div className="relative text-center">
-            <span className="relative z-10 inline-block bg-white px-4 text-sm font-medium dark:bg-neutral-900 dark:text-neutral-400">
+            <span className="relative z-10 inline-block bg-white px-4 text-sm font-medium  ">
               OR
             </span>
-            <div className="absolute left-0 top-1/2 w-full -translate-y-1/2 transform border border-neutral-100 dark:border-neutral-800"></div>
+            <div className="absolute left-0 top-1/2 w-full -translate-y-1/2 transform border border-neutral-100 "></div>
           </div>
           {/* FORM */}
           <form className="grid grid-cols-1 gap-6" onSubmit={handleSubmit}>
@@ -122,7 +122,7 @@ const PageSignUp= ({}) => {
               <div className="text-red-500 text-sm">{error}</div>
             )}
             <label className="block">
-              <span className="text-neutral-800 dark:text-neutral-200">
+              <span className="text-neutral-800 ">
                 Full Name
               </span>
               <input
@@ -136,7 +136,7 @@ const PageSignUp= ({}) => {
               />
             </label>
             <label className="block">
-              <span className="text-neutral-800 dark:text-neutral-200">
+              <span className="text-neutral-800 ">
                 {'Email address'}
               </span>
               <input
@@ -150,7 +150,7 @@ const PageSignUp= ({}) => {
               />
             </label>
             <label className="block">
-              <span className="flex items-center justify-between text-neutral-800 dark:text-neutral-200">
+              <span className="flex items-center justify-between text-neutral-800 ">
                 {'Password'}
               </span>
               <input 
@@ -169,7 +169,7 @@ const PageSignUp= ({}) => {
           </form>
 
           {/* ==== */}
-          <span className="block text-center text-neutral-700 dark:text-neutral-300">
+          <span className="block text-center text-neutral-700 ">
             {'Already have an account?'} {` `}
             <Link href="/login" className="font-semibold underline">
               {'Sign in'}
