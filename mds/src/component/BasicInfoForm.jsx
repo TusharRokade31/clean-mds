@@ -1,85 +1,39 @@
 import { 
   TextField, FormControl, InputLabel, Select, 
-  MenuItem, FormHelperText, Button, Grid, Typography,
-  Alert, CircularProgress
+  MenuItem, FormHelperText, Grid, Typography,
+  Alert
 } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
-import { updateBasicInfo } from '@/redux/features/property/propertySlice';
-import { useState } from 'react';
 
 export default function BasicInfoForm({ formData, onChange, errors }) {
-  const dispatch = useDispatch();
-  const { currentProperty, isLoading, error } = useSelector(state => state.property);
-
-  const [localErrors, setLocalErrors] = useState({});
-
   const propertyTypes = [
-    'Hotel', 'Cottage', 'Villa', 'Cabin', 'Farm stay', 'Houseboat', 'Lighthouse'
+    'Dharamshala (Basic spiritual lodging run by religious trusts or communities)', 'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)'
   ];
   
-  const rentalForms = ['Entire place', 'Private room', 'Share room'];
+  // const rentalForms = ['Entire place', 'Private room', 'Share room'];
   const yearArray = Array.from({ length: 2026 - 1800 }, (_, i) => 2025 - i);
   const ratingArray = Array.from({ length: 5 }, (_, i) => 5 - i);
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.propertyType) newErrors.propertyType = 'Property type is required';
-    if (!formData.placeName) newErrors.placeName = 'Place name is required';
-    if (!formData.placeRating) newErrors.placeRating = 'Rating is required';
-    if (!formData.propertyBuilt) newErrors.propertyBuilt = 'Built year is required';
-    if (!formData.bookingSince) newErrors.bookingSince = 'Booking since date is required';
-    if (!formData.rentalForm) newErrors.rentalForm = 'Rental form is required';
-    
-    setLocalErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSave = async () => {
-    if (!validateForm()) return;
-    if (currentProperty?._id) {
-      const result = await dispatch(updateBasicInfo({
-        id: currentProperty._id,
-        data: formData
-      }));
-      
-      if (result.type.endsWith('/fulfilled')) {
-        // Handle success - maybe show success message or navigate
-        
-      }
-    }
-  };
-
-  const displayErrors = { ...errors, ...localErrors };
 
   return (
     <div>
       <Typography sx={{ mb: 2 }} variant="h5" gutterBottom>
         Basic Property Information
       </Typography>
-      
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-      
+
       <Grid container spacing={3}>
         <Grid item size={{xs:12, md:4}}>
-          <FormControl fullWidth error={!!displayErrors.propertyType}>
+          <FormControl fullWidth error={!!errors?.propertyType}>
             <InputLabel>Property Type</InputLabel>
             <Select
               value={formData.propertyType || ''}
               onChange={(e) => onChange('propertyType', e.target.value)}
               label="Property Type"
-              disabled={isLoading}
             >
               {propertyTypes.map(type => (
                 <MenuItem key={type} value={type}>{type}</MenuItem>
               ))}
             </Select>
-            {displayErrors.propertyType && (
-              <FormHelperText>{displayErrors.propertyType}</FormHelperText>
+            {errors?.propertyType && (
+              <FormHelperText>{errors.propertyType}</FormHelperText>
             )}
           </FormControl>
         </Grid>
@@ -87,102 +41,86 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
         <Grid item size={{xs:12, md:4}}>
           <TextField
             fullWidth
-            label="Place Name"
+            label="Name of the Property"
             value={formData.placeName || ''}
             onChange={(e) => onChange('placeName', e.target.value)}
-            error={!!displayErrors.placeName}
-            helperText={displayErrors.placeName}
-            disabled={isLoading}
+            error={!!errors?.placeName}
+            helperText={errors?.placeName}
           />
         </Grid>
         
         <Grid item size={{xs:12, md:4}}>
-          <FormControl fullWidth error={!!displayErrors.placeRating}>
-            <InputLabel>Place Rating</InputLabel>
+          <FormControl fullWidth error={!!errors?.placeRating}>
+            <InputLabel>Property Rating</InputLabel>
             <Select
               value={formData.placeRating || ''}
               onChange={(e) => onChange('placeRating', e.target.value)}
-              label="Place Rating"
-              disabled={isLoading}
+              label="Property Rating"
             >
               {ratingArray.map(rating => (
                 <MenuItem key={rating} value={rating.toString()}>{rating}</MenuItem>
               ))}
             </Select>
-            {displayErrors.placeRating && (
-              <FormHelperText>{displayErrors.placeRating}</FormHelperText>
+            {errors?.placeRating && (
+              <FormHelperText>{errors.placeRating}</FormHelperText>
             )}
           </FormControl>
         </Grid>
         
         <Grid item size={{xs:12, md:4}}>
-          <FormControl fullWidth error={!!displayErrors.propertyBuilt}>
-            <InputLabel>Property Built Year</InputLabel>
+          <FormControl fullWidth error={!!errors?.propertyBuilt}>
+            <InputLabel>When was the property built?</InputLabel>
             <Select
               value={formData.propertyBuilt || ''}
               onChange={(e) => onChange('propertyBuilt', e.target.value)}
-              label="Property Built Year"
-              disabled={isLoading}
+              label="When was the property built?"
             >
               {yearArray.map(year => (
                 <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
               ))}
             </Select>
-            {displayErrors.propertyBuilt && (
-              <FormHelperText>{displayErrors.propertyBuilt}</FormHelperText>
+            {errors?.propertyBuilt && (
+              <FormHelperText>{errors.propertyBuilt}</FormHelperText>
             )}
           </FormControl>
         </Grid>
         
         <Grid item size={{xs:12, md:4}}>
-          <FormControl fullWidth error={!!displayErrors.bookingSince}>
-            <InputLabel>Booking Since</InputLabel>
+          <FormControl fullWidth error={!!errors?.bookingSince}>
+            <InputLabel>Accepting booking since?</InputLabel>
             <Select
               value={formData.bookingSince || ''}
               onChange={(e) => onChange('bookingSince', e.target.value)}
-              label="Booking Since"
-              disabled={isLoading}
+              label="Accepting booking since?"
             >
               {yearArray.map(year => (
                 <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
               ))}
             </Select>
-            {displayErrors.bookingSince && (
-              <FormHelperText>{displayErrors.bookingSince}</FormHelperText>
+            {errors?.bookingSince && (
+              <FormHelperText>{errors.bookingSince}</FormHelperText>
             )}
           </FormControl>
         </Grid>
         
-        <Grid item size={{xs:12, md:4}}>
-          <FormControl fullWidth error={!!displayErrors.rentalForm}>
+        {/* <Grid item size={{xs:12, md:4}}>
+          <FormControl fullWidth error={!!errors?.rentalForm}>
             <InputLabel>Rental Form</InputLabel>
             <Select
               value={formData.rentalForm || ''}
               onChange={(e) => onChange('rentalForm', e.target.value)}
               label="Rental Form"
-              disabled={isLoading}
             >
               {rentalForms.map(form => (
                 <MenuItem key={form} value={form}>{form}</MenuItem>
               ))}
             </Select>
-            {displayErrors.rentalForm && (
-              <FormHelperText>{displayErrors.rentalForm}</FormHelperText>
+            {errors?.rentalForm && (
+              <FormHelperText>{errors.rentalForm}</FormHelperText>
             )}
           </FormControl>
-        </Grid>
+        </Grid> */}
       </Grid>
-      
-      <Button 
-        variant="contained" 
-        color="primary" 
-        sx={{ mt: 3 }}
-        onClick={handleSave}
-        disabled={isLoading}
-        startIcon={isLoading ? <CircularProgress size={20} /> : null}
-      >
-        {isLoading ? 'Saving...' : 'Save & Continue'}
-      </Button>
     </div>
   );
 }

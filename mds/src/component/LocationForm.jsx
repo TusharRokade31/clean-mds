@@ -58,14 +58,14 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
           />
         </Grid>
         
-        <Grid item size={{xs:6}} md={6}>
+        {/* <Grid item size={{xs:6}} md={6}>
           <TextField
             fullWidth
             label="Room/Suite Number (optional)"
             value={formData?.roomNumber || ''}
             onChange={(e) => onChange('roomNumber', e.target.value)}
           />
-        </Grid>
+        </Grid> */}
         
         <Grid item size={{xs:6}} md={6}>
           <Autocomplete

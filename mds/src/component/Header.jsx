@@ -93,7 +93,7 @@ const Header = () => {
           <Link href="/about" className="text-lg font-medium text-gray-800 hover:text-indigo-600 transition-colors">
             About us
           </Link>
-          <Link href="/list-property" className="text-lg font-medium text-gray-800 hover:text-indigo-600 transition-colors">
+          <Link href="/host" className="text-lg font-medium text-gray-800 hover:text-indigo-600 transition-colors">
             List your property
           </Link>
         </div>

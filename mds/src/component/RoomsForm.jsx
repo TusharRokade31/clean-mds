@@ -63,7 +63,8 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
       },
       bathrooms: {
         count: 1,
-        private: true
+        private: true,
+        shared: true,
       },
       mealPlan: {
         available: false,
@@ -107,11 +108,37 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
           options: ['Free', 'Paid'],
           Suboptions: ['Speed Suitable for Working', 'Speed Suitable for Surfing']
         },
+        
         {
           name: 'TV',
           options: ['LED', 'LCD', 'Smart TV'],
           Suboptions: ['International Channels', 'HD Channels', 'Satellite TV']
-        }
+        },
+        {
+          name: 'Hairdryer',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Hot Water',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Toiletries',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Mineral Water',
+          options: ['Free', 'Paid'],
+          Suboptions: []
+        },
+         {
+          name: 'Telephone',
+          options: ['Local','International Call'],
+          Suboptions: []
+        },
       ]
     },
     basicFacilities: {
@@ -123,13 +150,18 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
           Suboptions: []
         },
         {
-          name: 'Kitchen/Kitchenette',
+          name: 'Kitchen',
           options: [],
           Suboptions: ['Microwave', 'Toaster', 'Cooking appliances', 'Cutlery']
         },
         {
           name: 'Safe',
           options: ['Digital', 'Key lock'],
+          Suboptions: []
+        },
+        {
+          name: 'Closet',
+          options: [],
           Suboptions: []
         }
       ]
@@ -138,17 +170,27 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
       title: 'Bathroom',
       items: [
         {
-          name: 'Hair Dryer',
+          name: 'Dental Kit',
           options: [],
           Suboptions: []
         },
         {
           name: 'Toiletries',
           options: ['Basic', 'Premium'],
-          Suboptions: ['Shampoo', 'Soap', 'Towels']
+          Suboptions: ['Shampoo', 'Soap', 'Towels',]
         },
         {
-          name: 'Hot Water',
+          name: 'Western Toilet Seat',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Jetspray',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Geyser/Water Heater',
           options: ['24 Hours', 'Limited duration'],
           Suboptions: []
         }
@@ -171,7 +213,100 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
           name: 'Wardrobe',
           options: [],
           Suboptions: ['Hangers', 'Safe inside']
-        }
+        },
+        {
+          name: 'Charging points',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Dining Table',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Sofa',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Seating Area',
+          options: [],
+          Suboptions: []
+        },
+        
+      ]
+    },
+    kitchenAppliances: {
+      title: 'Kitchen and Appliances',
+      items: [
+        {
+          name: 'Induction',
+          options: [],
+          Suboptions: []
+        },
+
+        {
+          name: 'Kitchenette',
+          options: ['Private','Shared'],
+          Suboptions: []
+        },
+        {
+          name: 'Refrigerator',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Cook/Chef',
+          options: ['Free','Paid'],
+          Suboptions: []
+        },
+        {
+          name: 'Dishes and Silverware',
+          options: [],
+          Suboptions: []
+        },
+         {
+          name: 'Microwave',
+          options: [],
+          Suboptions: []
+        },
+        
+        
+      ]
+    },
+     otherFacilities: {
+      title: 'Other Facilities',
+      items: [
+        {
+          name: 'Mosquito Net',
+          options: [],
+          Suboptions: []
+        },
+
+        {
+          name: 'Newspaper',
+          options: ['Private','Shared'],
+          Suboptions: []
+        },
+        {
+          name: 'Balcony',
+          options: ['Private', 'Shared'],
+          Suboptions: []
+        },
+        {
+          name: 'Terrace',
+          options: ['Free','Paid'],
+          Suboptions: []
+        },
+        {
+          name: 'Fan',
+          options: ['Ceiling','Table'],
+          Suboptions: []
+        },
+
+        
+        
       ]
     }
   };
@@ -435,7 +570,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
   const validateRoomData = () => {
     const errors = {};
     
-    if (!currentRoomData.roomType) errors.roomType = 'Room type is required';
+    // if (!currentRoomData.roomType) errors.roomType = 'Room type is required';
     if (!currentRoomData.roomName) errors.roomName = 'Room name is required';
     if (!currentRoomData.roomSize || currentRoomData.roomSize <= 0) errors.roomSize = 'Valid room size is required';
     
@@ -617,7 +752,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                     </div>
                     
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {room.roomType} · {room.roomSize} {room.sizeUnit}
+                       {room.roomSize} {room.sizeUnit}
                     </Typography>
                     
                     {room.description && (
@@ -672,7 +807,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
           <Grid container spacing={3}>
             {/* Basic Room Details - Same as before */}
             <Grid item size={{xs:12 ,md:6}}>
-              <FormControl fullWidth error={!!formErrors.roomType} className="mb-4">
+              {/* <FormControl fullWidth  className="mb-4">
                 <InputLabel>Room Type *</InputLabel>
                 <Select
                   value={currentRoomData.roomType}
@@ -685,7 +820,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                   <MenuItem value="Other">Other</MenuItem>
                 </Select>
                 {formErrors.roomType && <FormHelperText>{formErrors.roomType}</FormHelperText>}
-              </FormControl>
+              </FormControl> */}
               
               <TextField
                 fullWidth
@@ -886,6 +1021,15 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                                   />
                                 }
                                 label="Private Bathroom"
+                              />
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={currentRoomData.bathrooms.shared}
+                                    onChange={(e) => handleNestedChange('bathrooms', 'shared', e.target.checked)}
+                                  />
+                                }
+                                label="Shared Bathroom"
                               />
                             </Grid>
                           </Grid>

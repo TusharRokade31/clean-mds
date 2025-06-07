@@ -12,7 +12,7 @@ const NavMenu = () => {
       <h3 className="border border-[#9ca3af5b] cursor-pointer hover:border-[#9ca3af] rounded-full py-1.5 px-4">
         About us
       </h3>
-      <Link href={`/list-property`}>
+      <Link href={`/host`}>
         <h3 className="border border-[#9ca3af5b] cursor-pointer hover:border-[#9ca3af] rounded-full py-1.5 px-4">
           List your property
         </h3>

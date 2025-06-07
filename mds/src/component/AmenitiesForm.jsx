@@ -67,11 +67,11 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
           options: ['In Room', 'Lobby'],
           Suboptions: []
         },
-        {
-          name: 'Swimming Pool',
-          options: ['In Room', 'Lobby'],
-          Suboptions: ['Common Pool', 'Kids Pool', 'Infinity Pool', 'Indoor Pool', 'Heated Pool', 'Roof Top Pool']
-        },
+        // {
+        //   name: 'Swimming Pool',
+        //   options: ['In Room', 'Lobby'],
+        //   Suboptions: ['Common Pool', 'Kids Pool', 'Infinity Pool', 'Indoor Pool', 'Heated Pool', 'Roof Top Pool']
+        // },
         {
           name: 'Wifi',
           options: ['Free', 'Paid'],
@@ -86,6 +86,21 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
           name: 'Restaurant/Bhojnalay',
           options: ['24 Hours', 'Limited duration'],
           Suboptions: ['Halal', 'Kosher', 'Veg food available', 'Jain food available', 'Satvik food available', 'Indian']
+        },
+        {
+          name: 'CCTV',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Fire extinguishers',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Luggage assistance',
+          options: [],
+          Suboptions: []
         }
       ]
     },
@@ -103,7 +118,7 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
           Suboptions: []
         },
         {
-          name: 'Kitchen/Kitchenette',
+          name: 'Kitchen',
           options: [],
           Suboptions: ['Cooking appliances', 'Microwave', 'Utensils', 'Toaster', 'Induction', 'Cutlery']
         },
@@ -171,7 +186,22 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
           name: 'Seating Area',
           options: [],
           Suboptions: []
-        }
+        },
+        {
+          name: 'Prayer Room',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'Sitout Area',
+          options: ['Poolside Sit-out area', 'Balcony','Verandah', 'Seating Arrangement on Lawn', 'Patio'],
+          Suboptions: []
+        },
+        {
+          name: 'Bonfire Pit',
+          options: [],
+          Suboptions: []
+        },
       ]
     },
     foodBeverages: {
@@ -183,8 +213,8 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
           Suboptions: []
         },
         {
-          name: "Kid's Menu",
-          options: [],
+          name: "Food Options Available",
+          options: ['Veg','Jain', 'Sativk'],
           Suboptions: []
         },
         {
@@ -241,6 +271,21 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
           name: 'TV',
           options: [],
           Suboptions: ['LED', 'LCD', 'Flat Screen', 'International Channels', 'HD Channels', 'Satellite TV', 'Remote Controlled', 'Cable', 'Smart TV']
+        }
+      ]
+    },
+    paymentServices: {
+      title: 'Payment Services',
+      items: [
+        {
+          name: 'ATM',
+          options: [],
+          Suboptions: []
+        },
+        {
+          name: 'UPI',
+          options: [],
+          Suboptions: []
         }
       ]
     }
@@ -515,7 +560,7 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
         </Box>
       </Box>
       
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
         <Button 
           variant="contained" 
           color="primary" 
@@ -524,7 +569,7 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
         >
           Save & Continue
         </Button>
-      </Box>
+      </Box> */}
     </div>
   );
 }

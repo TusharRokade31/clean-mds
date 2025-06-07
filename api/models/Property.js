@@ -131,10 +131,14 @@ const RoomSchema = new Schema({
     private: { 
       type: Boolean, 
       default: true 
+    },
+    shared: { 
+      type: Boolean, 
+      default: true 
     }
   },
   
-  // Meal plan
+  // Meal plan  
   mealPlan: {
     available: { type: Boolean, default: false },
     planType: { type: String }
@@ -218,7 +222,9 @@ const PropertySchema = new Schema({
   propertyType: {
     type: String,
     required: [true, 'Property type is required'],
-    enum: ['Hotel', 'Cottage', 'Villa', 'Cabin', 'Farm stay', 'Houseboat', 'Lighthouse']
+    enum: [
+    'Dharamshala (Basic spiritual lodging run by religious trusts or communities)', 'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)'
+  ]
   },
   placeName: {
     type: String,
@@ -238,7 +244,7 @@ const PropertySchema = new Schema({
   },
   rentalForm: {
     type: String,
-    required: [true, 'Rental form is required'],
+    // required: [true, 'Rental form is required'],
     enum: ['Entire place', 'Private room', 'Share room']
   },
   
