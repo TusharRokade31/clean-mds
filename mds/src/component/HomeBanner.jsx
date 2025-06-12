@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React from "react";
 // import imagePng from "../../public/assets/hero-right.png";
-import imagePng from "../../public/assets/hero-img2.jpeg";
+import imagePng from "../../public/assets/hero3.jpeg";
 import SearchBar from "./SearchBar";
 
 const HomeBanner = () => {
