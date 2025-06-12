@@ -12,7 +12,7 @@ const SectionBecomeAnAuthor = ({ }) => {
 			className={`nc-SectionBecomeAnAuthor bg-[#f3f4f6] px-4 max-w-8xl  `}
 		>
 			<div className='relative max-w-7xl py-14  mx-auto flex flex-col items-center lg:flex-row'>
-				<div className="mb-16 flex-shrink-0 lg:mb-0 lg:me-10 lg:w-5/5">
+				<div className="mb-16 px-3 flex-shrink-0 lg:mb-0 lg:me-10 lg:w-5/5">
 					<Link
 						href="/"
 					>
@@ -25,7 +25,7 @@ const SectionBecomeAnAuthor = ({ }) => {
 						At My Divine Stay, we recognize the significance of a peaceful and fulfilling spiritual journey. Here's why we are the preferred choice for devotees:
 
 					</span>
-					<div className='flex justify-between items-start'>
+					<div className='md:flex justify-between items-start'>
 						<ul className="mt-6 block me-12 space-y list-disc ">
 							<li className='text-lg font-bold'>Tailored for Spiritual Journeys</li>
 

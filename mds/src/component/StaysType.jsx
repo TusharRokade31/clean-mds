@@ -38,7 +38,7 @@ const StaysType = () => {
         ) : (
           <div 
           id="stays-scroll-container"
-          className="flex overflow-x-auto md:overflow-visible scrollbar-none snap-x snap-mandatory scroll-smooth pb-4"
+          className="flex overflow-x-auto xl:overflow-visible scrollbar-none snap-x snap-mandatory scroll-smooth pb-4"
         >
           {stays.map((destination) => (
             <div 

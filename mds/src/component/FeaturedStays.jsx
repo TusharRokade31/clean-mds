@@ -11,64 +11,81 @@ import Kushinagar from "../../public/featured-places/Kushinagar.png"
 import Kutch from "../../public/featured-places/Kutch.png"
 import Mathura from "../../public/featured-places/Mathura.png"
 import Prayagraj from "../../public/featured-places/Prayagraj.png"
-import Trimbakeshwar from "../../public/featured-places/Trimbakeshwar.png"
 import Varanasi from "../../public/featured-places/Varanasi.png"
 import Vrindavan from "../../public/featured-places/Vrindavan.png"
+import Somnath from "../../public/featured-places/Somnath.png"
+import Dwarka from "../../public/featured-places/dwarka.png"
+import Akshardham from "../../public/featured-places/Akshardham.png"
+import Girnar from "../../public/featured-places/Girnar.png"
+import Ambaji from "../../public/featured-places/Ambaji.png"
+import Palitana from "../../public/featured-places/Palitana.png"
+import Patan from "../../public/featured-places/Patan.png"
+import Shirdi from "../../public/featured-places/shirdi.png"
+import ElloraCaves from "../../public/featured-places/ellora-caves.png"
+import Trimbakeshwar from "../../public/featured-places/Trimbakeshwar.png"
+import Pandharpur from "../../public/featured-places/Pandharpur.png"
+import Shanishingnapur from "../../public/featured-places/Shanishingnapur.png"
+import Mahabaleshwar from "../../public/featured-places/Mahabaleshwar.png"
+import Ganpatipule from "../../public/featured-places/Ganpatipule.png"
+import Bhimashankar from "../../public/featured-places/Bhimashankar.png"
+import Haridwar from "../../public/featured-places/Haridwar.png"
+import Rishikesh from "../../public/featured-places/Rishikesh.png"
+import Badrinath from "../../public/featured-places/Badrinath.png"
+import Kedarnath from "../../public/featured-places/Kedarnath.png"
+import Yamunotri from "../../public/featured-places/Yamunotri.png"
+import Gangotri from "../../public/featured-places/Gangotri.png"
+import NainaDeviTemple from "../../public/featured-places/naina-devi-temple.png"
+import Rudranath from "../../public/featured-places/Rudranath.png"
+
 import Link from 'next/link';
 
 const FeaturedStays = () => {
   const [activeTab, setActiveTab] = useState('Uttar Pradesh');
   const [favorites, setFavorites] = useState([]);
   
-  const tabs = ['Uttar Pradesh', 'Gujarat', 'Punjab', 'Uttarakhand'];
+  const tabs = ['Uttar Pradesh', 'Gujarat', 'Maharashtra', 'Uttarakhand'];
   
   // Define images for each tab
   const tabImages = {
     'Uttar Pradesh': [
-      // Add your Uttar Pradesh images here
       Ayodhya.src,
       Chitrakoot.src,
       Gorakhpur.src,
       Kushinagar.src,
-      Kutch.src,
       Mathura.src,
       Prayagraj.src,
-      Trimbakeshwar.src,
       Varanasi.src,
       Vrindavan.src,
     ],
     'Gujarat': [
-      // Add your Gujarat images here
-      '/assets/gujarat-1.jpg',
-      '/assets/gujarat-2.jpg',
-      '/assets/gujarat-3.jpg',
-      '/assets/gujarat-4.jpg',
-      '/assets/gujarat-5.jpg',
-      '/assets/gujarat-6.jpg',
-      '/assets/gujarat-7.jpg',
-      '/assets/gujarat-8.jpg',
+      Somnath.src,
+      Dwarka.src,
+      Akshardham.src,
+      Girnar.src,
+      Ambaji.src,
+      Palitana.src,
+      Kutch.src,
+      Patan.src,
     ],
-    'Punjab': [
-      // Add your Punjab images here
-      '/assets/punjab-1.jpg',
-      '/assets/punjab-2.jpg',
-      '/assets/punjab-3.jpg',
-      '/assets/punjab-4.jpg',
-      '/assets/punjab-5.jpg',
-      '/assets/punjab-6.jpg',
-      '/assets/punjab-7.jpg',
-      '/assets/punjab-8.jpg',
+    'Maharashtra': [
+      Shirdi.src,
+      ElloraCaves.src,
+      Trimbakeshwar.src,
+      Pandharpur.src,
+      Shanishingnapur.src,
+      Mahabaleshwar.src,
+      Ganpatipule.src,
+      Bhimashankar.src,
     ],
     'Uttarakhand': [
-      // Add your Uttarakhand images here
-      '/assets/uttarakhand-1.jpg',
-      '/assets/uttarakhand-2.jpg',
-      '/assets/uttarakhand-3.jpg',
-      '/assets/uttarakhand-4.jpg',
-      '/assets/uttarakhand-5.jpg',
-      '/assets/uttarakhand-6.jpg',
-      '/assets/uttarakhand-7.jpg',
-      '/assets/uttarakhand-8.jpg',
+        Haridwar.src,
+        Rishikesh.src,
+        Badrinath.src,
+        Kedarnath.src,
+        Yamunotri.src,
+        Gangotri.src,
+        NainaDeviTemple.src,
+        Rudranath.src,
     ],
   };
 
@@ -77,45 +94,42 @@ const FeaturedStays = () => {
     'Uttar Pradesh': [
       'Ayodhya',
       'Chitrakoot',
-'Gorakhpur',
-'Kushinagar',
-'Kutch',
-'Mathura',
-'Prayagraj',
-'Trimbakeshwar',
-'Varanasi',
-'Vrindavan',
-      
+      'Gorakhpur',
+      'Kushinagar',
+      'Mathura',
+      'Prayagraj',
+      'Varanasi',
+      'Vrindavan',
     ],
     'Gujarat': [
-      'Rann of Kutch',
-      'Somnath Temple',
-      'Gir National Park',
+      'Somnath',
       'Dwarka',
-      'Statue of Unity',
-      'Ahmedabad',
+      'Akshardham',
+      'Girnar',
+      'Ambaji',
       'Palitana',
-      'Saputara',
+      'Kutch',
+      'Patan',
     ],
-    'Punjab': [
-      'Golden Temple',
-      'Jallianwala Bagh',
-      'Wagah Border',
-      'Anandpur Sahib',
-      'Chandigarh',
-      'Patiala',
-      'Ludhiana',
-      'Bathinda',
+    'Maharashtra': [
+      'Shirdi',
+      'Ellora Caves (Aurangabad)',
+      'Trimbakeshwar',
+      'Pandharpur',
+      'Shanishingnapur',
+      'Mahabaleshwar',
+      'Ganpatipule',
+      'Bhimashankar',
     ],
     'Uttarakhand': [
-      'Kedarnath',
-      'Badrinath',
-      'Rishikesh',
       'Haridwar',
-      'Nainital',
-      'Mussoorie',
-      'Jim Corbett',
-      'Valley of Flowers',
+      'Rishikesh',
+      'Badrinath',
+      'Kedarnath',
+      'Yamunotri',
+      'Gangotri',
+      'Naina Devi Temple',
+      'Rudranath'
     ],
   };
   
@@ -148,21 +162,98 @@ const FeaturedStays = () => {
             </button>
           ))}
         </div>
-        <div className="ml-auto mt-2 sm:mt-0">
-          <button className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
-            View all
-            <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Mobile Slider - 1 image per view */}
+      <div className="sm:hidden">
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-4 pb-4">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={`${activeTab}-${index}`} className="flex-none w-[calc(100vw-2rem)] max-w-sm">
+                <div className="rounded-lg overflow-hidden bg-white">
+                  <div className="relative h-72 w-full bg-gray-200">
+                    {/* <div className="absolute right-2 top-2 z-10">
+                      <button 
+                        onClick={() => toggleFavorite(`${activeTab}-${index}`)}
+                        className="p-1.5 bg-white rounded-full shadow-md"
+                      >
+                        {favorites.includes(`${activeTab}-${index}`) ? (
+                          <HeartSolidIcon className="h-5 w-5 text-red-500" />
+                        ) : (
+                          <HeartIcon className="h-5 w-5 text-gray-500" />
+                        )}
+                      </button>
+                    </div> */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Link href={'/coming-soon'}>
+                        <img 
+                          src={tabImages[activeTab][index] || commingSoon.src} 
+                          alt={tabTitles[activeTab][index] || "Featured Stay"} 
+                          className="object-cover w-full h-full transition-transform duration-300" 
+                        />
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="pt-12 text-center px-2">
+                    <h3 className="font-medium text-xl text-gray-900 mb-1">
+                      {tabTitles[activeTab][index] || "Coming Soon..."}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Tablet Slider - 2 images per view */}
+      <div className="hidden sm:block lg:hidden">
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-4 pb-4">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div key={`${activeTab}-${index}`} className="flex-none w-[calc(50%-0.5rem)] min-w-[280px]">
+                <div className="rounded-lg overflow-hidden bg-white">
+                  <div className="relative h-72 w-full bg-gray-200">
+                    {/* <div className="absolute right-2 top-2 z-10">
+                      <button 
+                        onClick={() => toggleFavorite(`${activeTab}-${index}`)}
+                        className="p-1.5 bg-white rounded-full shadow-md"
+                      >
+                        {favorites.includes(`${activeTab}-${index}`) ? (
+                          <HeartSolidIcon className="h-5 w-5 text-red-500" />
+                        ) : (
+                          <HeartIcon className="h-5 w-5 text-gray-500" />
+                        )}
+                      </button>
+                    </div> */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Link href={'/coming-soon'}>
+                        <img 
+                          src={tabImages[activeTab][index] || commingSoon.src} 
+                          alt={tabTitles[activeTab][index] || "Featured Stay"} 
+                          className="object-cover w-full h-full transition-transform duration-300" 
+                        />
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="pt-12  text-center px-2">
+                    <h3 className="font-medium text-xl text-gray-900 mb-1">
+                      {tabTitles[activeTab][index] || "Coming Soon..."}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Grid */}
+      <div className="hidden lg:grid lg:grid-cols-4 gap-4">
         {Array.from({ length: 8 }).map((_, index) => (
           <div key={`${activeTab}-${index}`} className="rounded-lg overflow-hidden bg-white">
-            <div className="relative h-60 w-full bg-gray-200">
-              <div className="absolute right-2 top-2 z-10">
+            <div className="relative h-72 w-full bg-gray-200">
+              {/* <div className="absolute right-2 top-2 z-10">
                 <button 
                   onClick={() => toggleFavorite(`${activeTab}-${index}`)}
                   className="p-1.5 bg-white rounded-full shadow-md"
@@ -173,22 +264,21 @@ const FeaturedStays = () => {
                     <HeartIcon className="h-5 w-5 text-gray-500" />
                   )}
                 </button>
-              </div>
+              </div> */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <Link href={'/coming-soon'}>
                   <img 
                     src={tabImages[activeTab][index] || commingSoon.src} 
                     alt={tabTitles[activeTab][index] || "Featured Stay"} 
-                    className="object-cover w-full h-full  transition-transform duration-300" 
+                    className="object-cover w-full h-full transition-transform duration-300" 
                   />
                 </Link>
               </div>
             </div>
-            <div className="py-10">
-              <h3 className="font-medium text-gray-900 mb-1">
+            <div className="py-4 text-center">
+              <h3 className="font-medium text-xl text-gray-900 mb-1">
                 {tabTitles[activeTab][index] || "Coming Soon..."}
               </h3>
-              {/* <p className="text-gray-500 text-sm">{activeTab}</p> */}
             </div>
           </div>
         ))}

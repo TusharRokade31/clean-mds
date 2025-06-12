@@ -2,7 +2,7 @@ import Image from "next/image"
 
 export default function AboutSection() {
   return (
-    <div className="min-h-screen bg-gray-50 py-28 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen  py-28 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-24">
         {/* About Us Section */}
         <section className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -134,22 +134,22 @@ export default function AboutSection() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10 lg:gap-15">
-            <div className="space-y-4">
-              <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">2 Million Temples</h3>
+            <div className="space-y-4 bg-gray-50 p-5 rounded-2xl">
+              <h3 className="text-3xl font-bold text-gray-900">150-200 Millions</h3>
               <p className="text-gray-600 text-lg leading-relaxed">
-                across various religions attract pilgrims from all faiths in India
+                Total Pilgrims per Year (India)
               </p>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">30 Million Pilgrims</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">visit India's sacred sites each year.</p>
+            <div className="space-y-4 bg-gray-50 p-5 rounded-2xl">
+              <h3 className="text-3xl font-bold text-gray-900">40-50%</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">Staying in Dharamshalas</p>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900">12 Billion</h3>
+            <div className="space-y-4 bg-gray-50 p-5 rounded-2xl">
+              <h3 className="text-3xl font-bold text-gray-900">60-100 Millions per year</h3>
               <p className="text-gray-600 text-lg leading-relaxed">
-                is contributed to India's economy annually through religious tourism.
+                Estimated Pilgrims using Dharamshalas
               </p>
             </div>
           </div>
