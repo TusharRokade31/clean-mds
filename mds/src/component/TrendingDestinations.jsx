@@ -12,14 +12,14 @@ const TrendingDestinations = () => {
 
 
   const scrollRight = () => {
-    const container = document.getElementById("spiritual-scroll-container");
+    const container = document.getElementById("trending-scroll-container");
     if (container) {
       container.scrollBy({ left: 300, behavior: "smooth" });
     }
   };
 
     const scrollLeft = () => {
-    const container = document.getElementById("spiritual-scroll-container");
+    const container = document.getElementById("trending-scroll-container");
     if (container) {
       container.scrollBy({ left: -300, behavior: "smooth" });
     }
@@ -66,7 +66,7 @@ const TrendingDestinations = () => {
                   {/* {console.log(`http://localhost:5000/${destination.image}`)} */}
                       <Link href={'/coming-soon'}>
                         <Image 
-                            overrideSrc={`https://mds-backend-bweu.onrender.com/${destination.image || ''}`}
+                            overrideSrc={`https://mds-backend-bweu.onrender.com//${destination.image || ''}`}
                             className="h-full w-full rounded-2xl object-cover"
                             alt={destination.name}
                             fill
