@@ -14,6 +14,12 @@ const nextConfig = {
 				port: '',
 				pathname: '/**',
 			},
+			{
+				protocol: 'https',
+				hostname: 'mds-backend-bweu.onrender.com',
+				port: '',
+				pathname: '/**',
+			},
         ]
     }
 };
