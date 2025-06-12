@@ -114,6 +114,39 @@ export const createAdmin = asyncHandler(async (req, res, next) => {
 
 
 // Helper function to get token from model, create cookie and send response
+// const sendTokenResponse = (user, statusCode, res, message) => {
+//   // Create token
+//   const token = jwt.sign(
+//     { id: user._id, role: user.role },
+//     config.jwt.secret,
+//     { expiresIn: config.jwt.expiresIn }
+//   );
+
+//   // Cookie options
+//   const cookieOptions = {
+//     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+//     httpOnly: true,
+//     path: '/'
+//   };
+
+//   // Add secure flag in production
+//   if (process.env.NODE_ENV === 'production') {
+//     cookieOptions.secure = true;
+//   }
+
+//   // Set the cookie
+//   res.cookie('token', token, cookieOptions);
+
+//   // Send response
+//   res.status(statusCode).json({
+//     success: true,
+//     message,
+//     token,
+//     userId: user._id
+//   });
+// };
+
+
 const sendTokenResponse = (user, statusCode, res, message) => {
   // Create token
   const token = jwt.sign(
@@ -126,13 +159,20 @@ const sendTokenResponse = (user, statusCode, res, message) => {
   const cookieOptions = {
     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     httpOnly: true,
-    path: '/'
+    path: '/',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Important for cross-origin
   };
 
-  // Add secure flag in production
+  // Add secure flag only if HTTPS is available
   if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true;
+    cookieOptions.secure = true; // Only if you have HTTPS
+    // If you don't have HTTPS in production, comment out the line above
   }
+
+  // Optional: Set domain for production if needed
+  // if (process.env.NODE_ENV === 'production') {
+  //   cookieOptions.domain = '.yourdomain.com';
+  // }
 
   // Set the cookie
   res.cookie('token', token, cookieOptions);
