@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Replace with your API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://mds-backend-bweu.onrender.com/api';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

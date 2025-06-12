@@ -66,7 +66,7 @@ const TrendingDestinations = () => {
                   {/* {console.log(`http://localhost:5000/${destination.image}`)} */}
                       <Link href={'/coming-soon'}>
                         <Image 
-                            src={`http://localhost:5000/${destination.image || ''}`}
+                            overrideSrc={`https://mds-backend-bweu.onrender.com/${destination.image || ''}`}
                             className="h-full w-full rounded-2xl object-cover"
                             alt={destination.name}
                             fill
@@ -85,7 +85,7 @@ const TrendingDestinations = () => {
         </div>
         )}
         
-        <div className="absolute right-0 top-26 transform -translate-y-1/2">
+        <div className="absolute -left-3 top-26 transform -translate-y-1/2">
           <button
               onClick={scrollLeft}
               className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50"

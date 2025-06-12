@@ -71,7 +71,7 @@ const SpiritualDestinations = () => {
                   /> */}
                   <Link href={'/coming-soon'}>
                    <Image 
-          src={`http://localhost:5000/${destination.image || ''}`}
+          overrideSrc={`https://mds-backend-bweu.onrender.com/${destination.image || ''}`}
           className="h-full w-full rounded-2xl object-cover"
           alt={destination.name}
           fill

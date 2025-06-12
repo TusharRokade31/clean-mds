@@ -195,7 +195,7 @@ const FeaturedStays = () => {
                     </div>
                   </div>
                   <div className="pt-12 text-center px-2">
-                    <h3 className="font-medium text-xl text-gray-900 mb-1">
+                    <h3 className="font-medium  text-gray-900 mb-1">
                       {tabTitles[activeTab][index] || "Coming Soon..."}
                     </h3>
                   </div>
@@ -237,7 +237,7 @@ const FeaturedStays = () => {
                     </div>
                   </div>
                   <div className="pt-12  text-center px-2">
-                    <h3 className="font-medium text-xl text-gray-900 mb-1">
+                    <h3 className="font-medium  text-gray-900 mb-1">
                       {tabTitles[activeTab][index] || "Coming Soon..."}
                     </h3>
                   </div>
@@ -275,8 +275,8 @@ const FeaturedStays = () => {
                 </Link>
               </div>
             </div>
-            <div className="py-4 text-center">
-              <h3 className="font-medium text-xl text-gray-900 mb-1">
+            <div className="pt-4 text-center">
+              <h3 className="font-medium  text-gray-900 mb-1">
                 {tabTitles[activeTab][index] || "Coming Soon..."}
               </h3>
             </div>
