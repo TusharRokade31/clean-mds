@@ -43,7 +43,7 @@ export const locationAPI = {
     return response.data;
   },
 
-    getAllStays: async () => {
+  getAllStays: async () => {
     const response = await axiosInstance.get('/stays');
     return response.data;
   },

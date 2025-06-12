@@ -2,19 +2,29 @@
 "use client"
 import Image from 'next/image';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchFeaturedCities } from '@/redux/features/location/locationSlice';
 import { useEffect } from 'react';
+import Link from 'next/link';
 
 const TrendingDestinations = () => {
 
 
   const scrollRight = () => {
-    const container = document.getElementById('trending-scroll-container');
+    const container = document.getElementById("spiritual-scroll-container");
     if (container) {
-      container.scrollBy({ left: 300, behavior: 'smooth' });
+      container.scrollBy({ left: 300, behavior: "smooth" });
     }
   };
+
+    const scrollLeft = () => {
+    const container = document.getElementById("spiritual-scroll-container");
+    if (container) {
+      container.scrollBy({ left: -300, behavior: "smooth" });
+    }
+  };
+
 
   
   const dispatch = useDispatch();
@@ -53,14 +63,16 @@ const TrendingDestinations = () => {
                     // className="object-cover"
                     className="h-full w-full rounded-2xl object-cover"
                   /> */}
-                  {console.log(`http://localhost:5000/${destination.image}`)}
-                  <Image 
+                  {/* {console.log(`http://localhost:5000/${destination.image}`)} */}
+                      <Link href={'/coming-soon'}>
+                        <Image 
                             src={`http://localhost:5000/${destination.image || ''}`}
                             className="h-full w-full rounded-2xl object-cover"
                             alt={destination.name}
                             fill
                             sizes="(max-width: 400px) 100vw, 300px"
                           />
+                      </Link>
                 </div>
                 <div className="p-4">
                   <h3 className="font-medium">{destination.name}</h3>
@@ -74,13 +86,23 @@ const TrendingDestinations = () => {
         )}
         
         <div className="absolute right-0 top-26 transform -translate-y-1/2">
-          <button 
-            onClick={scrollRight}
-            className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50"
-            aria-label="Scroll right"
-          >
-            <ChevronRightIcon className="h-6 w-6 text-gray-700" />
-          </button>
+          <button
+              onClick={scrollLeft}
+              className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50"
+              aria-label="Scroll left"
+            >
+              <ChevronLeftIcon className="h-6 w-6 text-gray-700" />
+            </button>
+          </div>
+          
+          <div className="absolute -right-5 top-28 transform -translate-y-1/2">
+            <button
+              onClick={scrollRight}
+              className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50"
+              aria-label="Scroll right"
+            >
+              <ChevronRightIcon className="h-6 w-6 text-gray-700" />
+            </button>
         </div>
       </div>
     </section>

@@ -5,6 +5,7 @@ import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { fetchAllStays } from '@/redux/features/location/locationSlice';
+import Link from 'next/link';
 
 const StaysType = () => {
 
@@ -27,7 +28,7 @@ const StaysType = () => {
   return (
     <section className="max-w-7xl mx-auto px-4 py-8">
       <h2 className="text-3xl font-semibold md:text-4xl text-gray-900 mb-2">Explore by types of stays</h2>
-      <p className="text-lg text-gray-600 mb-6">Explore houses based on 8 types of stays</p>
+      <p className="text-lg text-gray-600 mb-6">Explore houses based on 4 types of stays</p>
       
       <div className="relative">
       {isLoading ? (
@@ -37,7 +38,7 @@ const StaysType = () => {
         ) : (
           <div 
           id="stays-scroll-container"
-          className="flex overflow-x-auto scrollbar-none snap-x snap-mandatory scroll-smooth pb-4"
+          className="flex overflow-x-auto md:overflow-visible scrollbar-none snap-x snap-mandatory scroll-smooth pb-4"
         >
           {stays.map((destination) => (
             <div 
@@ -53,6 +54,7 @@ const StaysType = () => {
                     // className="object-cover"
                     className="h-full w-full rounded-2xl object-cover"
                   /> */}
+                  <Link href={'/coming-soon'}>
                   <Image 
                             src={`http://localhost:5000/${destination.image || ''}`}
                             className="h-full w-full rounded-2xl object-cover"
@@ -60,6 +62,7 @@ const StaysType = () => {
                             fill
                             sizes="(max-width: 400px) 100vw, 300px"
                           />
+                          </Link>
                 </div>
                 <div className="p-4">
                   <h3 className="font-medium">{destination.name}</h3>
@@ -72,7 +75,7 @@ const StaysType = () => {
         </div>
         )}
         
-        <div className="absolute right-0 top-26 transform -translate-y-1/2">
+        {/* <div className="absolute right-0 top-26 transform -translate-y-1/2">
           <button 
             onClick={scrollRight}
             className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50"
@@ -80,7 +83,7 @@ const StaysType = () => {
           >
             <ChevronRightIcon className="h-6 w-6 text-gray-700" />
           </button>
-        </div>
+        </div> */}
       </div>
     </section>
   );

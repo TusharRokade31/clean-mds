@@ -2,12 +2,14 @@
 "use client";
 import Image from "next/image";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchFeaturedCities,
   fetchFeaturedStates,
 } from "@/redux/features/location/locationSlice";
 import { useEffect } from "react";
+import Link from "next/link";
 
 const SpiritualDestinations = () => {
  
@@ -16,6 +18,13 @@ const SpiritualDestinations = () => {
     const container = document.getElementById("spiritual-scroll-container");
     if (container) {
       container.scrollBy({ left: 300, behavior: "smooth" });
+    }
+  };
+
+    const scrollLeft = () => {
+    const container = document.getElementById("spiritual-scroll-container");
+    if (container) {
+      container.scrollBy({ left: -300, behavior: "smooth" });
     }
   };
 
@@ -60,6 +69,7 @@ const SpiritualDestinations = () => {
                     fill
                     className="object-cover"
                   /> */}
+                  <Link href={'/coming-soon'}>
                    <Image 
           src={`http://localhost:5000/${destination.image || ''}`}
           className="h-full w-full rounded-2xl object-cover"
@@ -67,6 +77,7 @@ const SpiritualDestinations = () => {
           fill
           sizes="(max-width: 400px) 100vw, 300px"
         />
+        </Link>
                 </div>
                 <div className="p-4">
                   <h3 className="font-medium">{destination.name}</h3>
@@ -79,9 +90,17 @@ const SpiritualDestinations = () => {
             </div>
           ))}
         </div>)}
-
+      <div className="absolute -left-5 top-28 transform -translate-y-1/2">
+            <button
+              onClick={scrollLeft}
+              className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50"
+              aria-label="Scroll left"
+            >
+              <ChevronLeftIcon className="h-6 w-6 text-gray-700" />
+            </button>
+          </div>
           
-          <div className="absolute right-0 top-28 transform -translate-y-1/2">
+          <div className="absolute -right-5 top-28 transform -translate-y-1/2">
             <button
               onClick={scrollRight}
               className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-50"
