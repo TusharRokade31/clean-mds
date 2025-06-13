@@ -18,6 +18,7 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await authAPI.login(credentials);
       localStorage.setItem('token', response.token);
+      document.cookie = `token=${response.token}; path=/; max-age=${30 * 24 * 60 * 60}; secure; samesite=lax`;
       return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
@@ -82,6 +83,7 @@ export const googleLoginUser = createAsyncThunk(
     try {
       const response = await authAPI.googleLogin(token);
       localStorage.setItem('token', response.token);
+      document.cookie = `token=${response.token}; path=/; max-age=${30 * 24 * 60 * 60}; secure; samesite=lax`;
       return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Google login failed');
