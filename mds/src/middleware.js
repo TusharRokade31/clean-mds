@@ -1,8 +1,10 @@
+// Update your middleware.js
 import { NextResponse } from 'next/server'
 import { jwtDecode } from 'jwt-decode'
 
 export function middleware(request) {
   const path = request.nextUrl.pathname
+  console.log('Middleware executing for path:', path) // Debug log
 
   // Define public paths
   const publicPaths = ['/login', '/signup']
@@ -15,6 +17,8 @@ export function middleware(request) {
                 request.cookies.get('authToken')?.value || 
                 request.cookies.get('jwt')?.value || ''
   
+  console.log('Token found:', !!token) // Debug log
+  
   // Check for dashboard paths
   const isDashboardPath = path.startsWith('/admin')
   const isHostPath = path.startsWith('/host')
@@ -22,13 +26,24 @@ export function middleware(request) {
   if (isPublicPath && token) {
     return NextResponse.redirect(new URL('/', request.url))
   }
+  
   if (isProtectedPaths && !token) {
     return NextResponse.redirect(new URL('/login', request.url))
-    
   }
 
   if (isHostPath) {
     if (!token) {
+      console.log('No token for host path, redirecting to login')
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    
+    // Add role check for host paths if needed
+    try {
+      const decoded = jwtDecode(token);
+      console.log('Decoded token for host:', decoded) // Debug log
+      // Add any role checks here if needed
+    } catch (error) {
+      console.log('Token decode error for host:', error)
       return NextResponse.redirect(new URL('/login', request.url))
     }
   }
@@ -36,32 +51,27 @@ export function middleware(request) {
   // Protect dashboard routes for admin only
   if (isDashboardPath) {
     if (!token) {
+      console.log('No token for admin path, redirecting to login')
       return NextResponse.redirect(new URL('/login', request.url))
     }
     
     // Verify if user has admin role
     try {
       const decoded = jwtDecode(token);
+      console.log('Decoded token for admin:', decoded) // Debug log
       if (!decoded.role || decoded.role !== 'admin') {
+        console.log('User does not have admin role:', decoded.role)
         return NextResponse.redirect(new URL('/login', request.url))
       }
     } catch (error) {
+      console.log('Token decode error for admin:', error)
       return NextResponse.redirect(new URL('/login', request.url))
     }
-  }
-
-   if (isProtectedPaths) {
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-    
-  
   }
   
   return NextResponse.next()
 }
 
-// Define more precise matchers
 export const config = {
   matcher: [
     '/login',
