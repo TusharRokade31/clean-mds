@@ -160,12 +160,14 @@ const sendTokenResponse = (user, statusCode, res, message) => {
     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     httpOnly: true,
     path: '/',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Important for cross-origin
+    
   };
 
   // Add secure flag only if HTTPS is available
   if (process.env.NODE_ENV === 'production') {
+    console.log("in the production")
     cookieOptions.secure = true; // Only if you have HTTPS
+    cookieOptions.sameSite = process.env.NODE_ENV === 'production' ? 'none' : 'lax'; // Important for cross-origin
     // If you don't have HTTPS in production, comment out the line above
   }
 
