@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { useTheme } from '@mui/material/styles';
 import { 
   Tabs, Tab, Typography, Box, Button, 
-  Stepper, Step, StepLabel, Paper, Alert
+  Paper, Alert, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { 
   initializeProperty, 
@@ -13,21 +13,17 @@ import {
   updateBasicInfo,
   updateLocation,
   updateAmenities,
-  addRooms,
-  updateRoom
 } from '@/redux/features/property/propertySlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import BasicInfoForm from '@/component/BasicInfoForm';
 import LocationForm from '@/component/LocationForm';
 import AmenitiesForm from '@/component/AmenitiesForm';
 import RoomsForm from '@/component/RoomsForm';
 import MediaForm from '@/component/MediaForm';
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
+function TabPanel({ children, value, index, ...other }) {
   return (
     <div
       role="tabpanel"
@@ -36,11 +32,7 @@ function TabPanel(props) {
       aria-labelledby={`property-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
 }
@@ -51,13 +43,6 @@ TabPanel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-function a11yProps(index) {
-  return {
-    id: `property-tab-${index}`,
-    'aria-controls': `property-tabpanel-${index}`,
-  };
-}
-
 export default function PropertyForm() {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
@@ -65,199 +50,209 @@ export default function PropertyForm() {
   const router = useRouter();
   const dispatch = useDispatch();
   
-  const { currentProperty, isLoading, error, draftProperties } = useSelector(state => state.property);
+  const { currentProperty, isLoading, error } = useSelector(state => state.property);
   const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftProperties, setDraftProperties] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
+
+  const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const validateMobileNumber = (mobile) => {
+  // Remove any non-digit characters for validation
+  const cleanMobile = mobile.replace(/\D/g, '');
+  return cleanMobile.length === 10;
+};
+
+const validateLandline = (landline) => {
+  if (!landline) return true; // Landline is optional
+  const cleanLandline = landline.replace(/\D/g, '');
+  return cleanLandline.length >= 10 && cleanLandline.length <= 11;
+};
+
+
+
   const [formData, setFormData] = useState({
     basicInfo: {
-      propertyType: '',
-      placeName: '',
-      placeRating: '',
-      propertyBuilt: '',
-      bookingSince: '',
-      rentalForm: ''
+      propertyType: '', placeName: '', placeRating: '',
+      propertyBuilt: '', bookingSince: '', rentalForm: '', email:'', mobileNumber:'', landline:''
     },
     location: {
-      country: '',
-      street: '',
-      roomNumber: '',
-      city: '',
-      state: '',
-      postalCode: '',
-      coordinates: { lat: null, lng: null }
+      houseName:'', country: '', street: '', roomNumber: '', city: '',
+      state: '', postalCode: '', coordinates: { lat: null, lng: null }
     },
     amenities: {
-      mandatory: {},
-      basicFacilities: {},
-      generalServices: {},
-      commonArea: {},
-      foodBeverages: {},
-      healthWellness: {},
-      mediaTechnology: {},
-      paymentServices: {},
-      security: {},
-      safety: {}
+      mandatory: {}, basicFacilities: {}, generalServices: {},
+      commonArea: {}, foodBeverages: {}, healthWellness: {},
+      mediaTechnology: {}, paymentServices: {}, security: {}, safety: {}
     },
     rooms: []
   });
-  const hasInitializedRef = useRef(false);
 
-  const propertyId = id && id.length > 0 ? id[0] : null;
+  const propertyId = id?.[0];
+  const steps = ['Basic Info', 'Location', 'Amenities', 'Rooms', 'Photos & Videos', 'Policies', 'Finance & Legal'];
 
-  // Initialize property data
-useEffect(() => {
-  const initializePropertyData = async () => {
-    if (!hasInitializedRef.current && !currentProperty) {
-      hasInitializedRef.current = true;
-      
+  // Initialize property - simplified logic
+  useEffect(() => {
+    const initialize = async () => {
       if (propertyId && propertyId !== 'new') {
+        // Load existing property
         dispatch(getProperty(propertyId));
-      } else if (propertyId === 'new') {
-        try {
-          const result = await dispatch(initializeProperty()).unwrap();
-          if (result?._id) {
-            router.replace(`/host/onboarding/${result._id}`);
-          }
-        } catch (error) {
-          console.error('Failed to initialize property:', error);
-        }
       } else {
-        const shouldCheckDrafts = !sessionStorage.getItem('createNew');
+        // Check for drafts first
+        const draftsResult = await dispatch(getDraftProperties());
+        const drafts = draftsResult.payload || [];
         
-        if (shouldCheckDrafts) {
-          dispatch(getDraftProperties()).then(async (result) => {
-            if (result.payload && result.payload.length > 0) {
-              setShowDraftModal(true);
-            } else {
-              try {
-                const newProperty = await dispatch(initializeProperty()).unwrap();
-                if (newProperty?._id) {
-                  router.replace(`/host/onboarding/${newProperty._id}`);
-                }
-              } catch (error) {
-                console.error('Failed to initialize property:', error);
-              }
-            }
-          });
+        if (drafts.length > 0 && !sessionStorage.getItem('skipDrafts')) {
+          setDraftProperties(drafts);
+          setShowDraftModal(true);
         } else {
-          sessionStorage.removeItem('createNew');
-          try {
-            const result = await dispatch(initializeProperty()).unwrap();
-            if (result?._id) {
-              router.replace(`/host/onboarding/${result._id}`);
-            }
-          } catch (error) {
-            console.error('Failed to initialize property:', error);
-          }
+          createNewProperty();
         }
       }
+    };
+
+    initialize();
+    
+    // Cleanup
+    return () => {
+      dispatch(resetCurrentProperty());
+      sessionStorage.removeItem('skipDrafts');
+    };
+  }, [propertyId]);
+
+  // Create new property
+  const createNewProperty = async () => {
+    try {
+      const result = await dispatch(initializeProperty()).unwrap();
+      console.log(result?.property?._id, "creating new property ")
+      if (result?.property?._id) {
+        setShowDraftModal(false);
+        router.push(`/host/onboarding/${result?.property?._id}`);
+      }
+    } catch (error) {
+      console.error('Failed to create property:', error);
+      setShowDraftModal(false);
     }
   };
 
-  initializePropertyData();
-}, [dispatch, propertyId, currentProperty, router]);
-  
-  // Handle unmount
-  useEffect(() => {
-    return () => {
-      dispatch(resetCurrentProperty());
-      hasInitializedRef.current = false;
-    };
-  }, [dispatch]);
+  // Handle draft selection
+  const selectDraftProperty = (draftId) => {
+    setShowDraftModal(false);
+    router.push(`/host/onboarding/${draftId}`);
+  };
 
-  // Update form data and navigate to correct tab when property is loaded
+  // Handle new property creation from modal
+  const handleCreateNew = () => {
+    sessionStorage.setItem('skipDrafts', 'true');
+    createNewProperty();
+  };
+
+  // Update form data when property loads
   useEffect(() => {
     if (currentProperty) {
-      const property = currentProperty;
-      
-      // Update form data
       setFormData({
         basicInfo: {
-          propertyType: property.propertyType || '',
-          placeName: property.placeName || '',
-          placeRating: property.placeRating || '',
-          propertyBuilt: property.propertyBuilt || '',
-          bookingSince: property.bookingSince || '',
-          rentalForm: property.rentalForm || ''
+          propertyType: currentProperty.propertyType || '',
+          placeName: currentProperty.placeName || '',
+          placeRating: currentProperty.placeRating || '',
+          propertyBuilt: currentProperty.propertyBuilt || '',
+          bookingSince: currentProperty.bookingSince || '',
+          rentalForm: currentProperty.rentalForm || '',
+          email: currentProperty.email || '', 
+          mobileNumber: currentProperty.mobileNumber || '', 
+          landline: currentProperty.landline || ''
         },
         location: {
-          country: property.location?.country || '',
-          street: property.location?.street || '',
-          roomNumber: property.location?.roomNumber || '',
-          city: property.location?.city || '',
-          state: property.location?.state || '',
-          postalCode: property.location?.postalCode || '',
-          coordinates: property.location?.coordinates || { lat: null, lng: null }
+          houseName: currentProperty.location?.houseName || '',
+          country: currentProperty.location?.country || '',
+          street: currentProperty.location?.street || '',
+          roomNumber: currentProperty.location?.roomNumber || '',
+          city: currentProperty.location?.city || '',
+          state: currentProperty.location?.state || '',
+          postalCode: currentProperty.location?.postalCode || '',
+          coordinates: currentProperty.location?.coordinates || { lat: null, lng: null }
         },
-        amenities: property.amenities || {
-          mandatory: {},
-          basicFacilities: {},
-          generalServices: {},
-          commonArea: {},
-          foodBeverages: {},
-          healthWellness: {},
-          mediaTechnology: {},
-          paymentServices: {},
-          security: {},
-          safety: {}
+        amenities: currentProperty.amenities || {
+          mandatory: {}, basicFacilities: {}, generalServices: {},
+          commonArea: {}, foodBeverages: {}, healthWellness: {},
+          mediaTechnology: {}, paymentServices: {}, security: {}, safety: {}
         },
-        rooms: property.rooms || []
+        rooms: currentProperty.rooms || []
       });
 
-      // Navigate to URL with property ID if it's a new property
-      if (property._id && (!propertyId || propertyId === 'new')) {
-        router.replace(`/host/onboarding/${property._id}`, { shallow: true });
-      }
-      
-      // Set initial tab based on form progress
-      if (property.formProgress) {
-        if (!property.formProgress.step1Completed) setActiveTab(0);
-        else if (!property.formProgress.step2Completed) setActiveTab(1);
-        else if (!property.formProgress.step3Completed) setActiveTab(2);
-        else if (!property.formProgress.step4Completed) setActiveTab(3);
-        else if (!property.formProgress.step5Completed) setActiveTab(4);
+      // Set active tab based on form progress
+      const progress = currentProperty.formProgress;
+      if (progress) {
+        if (!progress.step1Completed) setActiveTab(0);
+        else if (!progress.step2Completed) setActiveTab(1);
+        else if (!progress.step3Completed) setActiveTab(2);
+        else if (!progress.step4Completed) setActiveTab(3);
+        else if (!progress.step5Completed) setActiveTab(4);
         else setActiveTab(5);
       }
     }
-  }, [currentProperty, propertyId, router]);
+  }, [currentProperty]);
 
   // Validation functions
-  const validateBasicInfo = () => {
+  const validateStep = (stepIndex) => {
     const errors = {};
-    if (!formData.basicInfo.propertyType) errors.propertyType = 'Property type is required';
-    if (!formData.basicInfo.placeName) errors.placeName = 'Place name is required';
-    if (!formData.basicInfo.placeRating) errors.placeRating = 'Rating is required';
-    if (!formData.basicInfo.propertyBuilt) errors.propertyBuilt = 'Built year is required';
-    if (!formData.basicInfo.bookingSince) errors.bookingSince = 'Booking since date is required';
-    if (!formData.basicInfo.rentalForm) errors.rentalForm = 'Rental form is required';
+    
+    switch(stepIndex) {
+      case 0: // Basic Info
+        if (!formData.basicInfo.propertyType) errors.propertyType = 'Property type is required';
+        if (!formData.basicInfo.placeName) errors.placeName = 'Place name is required';
+        if (!formData.basicInfo.placeRating) errors.placeRating = 'Rating is required';
+        if (!formData.basicInfo.propertyBuilt) errors.propertyBuilt = 'Built year is required';
+        if (!formData.basicInfo.bookingSince) errors.bookingSince = 'Booking since date is required';
+        if (!formData.basicInfo.rentalForm) errors.rentalForm = 'Rental form is required';
+
+         // New validations for email, mobile, landline
+      if (!formData.basicInfo.email) {
+        errors.email = 'Email is required';
+      } else if (!validateEmail(formData.basicInfo.email)) {
+        errors.email = 'Please enter a valid email address';
+      }
+      
+      if (!formData.basicInfo.mobileNumber) {
+        errors.mobileNumber = 'Mobile number is required';
+      } else if (!validateMobileNumber(formData.basicInfo.mobileNumber)) {
+        errors.mobileNumber = 'Mobile number must be exactly 10 digits';
+      }
+      
+      if (formData.basicInfo.landline && !validateLandline(formData.basicInfo.landline)) {
+        errors.landline = 'Enter a valid number';
+      }
+
+        break;
+        
+      case 1: // Location
+        if (!formData.location.houseName) errors.houseName = 'House/Building Name is required';
+        if (!formData.location.country) errors.country = 'Country is required';
+        if (!formData.location.street) errors.street = 'Street address is required';
+        if (!formData.location.city) errors.city = 'City is required';
+        if (!formData.location.state) errors.state = 'State is required';
+        if (!formData.location.postalCode) errors.postalCode = 'Postal code is required';
+        break;
+        
+      case 3: // Rooms
+        if (formData.rooms.length === 0) errors.rooms = 'Please add at least one room';
+        break;
+    }
+    
     return errors;
   };
 
-  const validateLocation = () => {
-    const errors = {};
-    if (!formData.location.country) errors.country = 'Country is required';
-    if (!formData.location.street) errors.street = 'Street address is required';
-    if (!formData.location.city) errors.city = 'City is required';
-    if (!formData.location.state) errors.state = 'State is required';
-    if (!formData.location.postalCode) errors.postalCode = 'Postal code is required';
-    return errors;
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-    setValidationErrors({});
-  };
-
+  // Handle input changes
   const handleInputChange = (section, field, value) => {
     setFormData(prev => ({
       ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
+      [section]: { ...prev[section], [field]: value }
     }));
     
-    // Clear validation errors for this field
+    // Clear validation errors
     if (validationErrors[field]) {
       setValidationErrors(prev => {
         const newErrors = { ...prev };
@@ -267,83 +262,66 @@ useEffect(() => {
     }
   };
 
-  const handleSaveAndNext = async (tabIndex) => {
-    if (!currentProperty?._id) return;
+  // Handle tab change - allow free navigation
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+    setValidationErrors({});
+  };
 
-    let result;
-    let validationErrors = {};
-    
-    switch(tabIndex) {
-      case 0: // Basic Info
-        validationErrors = validateBasicInfo();
-        if (Object.keys(validationErrors).length > 0) {
-          setValidationErrors(validationErrors);
-          return;
-        }
-        result = await dispatch(updateBasicInfo({
-          id: currentProperty._id,
-          data: formData.basicInfo
-        }));
-        break;
-        
-      case 1: // Location
-        validationErrors = validateLocation();
-        if (Object.keys(validationErrors).length > 0) {
-          setValidationErrors(validationErrors);
-          return;
-        }
-        result = await dispatch(updateLocation({
-          id: currentProperty._id,
-          data: formData.location
-        }));
-        break;
-        
-      case 2: // Amenities
-        result = await dispatch(updateAmenities({
-          id: currentProperty._id,
-          data: { amenities: formData.amenities }
-        }));
-        break;
+  // Save current step
+  const saveCurrentStep = async () => {
+    if (!currentProperty?._id) return false;
 
-      case 3: // Rooms
-        if (formData.rooms.length === 0) {
-          setValidationErrors({ rooms: 'Please add at least one room before continuing' });
-          return;
-        }
-        // For rooms, we'll handle the save in the RoomsForm component
-        // and just move to next tab here
-        if (tabIndex < 6) {
-          setActiveTab(tabIndex + 1);
-        }
-        return;
-
-      case 4: // Media
-        // Media form handles its own save, just move to next tab
-        if (tabIndex < 6) {
-          setActiveTab(tabIndex + 1);
-        }
-        return;
-        
-      default:
-        return;
+    const errors = validateStep(activeTab);
+    console.log(errors)
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return false;
     }
-    
-    // Check if the save was successful
-    if (result && result.type.endsWith('/fulfilled')) {
-      setValidationErrors({});
-      if (tabIndex < 6) {
-        setActiveTab(tabIndex + 1);
-      } else {
-        // Handle completion
-        console.log('Property listing completed');
-        router.push('/host/properties');
+
+    try {
+      let result;
+      
+      switch(activeTab) {
+        case 0:
+          result = await dispatch(updateBasicInfo({
+            id: currentProperty._id,
+            data: formData.basicInfo
+          }));
+          break;
+        case 1:
+          result = await dispatch(updateLocation({
+            id: currentProperty._id,
+            data: formData.location
+          }));
+          break;
+        case 2:
+          result = await dispatch(updateAmenities({
+            id: currentProperty._id,
+            data: { amenities: formData.amenities }
+          }));
+          break;
+        default:
+          return true; // For steps that handle their own saving
       }
-    } else if (result && result.type.endsWith('/rejected')) {
-      // Handle save error
-      setValidationErrors({ save: result.payload?.message || 'Failed to save data' });
+      
+      return result && result.type.endsWith('/fulfilled');
+    } catch (error) {
+      console.log(error)
+      setValidationErrors({ save: 'Failed to save data' });
+      return false;
     }
   };
 
+  // Handle next button
+  const handleNext = async () => {
+    const success = await saveCurrentStep();
+    if (success && activeTab < steps.length - 1) {
+      setActiveTab(activeTab + 1);
+    }
+  };
+
+  // Handle previous button
   const handlePrevious = () => {
     if (activeTab > 0) {
       setActiveTab(activeTab - 1);
@@ -351,61 +329,12 @@ useEffect(() => {
     }
   };
 
-  const selectDraftProperty = (propertyId) => {
-    dispatch(getProperty(propertyId));
-    setShowDraftModal(false);
-    router.replace(`/host/onboarding/${propertyId}`);
-  };
-  
- const createNewProperty = async () => {
-  try {
-    const result = await dispatch(initializeProperty()).unwrap();
-    console.log(result, "after clicking create new property button")
-    if (result?._id) {
-      setShowDraftModal(false);
-      router.replace(`/host/onboarding/${result._id}`);
+  // Handle completion
+  const handleComplete = async () => {
+    const success = await saveCurrentStep();
+    if (success) {
+      router.push('/host/properties');
     }
-  } catch (error) {
-    console.error('Failed to create new property:', error);
-    setShowDraftModal(false);
-  }
-};
-
-  const DraftPropertyModal = () => {
-    if (!showDraftModal) return null;
-    
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 shadow-2xl max-w-md w-full mx-4">
-          <h2 className="text-xl font-bold mb-4">Continue your listing</h2>
-          <p className="mb-4">You have unfinished property listings. Would you like to continue working on one of them?</p>
-          
-          <div className="max-h-60 overflow-y-auto mb-4">
-            {draftProperties?.map(property => (
-              <div 
-                key={property._id} 
-                className="p-3 border border-gray-200 rounded-md mb-2 hover:bg-gray-50 cursor-pointer"
-                onClick={() => selectDraftProperty(property._id)}
-              >
-                <h3 className="font-medium">{property.placeName || property.propertyType || 'Draft property'}</h3>
-                <p className="text-sm text-gray-500">
-                  Last updated: {new Date(property.updatedAt).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
-          </div>
-          
-          <div className="flex justify-between">
-            <Button 
-              variant="outlined"
-              onClick={createNewProperty}
-            >
-              Create new listing
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   if (isLoading && !currentProperty) {
@@ -416,29 +345,44 @@ useEffect(() => {
     );
   }
 
-  const steps = ['Basic Info', 'Location', 'Amenities', 'Rooms', "Photos And Videos", "Policies", "Finance & Legal"];
-
   return (
     <>
-      <DraftPropertyModal />
+      {/* Draft Properties Modal */}
+      <Dialog open={showDraftModal} onClose={() => setShowDraftModal(false)} maxWidth="md">
+        <DialogTitle>Continue Your Listing</DialogTitle>
+        <DialogContent>
+          <Typography className="mb-4">
+            You have unfinished property listings. Would you like to continue working on one of them?
+          </Typography>
+          
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {draftProperties.map(property => (
+              <div 
+                key={property._id} 
+                className="p-3 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer"
+                onClick={() => selectDraftProperty(property._id)}
+              >
+                <h3 className="font-medium">
+                  {property.placeName || property.propertyType || 'Draft property'}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Last updated: {new Date(property.updatedAt).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCreateNew} variant="contained">
+            Create New Listing
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Paper className="max-w-7xl mx-auto my-8 p-4">
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-        
-        {validationErrors.save && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {validationErrors.save}
-          </Alert>
-        )}
-        
-        {validationErrors.rooms && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {validationErrors.rooms}
-          </Alert>
-        )}
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {validationErrors.save && <Alert severity="error" sx={{ mb: 2 }}>{validationErrors.save}</Alert>}
+        {validationErrors.rooms && <Alert severity="error" sx={{ mb: 2 }}>{validationErrors.rooms}</Alert>}
         
         <Box sx={{ width: '100%' }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -449,24 +393,14 @@ useEffect(() => {
               scrollButtons="auto"
               textColor="primary"
               indicatorColor="primary"
-              aria-label="property form tabs"
             >
               {steps.map((step, index) => (
-                <Tab 
-                  key={index}   
-                  label={step} 
-                  {...a11yProps(index)}
-                  disabled={
-                    index > 0 && 
-                    !currentProperty?.formProgress?.[`step${index}Completed`] &&
-                    index > activeTab
-                  }
-                />
+                <Tab key={index} label={step} />
               ))}
             </Tabs>
           </Box>
           
-          <TabPanel value={activeTab} index={0} dir={theme.direction}>
+          <TabPanel value={activeTab} index={0}>
             <BasicInfoForm 
               formData={formData.basicInfo}
               onChange={(field, value) => handleInputChange('basicInfo', field, value)}
@@ -474,7 +408,7 @@ useEffect(() => {
             />
           </TabPanel>
           
-          <TabPanel value={activeTab} index={1} dir={theme.direction}>
+          <TabPanel value={activeTab} index={1}>
             <LocationForm 
               formData={formData.location}
               onChange={(field, value) => handleInputChange('location', field, value)}
@@ -482,44 +416,36 @@ useEffect(() => {
             />
           </TabPanel>
           
-          <TabPanel value={activeTab} index={2} dir={theme.direction}>
+          <TabPanel value={activeTab} index={2}>
             <AmenitiesForm 
               formData={formData.amenities}
               onChange={(updatedAmenities) => {
-                setFormData(prev => ({
-                  ...prev,
-                  amenities: updatedAmenities
-                }));
+                setFormData(prev => ({ ...prev, amenities: updatedAmenities }));
               }}
               errors={validationErrors}
             />
           </TabPanel>
           
-          <TabPanel value={activeTab} index={3} dir={theme.direction}>
+          <TabPanel value={activeTab} index={3}>
             <RoomsForm 
               rooms={formData.rooms}
               propertyId={currentProperty?._id}
               onAddRoom={(updatedRooms) => {
-                setFormData(prev => ({
-                  ...prev,
-                  rooms: updatedRooms
-                }));
+                setFormData(prev => ({ ...prev, rooms: updatedRooms }));
               }}
             />
           </TabPanel>
           
-          <TabPanel value={activeTab} index={4} dir={theme.direction}>
-            <MediaForm
-              propertyId={currentProperty?._id}
-            />
+          <TabPanel value={activeTab} index={4}>
+            <MediaForm propertyId={currentProperty?._id} />
           </TabPanel>
           
-          <TabPanel value={activeTab} index={5} dir={theme.direction}>
+          <TabPanel value={activeTab} index={5}>
             <Typography variant="h6">Policies</Typography>
             <Typography>Configure your property policies here...</Typography>
           </TabPanel>
           
-          <TabPanel value={activeTab} index={6} dir={theme.direction}>
+          <TabPanel value={activeTab} index={6}>
             <Typography variant="h6">Finance & Legal</Typography>
             <Typography>Configure finance and legal information here...</Typography>
           </TabPanel>
@@ -534,21 +460,19 @@ useEffect(() => {
             Previous
           </Button>
           
-          {activeTab < 6 && (
+          {activeTab < steps.length - 1 ? (
             <Button
               variant="contained"
-              onClick={() => handleSaveAndNext(activeTab)}
+              onClick={handleNext}
               disabled={isLoading}
             >
               {isLoading ? 'Saving...' : 'Save & Continue'}
             </Button>
-          )}
-          
-          {activeTab === 6 && (
+          ) : (
             <Button
               variant="contained"
-              onClick={() => handleSaveAndNext(activeTab)}
-              disabled={isLoading || formData.rooms.length === 0}
+              onClick={handleComplete}
+              disabled={isLoading}
             >
               {isLoading ? 'Completing...' : 'Complete Listing'}
             </Button>

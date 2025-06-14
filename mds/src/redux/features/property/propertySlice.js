@@ -23,7 +23,7 @@ export const initializeProperty = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.initializeProperty();
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to initialize property');
     }
@@ -85,7 +85,7 @@ export const updateBasicInfo = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.updateBasicInfo(id, data);
-      return response.data;
+      return response.property;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update property basic info');
     }
@@ -98,7 +98,7 @@ export const updateLocation = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.updateLocation(id, data);
-      return response.data;
+      return response.property;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update property Location');
     }
@@ -112,7 +112,7 @@ export const updateAmenities = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.updateAmenities(id, data);
-      return response.data;
+      return response.property;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update property Amenities');
     }
@@ -342,8 +342,8 @@ const propertySlice = createSlice({
     });
     builder.addCase(initializeProperty.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.currentProperty = action.payload;
-      state.userProperties.push(action.payload);
+      state.currentProperty = action.payload.property;
+      state.userProperties.push(action.payload.property);
     });
     builder.addCase(initializeProperty.rejected, (state, action) => {
       state.isLoading = false;

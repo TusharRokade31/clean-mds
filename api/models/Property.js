@@ -223,7 +223,7 @@ const PropertySchema = new Schema({
     type: String,
     required: [true, 'Property type is required'],
     enum: [
-    'Dharamshala (Basic spiritual lodging run by religious trusts or communities)', 'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)'
+    'Dharamshala (Basic spiritual lodging run by religious trusts or communities)', 'Dharamshala', 'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)'
   ]
   },
   placeName: {
@@ -232,7 +232,7 @@ const PropertySchema = new Schema({
   },
   placeRating: {
     type: String,
-    required: [true, 'Place rating is required']
+    // required: [true, 'Place rating is required']
   },
   propertyBuilt: {
     type: String,
@@ -242,6 +242,17 @@ const PropertySchema = new Schema({
     type: String,
     required: [true, 'Booking since date is required']
   },
+  email: {
+    type: String,
+    required: [true, 'Email is required']
+  },
+  mobileNumber: {
+    type: String,
+    required: [true, 'Mobile Number is required']
+  },
+  landline: {
+    type: String,
+  },
   rentalForm: {
     type: String,
     // required: [true, 'Rental form is required'],
@@ -250,6 +261,10 @@ const PropertySchema = new Schema({
   
   // Step 2 - Location
   location: {
+    houseName: { 
+      type: String, 
+      required: [true, 'House/Building Name is required'] 
+    },
     country: { 
       type: String, 
       required: [true, 'Country is required'] 

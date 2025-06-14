@@ -15,11 +15,14 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
 
   return (
     <div>
-      <Typography sx={{ mb: 2 }} variant="h5" gutterBottom>
-        Basic Property Information
-      </Typography>
+      <p className='text-2xl font-bold'>
+        Property Details
+      </p>
+       <p>
+        Update your property details here
+      </p>
 
-      <Grid container spacing={3}>
+      <Grid sx={{ mt: 5 }} container spacing={3}>
         <Grid item size={{xs:12, md:4}}>
           <FormControl fullWidth error={!!errors?.propertyType}>
             <InputLabel>Property Type</InputLabel>
@@ -49,7 +52,7 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
           />
         </Grid>
         
-        <Grid item size={{xs:12, md:4}}>
+        {/* <Grid item size={{xs:12, md:4}}>
           <FormControl fullWidth error={!!errors?.placeRating}>
             <InputLabel>Property Rating</InputLabel>
             <Select
@@ -65,7 +68,7 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
               <FormHelperText>{errors.placeRating}</FormHelperText>
             )}
           </FormControl>
-        </Grid>
+        </Grid> */}
         
         <Grid item size={{xs:12, md:4}}>
           <FormControl fullWidth error={!!errors?.propertyBuilt}>
@@ -102,6 +105,94 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
             )}
           </FormControl>
         </Grid>
+        <Grid item size={{xs:12, md:4}}>
+
+        </Grid>
+        
+        
+
+<div className='mt-5'>
+  <p className='text-2xl font-bold'>
+        Contact details to be shared with guests
+      </p>
+        <p>
+        These contact details will be shared with the guests when they make a booking
+      </p>
+       <Grid container sx={{mt:3}} spacing={3}>
+
+        <Grid item sx={{xs:12, md:6}}>
+          <TextField
+            fullWidth
+            label="Email Address"
+            type="email"
+            value={formData.email}
+            onChange={(e) => onChange('email', e.target.value)}
+            error={!!errors.email}
+            placeholder=""
+          />
+        </Grid>
+        
+        <Grid item sx={{xs:12, md:6}}>
+          <TextField
+            fullWidth
+            label="Mobile Number"
+            value={formData.mobileNumber}
+            onChange={(e) => onChange('mobileNumber', e.target.value)}
+            error={!!errors.mobileNumber}
+            // helperText={errors.mobileNumber || 'Enter 10 digit mobile number'}
+
+            placeholder=""
+            inputProps={{
+              maxLength: 10,
+              pattern: '[0-9]*',
+              inputMode: 'numeric'
+            }}
+          />
+        </Grid>
+        
+        <Grid item sx={{xs:12, md:6}}>
+          <TextField
+            fullWidth
+            label="Landline (Optional)"
+            value={formData.landline}
+            onChange={(e) => onChange('landline', e.target.value)}
+            error={!!errors.landline}
+            helperText={errors.landline}
+            placeholder=""
+            inputProps={{
+              maxLength: 11,
+              pattern: '[0-9]*',
+              inputMode: 'numeric'
+            }}
+          />
+        </Grid>
+
+          {/* <Grid item size={{xs:12, md:6}}>
+         <TextField
+            fullWidth
+            label="Email ID"
+            value={formData.email || ''}
+            onChange={(e) => onChange('email', e.target.value)}
+            error={!!errors?.email}
+            helperText={errors?.email}
+          />
+        </Grid>
+
+        <Grid item size={{xs:12, md:6}}>
+         <TextField
+           type="number"
+            fullWidth
+            label="Mobile Number"
+            value={formData.mobileNumber || ''}
+            onChange={(e) => onChange('mobileNumber', e.target.value)}
+            error={!!errors?.mobileNumber}
+            helperText={errors?.mobileNumber}
+          />
+        </Grid> */}
+        </Grid>
+</div>
+        
+
         
         {/* <Grid item size={{xs:12, md:4}}>
           <FormControl fullWidth error={!!errors?.rentalForm}>

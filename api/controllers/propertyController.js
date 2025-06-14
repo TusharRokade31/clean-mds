@@ -121,7 +121,7 @@ export const initializeProperty = async (req, res) => {
     // Create a new draft with required fields initialized
     const newProperty = await Property.create({
       owner: userId,
-      propertyType: 'Hotel',
+      propertyType: 'Dharamshala',
       placeName: 'Draft Property',
       placeRating: '5.0',
       propertyBuilt: '2024',
@@ -152,6 +152,7 @@ export const initializeProperty = async (req, res) => {
         step2Completed: false,
         step3Completed: false,
         step4Completed: false,
+        step5Completed: false,
         formCompleted: false
       }
     });
@@ -180,7 +181,7 @@ export const saveBasicInfo = async (req, res) => {
     }
 
     const { propertyId } = req.params;
-    const { propertyType, placeName, placeRating, propertyBuilt, bookingSince, rentalForm } = req.body;
+    const { propertyType, placeName, placeRating, propertyBuilt, bookingSince, rentalForm, email, mobileNumber,landline } = req.body;
     
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
@@ -199,6 +200,9 @@ export const saveBasicInfo = async (req, res) => {
     property.propertyBuilt = propertyBuilt;
     property.bookingSince = bookingSince;
     property.rentalForm = rentalForm;
+    property.email = email;
+    property.mobileNumber = mobileNumber;
+    property.landline = landline;
     property.formProgress.step1Completed = true;
     
     await property.save();

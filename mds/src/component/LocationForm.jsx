@@ -33,9 +33,44 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
 
   return (
     <div>
-      <Typography variant="h5" gutterBottom>Property Location</Typography>
+        <p className='text-2xl font-bold'>
+        Property Location Details
+      </p>
+        <p>
+        Please fill in the location details of your property.
+      </p>
       
-      <Grid container spacing={3}>
+      <Grid sx={{mt:5}} container spacing={3}>
+        <Grid item size={{xs:6}}>
+          <TextField
+            fullWidth
+            label="Name"
+            value={formData?.houseName || ''}
+            onChange={(e) => onChange('houseName', e.target.value)}
+            error={!!errors?.houseName}
+            helperText={errors?.houseName}
+          />
+        </Grid>
+        <Grid item size={{xs:6}}>
+          <TextField
+            fullWidth
+            label="Locality/Area/Street/Sector"
+            value={formData?.street || ''}
+            onChange={(e) => onChange('street', e.target.value)}
+            error={!!errors?.street}
+            helperText={errors?.street}
+          />
+        </Grid>
+          <Grid item size={{xs:6}} md={6}>
+          <TextField
+            fullWidth
+            label="Pincode"
+            value={formData?.postalCode || ''}
+            onChange={(e) => onChange('postalCode', e.target.value)}
+            error={!!errors?.postalCode}
+            helperText={errors?.postalCode}
+          />
+        </Grid>
         <Grid item size={{xs:6}}>
           <TextField
             fullWidth
@@ -46,17 +81,25 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
             helperText={errors?.country}
           />
         </Grid>
-        
-        <Grid item size={{xs:6}}>
-          <TextField
-            fullWidth
-            label="Street Address"
-            value={formData?.street || ''}
-            onChange={(e) => onChange('street', e.target.value)}
-            error={!!errors?.street}
-            helperText={errors?.street}
+
+         <Grid item size={{xs:6}} md={6}>
+          <Autocomplete
+            options={cities}
+            value={formData?.city || null}
+            onChange={(_, newValue) => onChange('city', newValue)}
+            disabled={!formData?.state}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="City"
+                error={!!errors?.city}
+                helperText={errors?.city}
+              />
+            )}
           />
-        </Grid>
+        </Grid> 
+        
+        
         
         {/* <Grid item size={{xs:6}} md={6}>
           <TextField
@@ -87,35 +130,11 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
           />
         </Grid>
         
-        <Grid item size={{xs:6}} md={6}>
-          <Autocomplete
-            options={cities}
-            value={formData?.city || null}
-            onChange={(_, newValue) => onChange('city', newValue)}
-            disabled={!formData?.state}
-            renderInput={(params) => (
-              <TextField 
-                {...params} 
-                label="City"
-                error={!!errors?.city}
-                helperText={errors?.city}
-              />
-            )}
-          />
-        </Grid>
+       
         
-        <Grid item size={{xs:6}} md={6}>
-          <TextField
-            fullWidth
-            label="Postal Code"
-            value={formData?.postalCode || ''}
-            onChange={(e) => onChange('postalCode', e.target.value)}
-            error={!!errors?.postalCode}
-            helperText={errors?.postalCode}
-          />
-        </Grid>
+      
         
-        <Grid item size={{xs:6}} className="flex justify-end mt-4">
+        {/* <Grid item size={{xs:6}} className="flex justify-end mt-4">
           <Button 
             variant="contained" 
             color="primary" 
@@ -123,7 +142,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
           >
             Save & Continue
           </Button>
-        </Grid>
+        </Grid> */}
       </Grid>
     </div>
   );
