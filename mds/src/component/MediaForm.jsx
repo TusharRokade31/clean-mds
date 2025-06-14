@@ -5,35 +5,38 @@ import {
   Box, Typography, Button, Grid, Card, CardMedia, CardContent,
   IconButton, Chip, TextField, Dialog, DialogTitle, DialogContent,
   DialogActions, FormControlLabel, Checkbox, Alert, LinearProgress,
-  List, ListItem, ListItemIcon, ListItemText
+  List, ListItem, ListItemIcon, ListItemText, Badge
 } from '@mui/material';
 import {
   CloudUpload, Delete, Edit, Star, StarBorder, 
-  Image as ImageIcon, VideoFile, Close
+  Image as ImageIcon, VideoFile, Close, Warning
 } from '@mui/icons-material';
 import {
   uploadPropertyMedia, updateMediaItem, deleteMediaItem,
-  getMediaByTags, completeMediaStep
+  getMediaByTags, completeMediaStep, validatePropertyMedia
 } from '@/redux/features/property/propertySlice';
 
 const MediaForm = ({ propertyId, onSave, onBack }) => {
   const dispatch = useDispatch();
   const { currentProperty, isLoading, error } = useSelector(state => state.property);
   
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [previewFiles, setPreviewFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [editingMedia, setEditingMedia] = useState(null);
   const [editDialog, setEditDialog] = useState(false);
   const [mediaFilter, setMediaFilter] = useState('all');
   const [tagFilter, setTagFilter] = useState('');
   const [customTag, setCustomTag] = useState('');
+  const [validationError, setValidationError] = useState('');
+  const [validationDetails, setValidationDetails] = useState(null);
   
   const fileInputRef = useRef(null);
 
   const images = currentProperty?.media?.images || [];
   const videos = currentProperty?.media?.videos || [];
   const allMedia = [...images, ...videos];
+
+  // Check which media items are missing tags
+  const itemsWithoutTags = allMedia.filter(item => !item.tags || item.tags.length === 0);
 
   // All available tags in one flat list
   const availableTags = [
@@ -104,49 +107,40 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
   const filteredMedia = allMedia.filter(item => {
     const typeMatch = mediaFilter === 'all' || 
       (mediaFilter === 'image' && item.type === 'image') ||
-      (mediaFilter === 'video' && item.type === 'video');
+      (mediaFilter === 'video' && item.type === 'video') ||
+      (mediaFilter === 'untagged' && (!item.tags || item.tags.length === 0));
     
     const tagMatch = !tagFilter || 
-      item.tags.some(tag => tag.toLowerCase().includes(tagFilter.toLowerCase()));
+      item.tags?.some(tag => tag.toLowerCase().includes(tagFilter.toLowerCase()));
     
     return typeMatch && tagMatch;
   });
 
-  const handleFileSelect = (event) => {
+  const handleFileSelect = async (event) => {
     const files = Array.from(event.target.files);
-    setSelectedFiles(files);
+    setValidationError('');
     
-    // Create preview URLs for selected files
-    const previews = files.map(file => ({
-      file,
-      url: URL.createObjectURL(file),
-      type: file.type.startsWith('image/') ? 'image' : 'video',
-      name: file.name,
-      isPreview: true
-    }));
-    setPreviewFiles(previews);
-  };
+    // Validate file count
+    if (files.length > 20) {
+      setValidationError('You can upload maximum 20 files at once');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
 
-  const handleUpload = async () => {
-    if (selectedFiles.length === 0) return;
+    if (files.length === 0) return;
 
+    // Create FormData and upload immediately
     const formData = new FormData();
-    selectedFiles.forEach(file => {
+    files.forEach(file => {
       formData.append('media', file);
     });
 
     try {
       await dispatch(uploadPropertyMedia({ propertyId, formData })).unwrap();
       
-      setSelectedFiles([]);
-      setPreviewFiles([]);
-      
-      previewFiles.forEach(preview => {
-        if (preview.url.startsWith('blob:')) {
-          URL.revokeObjectURL(preview.url);
-        }
-      });
-      
+      // Clear the file input after successful upload
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -154,16 +148,6 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
       console.error('Upload failed:', error);
     }
   };
-
-  useEffect(() => {
-    return () => {
-      previewFiles.forEach(preview => {
-        if (preview.url.startsWith('blob:')) {
-          URL.revokeObjectURL(preview.url);
-        }
-      });
-    };
-  }, [previewFiles]);
 
   const handleDeleteMedia = async (mediaId) => {
     if (window.confirm('Are you sure you want to delete this media item?')) {
@@ -185,6 +169,12 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
 
   const handleSaveEdit = async () => {
     if (!editingMedia) return;
+
+    // Validate that at least one tag is selected
+    if (!editingMedia.tags || editingMedia.tags.length === 0) {
+      alert('Please select at least one tag before saving.');
+      return;
+    }
 
     try {
       await dispatch(updateMediaItem({
@@ -218,6 +208,13 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
   };
 
   const handleCompleteStep = async () => {
+    // First validate that all media items have tags
+    if (itemsWithoutTags.length > 0) {
+      setValidationDetails(itemsWithoutTags);
+      setValidationError(`${itemsWithoutTags.length} media item(s) are missing tags. Please add tags to all media items before proceeding.`);
+      return;
+    }
+
     try {
       await dispatch(completeMediaStep(propertyId)).unwrap();
       // onSave();
@@ -262,6 +259,11 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
     }
   };
 
+  // Helper function to check if media item has tags
+  const hasNoTags = (mediaItem) => {
+    return !mediaItem.tags || mediaItem.tags.length === 0;
+  };
+
   return (
     <Box>
       <Typography variant="h5" gutterBottom>
@@ -271,8 +273,38 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
       <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
         Upload at least 10 media items to showcase your property. 
         Include high-quality photos and videos that highlight your property's best features.
+        Maximum 20 files can be uploaded at once. Each media item must have at least one tag.
       </Typography>
 
+      {/* Show validation error */}
+      {validationError && (
+        <Alert 
+          severity="error" 
+          sx={{ mb: 2 }}
+          action={
+            validationDetails && (
+              <Button 
+                color="inherit" 
+                size="small"
+                onClick={() => setMediaFilter('untagged')}
+              >
+                Show Untagged
+              </Button>
+            )
+          }
+        >
+          {validationError}
+          {validationDetails && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2">
+                Untagged items: {validationDetails.map(item => item.filename).join(', ')}
+              </Typography>
+            </Box>
+          )}
+        </Alert>
+      )}
+
+      {/* Show API error */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -296,98 +328,34 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
               style={{ display: 'none' }}
             />
             <Button
-              variant="outlined"
+              variant="contained"
               startIcon={<CloudUpload />}
               onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
               sx={{ mr: 2 }}
             >
-              Select Files
+              {isLoading ? 'Uploading...' : 'Select & Upload Files'}
             </Button>
             
-            {selectedFiles.length > 0 && (
-              <Button
-                variant="contained"
-                onClick={handleUpload}
-                disabled={isLoading}
-              >
-                Upload {selectedFiles.length} file(s)
-              </Button>
-            )}
+            <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 1 }}>
+              Select up to 20 files. Files will be uploaded immediately after selection.
+              Remember to add tags to each uploaded file.
+            </Typography>
           </Box>
 
-          {/* Preview Section */}
-          {previewFiles.length > 0 && (
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Selected Files Preview:
+          {isLoading && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                Uploading files...
               </Typography>
-              <Grid container spacing={2} sx={{ mb: 2 }}>
-                {previewFiles.map((preview, index) => (
-                  <Grid item xs={6} sm={4} md={3} lg={2} key={index}>
-                    <Card sx={{ aspectRatio: '1/1' }}>
-                      <Box sx={{ 
-                        position: 'relative', 
-                        width: '100%',
-                        paddingBottom: '100%',
-                        overflow: 'hidden'
-                      }}>
-                        {preview.type === 'image' ? (
-                            <CardMedia
-                                component="img"
-                                image={preview.url}
-                                alt={preview.name}
-                                sx={{ 
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover'
-                                }}
-                            />
-                            ) : (
-                            <video
-                                src={preview.url}
-                                style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover'
-                                }}
-                                // controls
-                                muted
-                                autoPlay
-                                loop
-                                preload="metadata"
-                            />
-                            )}
-                        <Chip
-                          label="Preview"
-                          size="small"
-                          color="secondary"
-                          sx={{ position: 'absolute', top: 4, left: 4 }}
-                        />
-                      </Box>
-                      <CardContent sx={{ p: 1 }}>
-                        <Typography variant="caption" noWrap>
-                          {preview.name}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
+              <LinearProgress />
             </Box>
           )}
-
-          {isLoading && <LinearProgress sx={{ mt: 2 }} />}
         </CardContent>
       </Card>
 
       {/* Filter Section */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <Button
           variant={mediaFilter === 'all' ? 'contained' : 'outlined'}
           onClick={() => setMediaFilter('all')}
@@ -406,6 +374,15 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
         >
           Videos ({videos.length})
         </Button>
+        <Badge badgeContent={itemsWithoutTags.length} color="error">
+          <Button
+            variant={mediaFilter === 'untagged' ? 'contained' : 'outlined'}
+            onClick={() => setMediaFilter('untagged')}
+            color={itemsWithoutTags.length > 0 ? 'error' : 'primary'}
+          >
+            Untagged ({itemsWithoutTags.length})
+          </Button>
+        </Badge>
         
         <TextField
           size="small"
@@ -420,7 +397,10 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {filteredMedia.map((mediaItem) => (
           <Grid item xs={6} sm={4} md={3} lg={2} key={mediaItem._id}>
-            <Card sx={{ aspectRatio: '1/1' }}>
+            <Card sx={{ 
+              aspectRatio: '1/1',
+              border: hasNoTags(mediaItem) ? '2px solid #f44336' : 'none'
+            }}>
               <Box sx={{ 
                 position: 'relative',
                 width: '100%',
@@ -455,22 +435,21 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
                       bgcolor: 'grey.200'
                     }}
                   >
-                <video
-                src={`http://localhost:5000/${mediaItem.url}`}
-                style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover'
-                }}
-                // controls
-                muted
-                loop
-                autoPlay
-                preload="metadata"
-            />
+                    <video
+                      src={`http://localhost:5000/${mediaItem.url}`}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                      muted
+                      loop
+                      autoPlay
+                      preload="metadata"
+                    />
                   </Box>
                 )}
                 
@@ -480,6 +459,16 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
                     color="primary"
                     size="small"
                     sx={{ position: 'absolute', top: 4, left: 4 }}
+                  />
+                )}
+                
+                {hasNoTags(mediaItem) && (
+                  <Chip
+                    label="No Tags"
+                    color="error"
+                    size="small"
+                    icon={<Warning />}
+                    sx={{ position: 'absolute', bottom: 4, left: 4 }}
                   />
                 )}
                 
@@ -505,9 +494,11 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
                   <IconButton
                     size="small"
                     onClick={() => handleEditMedia(mediaItem)}
-                    sx={{ bgcolor: 'rgba(255,255,255,0.8)' }}
+                    sx={{ 
+                      bgcolor: hasNoTags(mediaItem) ? 'rgba(244,67,54,0.8)' : 'rgba(255,255,255,0.8)'
+                    }}
                   >
-                    <Edit />
+                    <Edit color={hasNoTags(mediaItem) ? 'error' : 'inherit'} />
                   </IconButton>
                   <IconButton
                     size="small"
@@ -524,22 +515,30 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
                   {mediaItem.filename}
                 </Typography>
                 <Box sx={{ mt: 0.5 }}>
-                  {mediaItem.tags.slice(0, 2).map((tag) => (
-                    <Chip
-                      key={tag}
-                      label={tag}
-                      size="small"
-                      sx={{ 
-                        mr: 0.5, 
-                        mb: 0.5, 
-                        fontSize: '0.6rem',
-                        height: 16
-                      }}
-                    />
-                  ))}
-                  {mediaItem.tags.length > 2 && (
-                    <Typography variant="caption" color="textSecondary">
-                      +{mediaItem.tags.length - 2} more
+                  {mediaItem.tags && mediaItem.tags.length > 0 ? (
+                    <>
+                      {mediaItem.tags.slice(0, 2).map((tag) => (
+                        <Chip
+                          key={tag}
+                          label={tag}
+                          size="small"
+                          sx={{ 
+                            mr: 0.5, 
+                            mb: 0.5, 
+                            fontSize: '0.6rem',
+                            height: 16
+                          }}
+                        />
+                      ))}
+                      {mediaItem.tags.length > 2 && (
+                        <Typography variant="caption" color="textSecondary">
+                          +{mediaItem.tags.length - 2} more
+                        </Typography>
+                      )}
+                    </>
+                  ) : (
+                    <Typography variant="caption" color="error">
+                      No tags assigned
                     </Typography>
                   )}
                 </Box>
@@ -551,7 +550,7 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
 
       <Alert 
         severity={allMedia.length >= 10 ? "success" : "info"} 
-        sx={{ mb: 3 }}
+        sx={{ mb: 2 }}
       >
         {allMedia.length >= 10 
           ? `Great! You have ${allMedia.length} media items uploaded.`
@@ -559,9 +558,21 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
         }
       </Alert>
 
-      {/* Edit Dialog with Simple Tag List */}
+      {itemsWithoutTags.length > 0 && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          {itemsWithoutTags.length} media item(s) need tags before you can proceed. 
+          Click the edit button on items with red borders to add tags.
+        </Alert>
+      )}
+
+      {/* Edit Dialog with validation */}
       <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Edit Media Item</DialogTitle>
+        <DialogTitle>
+          Edit Media Item
+          {editingMedia && (!editingMedia.tags || editingMedia.tags.length === 0) && (
+            <Chip label="Tags Required" color="error" size="small" sx={{ ml: 2 }} />
+          )}
+        </DialogTitle>
         <DialogContent>
           {editingMedia && (
             <Box>
@@ -585,16 +596,16 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
               )}
               
               <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-                Selected Tags
+                Selected Tags *
               </Typography>
               
               <Box sx={{ 
                 mb: 2, 
                 minHeight: 40, 
-                border: '1px solid #e0e0e0', 
+                border: `1px solid ${(!editingMedia.tags || editingMedia.tags.length === 0) ? '#f44336' : '#e0e0e0'}`, 
                 borderRadius: 1, 
                 p: 1,
-                bgcolor: '#f9f9f9'
+                bgcolor: (!editingMedia.tags || editingMedia.tags.length === 0) ? '#ffebee' : '#f9f9f9'
               }}>
                 {editingMedia.tags.length > 0 ? (
                   editingMedia.tags.map((tag) => (
@@ -609,8 +620,8 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
                     />
                   ))
                 ) : (
-                  <Typography variant="body2" color="textSecondary">
-                    No tags selected
+                  <Typography variant="body2" color="error">
+                    Please select at least one tag
                   </Typography>
                 )}
               </Box>
@@ -676,7 +687,13 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditDialog(false)}>Cancel</Button>
-          <Button onClick={handleSaveEdit} variant="contained">Save</Button>
+          <Button 
+            onClick={handleSaveEdit} 
+            variant="contained"
+            disabled={!editingMedia?.tags || editingMedia.tags.length === 0}
+          >
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -688,7 +705,7 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
         <Button
           variant="contained"
           onClick={handleCompleteStep}
-          disabled={isLoading || allMedia.length < 10}
+          disabled={isLoading || allMedia.length < 10 || itemsWithoutTags.length > 0}
         >
           Save & Continue
         </Button>

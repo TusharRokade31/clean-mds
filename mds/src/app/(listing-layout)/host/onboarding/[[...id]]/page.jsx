@@ -229,12 +229,12 @@ const validateLandline = (landline) => {
         break;
         
       case 1: // Location
-        if (!formData.location.houseName) errors.houseName = 'House/Building Name is required';
-        if (!formData.location.country) errors.country = 'Country is required';
-        if (!formData.location.street) errors.street = 'Street address is required';
-        if (!formData.location.city) errors.city = 'City is required';
-        if (!formData.location.state) errors.state = 'State is required';
-        if (!formData.location.postalCode) errors.postalCode = 'Postal code is required';
+        if (!formData.location.houseName) errors.houseName = 'This field is required';
+        if (!formData.location.country) errors.country = 'This field is required';
+        if (!formData.location.street) errors.street = 'This field is required';
+        if (!formData.location.city) errors.city = 'This field is required';
+        if (!formData.location.state) errors.state = 'This field is required';
+        if (!formData.location.postalCode) errors.postalCode = 'This field is required';
         break;
         
       case 3: // Rooms

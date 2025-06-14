@@ -449,7 +449,6 @@ const propertySlice = createSlice({
         builder.addCase(uploadPropertyMedia.fulfilled, (state, action) => {
           state.isLoading = false;
           const updatedProperty = action.payload;
-          console.log(updatedProperty)
           
           if (updatedProperty) {
             state.currentProperty = updatedProperty;

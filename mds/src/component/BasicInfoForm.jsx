@@ -24,7 +24,29 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
 
       <Grid sx={{ mt: 5 }} container spacing={3}>
         <Grid item size={{xs:12, md:4}}>
-          <FormControl fullWidth error={!!errors?.propertyType}>
+          <FormControl 
+                     
+            sx={{
+              "& .MuiOutlinedInput-root": {
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2e2e2e",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1976d2",
+                  },
+                },
+                "& .MuiInputLabel-outlined": {
+                  color: "#2e2e2e",
+                  "&.Mui-focused": {
+                    color: "secondary.main",
+
+                  },
+                },
+              },
+            }} 
+            fullWidth error={!!errors?.propertyType}>
             <InputLabel>Property Type</InputLabel>
             <Select
               value={formData.propertyType || ''}
@@ -43,6 +65,28 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
         
         <Grid item size={{xs:12, md:4}}>
           <TextField
+                     
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                color: "#000",
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2e2e2e",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1976d2",
+                  },
+                },
+                "& .MuiInputLabel-outlined": {
+                  color: "#2e2e2e",
+                  "&.Mui-focused": {
+                    color: "secondary.main",
+
+                  },
+                },
+              },
+            }}
             fullWidth
             label="Name of the Property"
             value={formData.placeName || ''}
@@ -71,7 +115,28 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
         </Grid> */}
         
         <Grid item size={{xs:12, md:4}}>
-          <FormControl fullWidth error={!!errors?.propertyBuilt}>
+          <FormControl            
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                color: "#000",
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2e2e2e",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1976d2",
+                  },
+                },
+                "& .MuiInputLabel-outlined": {
+                  color: "#2e2e2e",
+                  "&.Mui-focused": {
+                    color: "secondary.main",
+
+                  },
+                },
+              },
+            }} fullWidth error={!!errors?.propertyBuilt}>
             <InputLabel>When was the property built?</InputLabel>
             <Select
               value={formData.propertyBuilt || ''}
@@ -89,7 +154,28 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
         </Grid>
         
         <Grid item size={{xs:12, md:4}}>
-          <FormControl fullWidth error={!!errors?.bookingSince}>
+          <FormControl            
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                color: "#000",
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2e2e2e",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1976d2",
+                  },
+                },
+                "& .MuiInputLabel-outlined": {
+                  color: "#2e2e2e",
+                  "&.Mui-focused": {
+                    color: "secondary.main",
+
+                  },
+                },
+              },
+            }} fullWidth error={!!errors?.bookingSince}>
             <InputLabel>Accepting booking since?</InputLabel>
             <Select
               value={formData.bookingSince || ''}
@@ -122,6 +208,28 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
 
         <Grid item sx={{xs:12, md:6}}>
           <TextField
+           
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                color: "#000",
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2e2e2e",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1976d2",
+                  },
+                },
+                "& .MuiInputLabel-outlined": {
+                  color: "#2e2e2e",
+                  "&.Mui-focused": {
+                    color: "secondary.main",
+
+                  },
+                },
+              },
+            }}
             fullWidth
             label="Email Address"
             type="email"
@@ -134,6 +242,28 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
         
         <Grid item sx={{xs:12, md:6}}>
           <TextField
+                     
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                color: "#000",
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2e2e2e",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1976d2",
+                  },
+                },
+                "& .MuiInputLabel-outlined": {
+                  color: "#2e2e2e",
+                  "&.Mui-focused": {
+                    color: "secondary.main",
+
+                  },
+                },
+              },
+            }}
             fullWidth
             label="Mobile Number"
             value={formData.mobileNumber}
@@ -152,6 +282,28 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
         
         <Grid item sx={{xs:12, md:6}}>
           <TextField
+                     
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                color: "#000",
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2e2e2e",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1976d2",
+                  },
+                },
+                "& .MuiInputLabel-outlined": {
+                  color: "#2e2e2e",
+                  "&.Mui-focused": {
+                    color: "secondary.main",
+
+                  },
+                },
+              },
+            }}
             fullWidth
             label="Landline (Optional)"
             value={formData.landline}

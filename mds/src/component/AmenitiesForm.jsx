@@ -39,53 +39,43 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
       items: [
         {
           name: 'Air Conditioning',
-          options: ['room controlled', 'centralize'],
-          Suboptions: ['All-Weather (Hot & Cold)']
+          options: [],
+          Suboptions: []
         },
         {
           name: 'Laundry',
           options: ['Free', 'Paid'],
-          Suboptions: ['Limited Pieces of Laundry Free']
+          Suboptions: []
         },
         {
           name: 'Newspaper',
-          options: ['Local Language', 'English'],
-          Suboptions: []
+          options: [],
+          Suboptions: ['Local Language', 'English']
         },
         {
           name: 'Parking',
           options: ['Free', 'Paid'],
-          Suboptions: ['Onsite', 'Valet', 'Public']
+          Suboptions: []
         },
         {
           name: 'Room service',
-          options: ['24 Hours', 'Limited duration'],
+          options: [],
           Suboptions: []
         },
         {
           name: 'Smoke detector',
-          options: ['In Room', 'Lobby'],
-          Suboptions: []
+          options: [],
+          Suboptions: ['In Room', 'Lobby']
         },
-        // {
-        //   name: 'Swimming Pool',
-        //   options: ['In Room', 'Lobby'],
-        //   Suboptions: ['Common Pool', 'Kids Pool', 'Infinity Pool', 'Indoor Pool', 'Heated Pool', 'Roof Top Pool']
-        // },
         {
           name: 'Wifi',
-          options: ['Free', 'Paid'],
-          Suboptions: ['Speed Suitable for Working', 'Speed Suitable for Surfing', 'Unreliable', 'Available in Lobby']
-        },
-        {
-          name: 'Reception',
-          options: ['24 Hours', 'Limited duration'],
+          options: [],
           Suboptions: []
         },
         {
           name: 'Restaurant/Bhojnalay',
-          options: ['24 Hours', 'Limited duration'],
-          Suboptions: ['Halal', 'Kosher', 'Veg food available', 'Jain food available', 'Satvik food available', 'Indian']
+          options: [],
+          Suboptions: ['Jain food available']
         },
         {
           name: 'CCTV',
@@ -120,7 +110,7 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
         {
           name: 'Kitchen',
           options: [],
-          Suboptions: ['Cooking appliances', 'Microwave', 'Utensils', 'Toaster', 'Induction', 'Cutlery']
+          Suboptions: []
         },
         {
           name: 'Power backup',
@@ -158,9 +148,9 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
           Suboptions: []
         },
         {
-          name: 'Specially abled assistance',
+          name: 'Wheelchair',
           options: [],
-          Suboptions: ['Auditory Guidance', 'Wheelchair', 'Braille', 'Tactile signs']
+          Suboptions:[]
         }
       ]
     },
@@ -194,7 +184,7 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
         },
         {
           name: 'Sitout Area',
-          options: ['Poolside Sit-out area', 'Balcony','Verandah', 'Seating Arrangement on Lawn', 'Patio'],
+          options: [],
           Suboptions: []
         },
         {
@@ -209,18 +199,18 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
       items: [
         {
           name: 'Dining Area/Bhojnalay',
-          options: ['Balcony', 'Verandah', 'Seating Arrangements on the Lawn', 'Poolside sit-out-area', 'Patio'],
+          options: [],
           Suboptions: []
         },
         {
           name: "Food Options Available",
-          options: ['Veg','Jain', 'Sativk'],
+          options: ['Veg','Jain'],
           Suboptions: []
         },
         {
           name: 'Breakfast',
           options: [],
-          Suboptions: ['Indian Veg food', 'Jain food']
+          Suboptions: []
         }
       ]
     },
@@ -270,7 +260,7 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
         {
           name: 'TV',
           options: [],
-          Suboptions: ['LED', 'LCD', 'Flat Screen', 'International Channels', 'HD Channels', 'Satellite TV', 'Remote Controlled', 'Cable', 'Smart TV']
+          Suboptions: []
         }
       ]
     },
@@ -295,7 +285,7 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
   const getAmenityValue = (category, amenityName) => {
     const key = amenityName.replace(/[^a-zA-Z0-9]/g, '');
     return formData?.[category]?.[key] || { 
-      available: false,
+      available: undefined,
       option: [], // Back to array for multiple selection
       subOptions: [] // Back to array for multiple selection
     };
@@ -319,12 +309,14 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
   };
 
   // Count selected amenities for each category
-  const getSelectedCount = (category) => {
-    const categoryData = formData?.[category];
-    if (!categoryData) return 0;
-    
-    return Object.values(categoryData).filter(amenity => amenity.available).length;
-  };
+const getSelectedCount = (category) => {
+  const categoryData = formData?.[category];
+  if (!categoryData) return 0;
+  
+  return Object.values(categoryData).filter(amenity => 
+    amenity.available !== undefined && amenity.available !== null
+  ).length;
+};
 
   const renderAmenityOptions = (category, amenity) => {
     const amenityValue = getAmenityValue(category, amenity.name);
@@ -332,15 +324,35 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
     const hasSuboptions = amenity.Suboptions && amenity.Suboptions.length > 0;
     
     return (
-      <Grid container spacing={3} sx={{ mb: 3, pb: 3, borderBottom: '1px solid #e0e0e0' }}>
+      <Grid container  sx={{ mb: 3, pb: 3, borderBottom: '1px solid #e0e0e0' }}>
         {/* Amenity Name and Yes/No Radio */}
         <Grid item xs={12}>
-          <FormControl sx={{display:"flex", alignItems:"center"}} component="fieldset">
+          <FormControl sx={{
+              "& .MuiOutlinedInput-root": {
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2e2e2e",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1976d2",
+                  },
+                },
+                "& .MuiInputLabel-outlined": {
+                  color: "#2e2e2e",
+                  "&.Mui-focused": {
+                    color: "secondary.main",
+
+                  },
+                },
+              },display:"flex", alignItems:"start"
+            }}    component="fieldset">
             <FormLabel component="legend" sx={{ fontWeight: 'bold', mb: 1 }}>
               {amenity.name}
             </FormLabel>
             <RadioGroup
-              value={amenityValue.available ? 'yes' : 'no'}
+              // value={amenityValue.available ? 'yes' : 'no'}
+              value={amenityValue.available === undefined ? '' : (amenityValue.available ? 'yes' : 'no')}
               onChange={(e) => {
                 const isAvailable = e.target.value === 'yes';
                 handleAmenityChange(category, amenity.name, {
@@ -359,11 +371,30 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
 
         {/* Show Options dropdown if available and amenity is selected */}
         {amenityValue.available && hasOptions && (
-          <Grid item size={{xs:12, md:3}}>
-            <FormControl fullWidth>
+          <Grid sx={{marginInlineStart:'10px'}} item size={{xs:12, md:3}}>
+            <FormControl sx={{
+              "& .MuiOutlinedInput-root": {
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2e2e2e",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1976d2",
+                  },
+                },
+                "& .MuiInputLabel-outlined": {
+                  color: "#2e2e2e",
+                  "&.Mui-focused": {
+                    color: "secondary.main",
+
+                  },
+                },
+              },
+            }}  fullWidth>
               <InputLabel>Select Options</InputLabel>
               <Select
-                multiple
+                
                 value={amenityValue.option || []}
                 label="Select Options"
                 onChange={(e) => {
@@ -409,11 +440,30 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
         {/* Show Suboptions dropdown if available and either no options or options are selected */}
         {amenityValue.available && hasSuboptions && 
          (!hasOptions || (hasOptions && amenityValue.option?.length > 0)) && (
-          <Grid item size={{xs:12, md:3}}>
-            <FormControl fullWidth>
+          <Grid sx={{marginInlineStart:'15px'}}  item size={{xs:12, md:3}}>
+            <FormControl sx={{
+              "& .MuiOutlinedInput-root": {
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#2e2e2e",
+                },
+                "&.Mui-focused": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1976d2",
+                  },
+                },
+                "& .MuiInputLabel-outlined": {
+                  color: "#2e2e2e",
+                  "&.Mui-focused": {
+                    color: "secondary.main",
+
+                  },
+                },
+              },
+            }}  fullWidth>
               <InputLabel>Select Additional Options</InputLabel>
               <Select
-                multiple
+                multiple={amenity.name !== 'Fireplace'}
                 value={amenityValue.subOptions || []}
                 label="Select Additional Options"
                 onChange={(e) => {
@@ -444,10 +494,10 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
                         : 'transparent'
                     }}
                   >
-                    {/* <Checkbox 
+                    <Checkbox 
                       checked={amenityValue.subOptions?.includes(suboption) || false}
                       sx={{ mr: 1 }}
-                    /> */}
+                    />
                     {suboption}
                   </MenuItem>
                 ))}
@@ -457,7 +507,7 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
         )}
 
         {/* Show selected items as chips */}
-        {amenityValue.available && (
+        {/* {amenityValue.available && (
           <Grid item size={{xs:12}}>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {amenityValue.option?.map((option, index) => (
@@ -494,7 +544,7 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
               ))}
             </Box>
           </Grid>
-        )}
+        )} */}
       </Grid>
     );
   };

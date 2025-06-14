@@ -127,7 +127,10 @@ export const initializeProperty = async (req, res) => {
       propertyBuilt: '2024',
       bookingSince: '2024-01-01',
       rentalForm: 'Entire place',
+      email:"example@gmail.com",
+      mobileNumber:'0123456789',
       location: {
+        houseName:'House/Building Name',
         country: 'India',
         street: 'Draft Street',
         city: 'Draft City',
@@ -229,7 +232,7 @@ export const saveLocation = async (req, res) => {
     }
 
     const { propertyId } = req.params;
-    const { 
+    const { houseName,
       country, street, roomNumber, city, state, 
       postalCode, coordinates 
     } = req.body;
@@ -267,6 +270,7 @@ export const saveLocation = async (req, res) => {
     
     // Update property with location info
     property.location = {
+      houseName,
       country,
       street,
       roomNumber,
@@ -475,6 +479,11 @@ export const uploadPropertyMedia = async (req, res) => {
       return errorResponse(res, 400, 'No files uploaded');
     }
     
+    // Add file count validation
+    if (files.length > 20) {
+      return errorResponse(res, 400, 'Cannot upload more than 20 files at once');
+    }
+    
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
@@ -568,9 +577,19 @@ export const updateMediaItem = async (req, res) => {
       return errorResponse(res, 404, 'Media item not found');
     }
     
-    // Update tags if provided
-    if (tags && Array.isArray(tags)) {
-      mediaItem.tags = tags;
+    // Validate tags - ensure at least one tag is provided
+    if (tags !== undefined) {
+      if (!Array.isArray(tags) || tags.length === 0) {
+        return errorResponse(res, 400, 'Each media item must have at least one tag');
+      }
+      
+      // Filter out empty tags
+      const validTags = tags.filter(tag => tag && tag.trim().length > 0);
+      if (validTags.length === 0) {
+        return errorResponse(res, 400, 'Each media item must have at least one valid tag');
+      }
+      
+      mediaItem.tags = validTags;
     }
     
     // Update display order if provided
@@ -602,6 +621,53 @@ export const updateMediaItem = async (req, res) => {
       message: 'Media item updated successfully',
       mediaItem,
       property
+    });
+    
+  } catch (error) {
+    return errorResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+export const validatePropertyMedia = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    
+    // Check if property exists and belongs to user
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
+    
+    if (!property) {
+      return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+    
+    const allMedia = [...property.media.images, ...property.media.videos];
+    const itemsWithoutTags = [];
+    
+    // Check each media item for tags
+    allMedia.forEach((item, index) => {
+      if (!item.tags || item.tags.length === 0) {
+        itemsWithoutTags.push({
+          id: item._id,
+          filename: item.filename,
+          type: item.type,
+          index: index + 1
+        });
+      }
+    });
+    
+    if (itemsWithoutTags.length > 0) {
+      return errorResponse(res, 400, 'Some media items are missing tags', {
+        itemsWithoutTags,
+        message: 'Each media item must have at least one tag before proceeding'
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: 'All media items have valid tags',
+      totalMedia: allMedia.length
     });
     
   } catch (error) {
