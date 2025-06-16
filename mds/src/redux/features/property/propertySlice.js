@@ -199,6 +199,56 @@ export const deleteMediaItem = createAsyncThunk(
   }
 );
 
+
+// Room Media Thunks
+export const uploadRoomMedia = createAsyncThunk(
+  'property/uploadRoomMedia',
+  async ({ propertyId, roomId, formData }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.uploadRoomMedia(propertyId, roomId, formData);
+      return response.property;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to upload room media');
+    }
+  }
+);
+
+export const updateRoomMediaItem = createAsyncThunk(
+  'property/updateRoomMediaItem',
+  async ({ propertyId, roomId, mediaId, data }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.updateRoomMediaItem(propertyId, roomId, mediaId, data);
+      return response.property;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update room media item');
+    }
+  }
+);
+
+export const deleteRoomMediaItem = createAsyncThunk(
+  'property/deleteRoomMediaItem',
+  async ({ propertyId, roomId, mediaId }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.deleteRoomMediaItem(propertyId, roomId, mediaId);
+      return response.property;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete room media item');
+    }
+  }
+);
+
+export const getRoomMedia = createAsyncThunk(
+  'property/getRoomMedia',
+  async ({ propertyId, roomId, params }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getRoomMedia(propertyId, roomId, params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to get room media');
+    }
+  }
+);
+
 export const getMediaByTags = createAsyncThunk(
   'property/getMediaByTags',
   async ({ propertyId, params }, { rejectWithValue }) => {
@@ -216,7 +266,7 @@ export const completeMediaStep = createAsyncThunk(
   async (propertyId, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.completeMediaStep(propertyId);
-      return response.data;
+      return response.property;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to complete media step');
     }
@@ -437,6 +487,9 @@ const propertySlice = createSlice({
         handlePropertyUpdate(builder, updateAmenities);
         handlePropertyUpdate(builder, addRooms);
         handlePropertyUpdate(builder, updateRoom);
+        handlePropertyUpdate(builder, uploadRoomMedia);
+        handlePropertyUpdate(builder, updateRoomMediaItem);
+        handlePropertyUpdate(builder, deleteRoomMediaItem);
         handlePropertyUpdate(builder, completeMediaStep);
 
         // Specific handlers for media operations

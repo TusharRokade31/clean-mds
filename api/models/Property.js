@@ -55,10 +55,6 @@ const MediaSchema = new Schema({
 
 // Room schema
 const RoomSchema = new Schema({
-  roomType: { 
-    type: String, 
-    required: [true, 'Room type is required'] 
-  },
   roomName: { 
     type: String, 
     required: [true, 'Room name is required'] 
@@ -74,6 +70,17 @@ const RoomSchema = new Schema({
   },
   description: { 
     type: String 
+  },
+
+
+   // Add media support to rooms
+  media: {
+    images: [MediaSchema],
+    videos: [MediaSchema],
+    coverImage: {
+      type: Schema.Types.ObjectId,
+      ref: 'Media'
+    }
   },
   
   // Sleeping arrangement

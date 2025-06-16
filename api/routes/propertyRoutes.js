@@ -7,15 +7,6 @@ import {
   getProperty, 
   initializeProperty, 
   reviewProperty, 
-  // updatePropertyStep1, 
-  // updatePropertyStep2, 
-  // updatePropertyStep3, 
-  // updatePropertyStep4, 
-  // updatePropertyStep5, 
-  // updatePropertyStep6, 
-  // updatePropertyStep7, 
-  // updatePropertyStep8, 
-  // updatePropertyStep9,
   saveBasicInfo,
   saveLocation,
   saveAmenities,
@@ -36,7 +27,11 @@ import {
   updateMediaItem,
   deleteMediaItem,
   getMediaByTags,
-  completeMediaStep
+  completeMediaStep,
+  uploadRoomMedia,
+  updateRoomMediaItem,
+  getRoomMedia,
+  deleteRoomMediaItem
 } from '../controllers/propertyController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { check } from 'express-validator' ;
@@ -87,7 +82,6 @@ router.post(
   '/:propertyId/rooms',
   protect,
   [
-    check('roomType', 'Room type is required').not().isEmpty(),
     check('roomName', 'Room name is required').not().isEmpty(),
     check('roomSize', 'Room size is required').isNumeric(),
     check('sizeUnit', 'Size unit is required').not().isEmpty()
@@ -107,6 +101,19 @@ router.delete(
   deleteRoom
 );
 
+router.post('/:propertyId/rooms/:roomId/media', protect, upload.array('media', 20), uploadRoomMedia);
+router.put('/:propertyId/rooms/:roomId/media/:mediaId', protect, updateRoomMediaItem);
+router.delete('/:propertyId/rooms/:roomId/media/:mediaId', protect, deleteRoomMediaItem);
+router.get('/:propertyId/rooms/:roomId/media', getRoomMedia);
+
+
+// Complete media step
+router.put(
+  '/:propertyId/media/complete',  // This must come FIRST
+  protect,
+  completeMediaStep
+);
+
 
 router.post(
   '/:propertyId/media/upload',
@@ -117,7 +124,7 @@ router.post(
 
 // Update media item (tags, cover status, display order)
 router.put(
-  '/:propertyId/media/:mediaId',
+  '/:propertyId/media/:mediaId',  // This must come SECOND
   protect,
   updateMediaItem
 );
@@ -135,12 +142,7 @@ router.get(
   getMediaByTags
 );
 
-// Complete media step
-router.put(
-  '/:propertyId/media/complete',
-  protect,
-  completeMediaStep
-);
+
 
 // Complete Property Listing
 router.put(

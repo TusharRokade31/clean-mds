@@ -37,70 +37,25 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
 
   // Check which media items are missing tags
   const itemsWithoutTags = allMedia.filter(item => !item.tags || item.tags.length === 0);
+  const coverPhoto = allMedia.find(item => item.isCover && item.type === 'image');
 
   // All available tags in one flat list
   const availableTags = [
-    'Activities & Experiences',
-    'Banquet',
-    'Bar',
-    'Barbeque',
-    'Beach Access',
-    'Bike Rental',
-    'Board Games',
-    'Bowling',
-    'Business Center',
-    'Casino',
-    'Cooking Classes',
-    'Dance Floor',
-    'Entertainment',
-    'Fitness Center',
-    'Game Room',
-    'Golf Course',
-    'Gym',
-    'Hot Tub',
-    'Jacuzzi',
-    'Karaoke',
-    'Kids Club',
-    'Library',
-    'Live Music',
-    'Massage',
-    'Movie Theater',
-    'Night Club',
-    'Outdoor Activities',
-    'Pool',
-    'Restaurant',
-    'Sauna',
-    'Spa',
-    'Sports Bar',
-    'Swimming Pool',
-    'Tennis Court',
-    'Water Sports',
-    'Wine Tasting',
-    'Yoga Studio',
-    'Bedroom',
-    'Bathroom',
-    'Kitchen',
-    'Living Room',
-    'Dining Room',
-    'Balcony',
-    'Terrace',
-    'Garden View',
-    'Ocean View',
-    'Mountain View',
-    'City View',
-    'WiFi',
-    'Air Conditioning',
-    'Heating',
-    'TV',
-    'Refrigerator',
-    'Microwave',
-    'Coffee Maker',
-    'Washer',
-    'Dryer',
-    'Iron',
-    'Hair Dryer',
-    'Safe',
-    'Mini Bar'
+    'Activities and Experiences',
+    'Bhojnalay',
+    'Bonfire',
+    'Entrance ',
+    'Food',
+    'Food Menu',
+    'Kitchen ',
+    'Living area',
+    'Lobby/ Common Area',
+    'Lounge',
+    'Others',
+    'OutsideView',
+    'Room',
+    'Washroom',
+    'Bed',
   ];
 
   // Filter media based on type and tags
@@ -216,7 +171,8 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
     }
 
     try {
-      await dispatch(completeMediaStep(propertyId)).unwrap();
+      const Result = await dispatch(completeMediaStep(propertyId)).unwrap();
+      console.log(Result, 'save and continue')
       // onSave();
     } catch (error) {
       console.error('Complete step failed:', error);
@@ -482,7 +438,7 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
                     gap: 0.5
                   }}
                 >
-                  {mediaItem.type === 'image' && (
+                  {/* {mediaItem.type === 'image' && (
                     <IconButton
                       size="small"
                       onClick={() => handleSetCover(mediaItem)}
@@ -490,7 +446,7 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
                     >
                       {mediaItem.isCover ? <Star color="primary" /> : <StarBorder />}
                     </IconButton>
-                  )}
+                  )} */}
                   <IconButton
                     size="small"
                     onClick={() => handleEditMedia(mediaItem)}

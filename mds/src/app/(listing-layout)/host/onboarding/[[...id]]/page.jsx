@@ -22,6 +22,7 @@ import LocationForm from '@/component/LocationForm';
 import AmenitiesForm from '@/component/AmenitiesForm';
 import RoomsForm from '@/component/RoomsForm';
 import MediaForm from '@/component/MediaForm';
+import RoomMediaForm from '@/component/RoomMediaForm';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -438,6 +439,7 @@ const validateLandline = (landline) => {
           
           <TabPanel value={activeTab} index={4}>
             <MediaForm propertyId={currentProperty?._id} />
+            <RoomMediaForm propertyId={currentProperty?._id} />
           </TabPanel>
           
           <TabPanel value={activeTab} index={5}>

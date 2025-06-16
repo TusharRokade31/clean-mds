@@ -44,6 +44,31 @@ export const propertyAPI = {
   },
 
 
+ uploadRoomMedia: async (propertyId, roomId, formData) => {
+    const response = await axiosInstance.post(`/properties/${propertyId}/rooms/${roomId}/media`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  updateRoomMediaItem: async (propertyId, roomId, mediaId, data) => {
+    const response = await axiosInstance.put(`/properties/${propertyId}/rooms/${roomId}/media/${mediaId}`, data);
+    return response.data;
+  },
+
+  deleteRoomMediaItem: async (propertyId, roomId, mediaId) => {
+    const response = await axiosInstance.delete(`/properties/${propertyId}/rooms/${roomId}/media/${mediaId}`);
+    return response.data;
+  },
+
+  getRoomMedia: async (propertyId, roomId, params = {}) => {
+    const response = await axiosInstance.get(`/properties/${propertyId}/rooms/${roomId}/media`, { params });
+    return response.data;
+  },
+
+
     // Media upload methods
   uploadPropertyMedia: async (propertyId, formData) => {
     const response = await axiosInstance.post(`/properties/${propertyId}/media/upload`, formData, {
