@@ -169,5 +169,87 @@ export const propertyAPI = {
   getUserProperties: async () => {
     const response = await axiosInstance.get('/properties/my-properties');
     return response.data;
-  }
+  },
+
+
+  // Custom Policy APIs
+addCustomPolicy : async (propertyId, data) => {
+  const response = await axiosInstance.post(`/properties/${propertyId}/custom-policies`, data);
+  return response.data;
+},
+
+updateCustomPolicy : async (propertyId, policyId, data) => {
+  const response = await axiosInstance.put(`/properties/${propertyId}/custom-policies/${policyId}`, data);
+  return response.data;
+},
+
+deleteCustomPolicy : async (propertyId, policyId) => {
+  const response = await axiosInstance.delete(`/properties/${propertyId}/custom-policies/${policyId}`);
+  return response.data;
+},
+
+// Privacy Policy APIs
+getPrivacyPolicyTemplate: async () => {
+  const response = await axiosInstance.get('/properties/template/privacy-policy');
+  return response.data;
+},
+
+getPrivacyPolicy: async (propertyId) => {
+  const response = await axiosInstance.get(`/properties/${propertyId}/privacy-policy`);
+  return response.data;
+},
+
+createOrUpdatePrivacyPolicy: async (propertyId, data) => {
+  const response = await axiosInstance.post(`/properties/${propertyId}/privacy-policy`, data);
+  return response.data;
+},
+
+updatePrivacyPolicySection: async (propertyId, section, data) => {
+  const response = await axiosInstance.put(`/properties/${propertyId}/privacy-policy/section`, {
+    section,
+    data
+  });
+  return response.data;
+},
+
+getPrivacyPolicyHistory: async (propertyId) => {
+  const response = await axiosInstance.get(`/properties/${propertyId}/privacy-policy/history`);
+  return response.data;
+},
+
+deletePrivacyPolicy: async (propertyId) => {
+  const response = await axiosInstance.delete(`/properties/${propertyId}/privacy-policy`);
+  return response.data;
+},
+
+
+
+getFinanceLegal: async (propertyId) => {
+  const response = await axiosInstance.get(`/properties/${propertyId}/finance-legal`);
+  return response.data;
+},
+
+updateFinanceDetails: async (propertyId, data) => {
+  const response = await axiosInstance.put(`/properties/${propertyId}/finance`, data);
+  return response.data;
+},
+
+updateLegalDetails: async (propertyId, data) => {
+  const response = await axiosInstance.put(`/properties/${propertyId}/legal`, data);
+  return response.data;
+},
+
+uploadRegistrationDocument: async (propertyId, formData) => {
+  const response = await axiosInstance.post(`/properties/${propertyId}/legal/upload-document`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+},
+
+deleteFinanceLegal: async (propertyId) => {
+  const response = await axiosInstance.delete(`/properties/${propertyId}/finance-legal`);
+  return response.data;
+},
 };

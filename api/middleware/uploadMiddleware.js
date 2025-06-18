@@ -18,6 +18,9 @@ export const storage = multer.diskStorage({
       uploadPath = file.mimetype.startsWith('video/') 
         ? 'uploads/properties/videos' 
         : 'uploads/properties/images';
+    } else if (url.includes('/legal') || url.includes('/document')) {
+      // Add document upload path
+      uploadPath = 'uploads/properties/documents';
     }
     
     if (!fs.existsSync(uploadPath)) {
@@ -36,6 +39,8 @@ export const storage = multer.diskStorage({
       prefix = 'city';
     } else if (url.includes('/media')) {
       prefix = file.mimetype.startsWith('video/') ? 'video' : 'image';
+    } else if (url.includes('/legal') || url.includes('/document')) {
+      prefix = 'document';
     }
     
     cb(
@@ -63,6 +68,25 @@ function checkFileType(file, cb) {
   }
 }
 
+// Document file type checking
+function checkDocumentType(file, cb) {
+  const documentTypes = /pdf|doc|docx|jpeg|jpg|png/;
+  const extname = path.extname(file.originalname).toLowerCase();
+  const mimetype = file.mimetype;
+
+  const isDocument = documentTypes.test(extname.substring(1)) && 
+    (mimetype === 'application/pdf' || 
+     mimetype.startsWith('image/') || 
+     mimetype.startsWith('application/msword') ||
+     mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+
+  if (isDocument) {
+    return cb(null, true);
+  } else {
+    cb('Error: Only PDF, DOC, DOCX, JPEG, JPG, PNG files are allowed for documents!');
+  }
+}
+
 // Standard upload for single files
 export const upload = multer({
   storage,
@@ -84,3 +108,13 @@ export const uploadMedia = multer({
   }
 });
 
+// NEW: Document upload for registration documents
+export const uploadDocument = multer({
+  storage,
+  limits: { 
+    fileSize: 15000000 // 15MB limit for documents
+  },
+  fileFilter: function(req, file, cb) {
+    checkDocumentType(file, cb);
+  }
+});

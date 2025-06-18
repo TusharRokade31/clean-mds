@@ -23,6 +23,8 @@ import AmenitiesForm from '@/component/AmenitiesForm';
 import RoomsForm from '@/component/RoomsForm';
 import MediaForm from '@/component/MediaForm';
 import RoomMediaForm from '@/component/RoomMediaForm';
+import PoliciesFrom from '@/component/PoliciesFrom';
+import FinanceLegalForm from '@/component/FinanceLegalForm';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -443,13 +445,13 @@ const validateLandline = (landline) => {
           </TabPanel>
           
           <TabPanel value={activeTab} index={5}>
-            <Typography variant="h6">Policies</Typography>
-            <Typography>Configure your property policies here...</Typography>
+            <PoliciesFrom propertyId={currentProperty?._id}/>
+            
           </TabPanel>
           
           <TabPanel value={activeTab} index={6}>
-            <Typography variant="h6">Finance & Legal</Typography>
-            <Typography>Configure finance and legal information here...</Typography>
+            <FinanceLegalForm propertyId={currentProperty?._id}/>
+
           </TabPanel>
         </Box>
         

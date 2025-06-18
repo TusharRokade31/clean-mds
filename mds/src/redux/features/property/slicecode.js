@@ -1,82 +1,84 @@
-
-// Room Media Thunks
-export const uploadRoomMedia = createAsyncThunk(
-  'property/uploadRoomMedia',
-  async ({ propertyId, roomId, formData }, { rejectWithValue }) => {
+    
+// Privacy Policy Thunks
+export const getPrivacyPolicyTemplate = createAsyncThunk(
+  'property/getPrivacyPolicyTemplate',
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await propertyAPI.uploadRoomMedia(propertyId, roomId, formData);
-      return response.property;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to upload room media');
-    }
-  }
-);
-
-export const updateRoomMediaItem = createAsyncThunk(
-  'property/updateRoomMediaItem',
-  async ({ propertyId, roomId, mediaId, data }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.updateRoomMediaItem(propertyId, roomId, mediaId, data);
-      return response.property;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update room media item');
-    }
-  }
-);
-
-export const deleteRoomMediaItem = createAsyncThunk(
-  'property/deleteRoomMediaItem',
-  async ({ propertyId, roomId, mediaId }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.deleteRoomMediaItem(propertyId, roomId, mediaId);
-      return response.property;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete room media item');
-    }
-  }
-);
-
-export const getRoomMedia = createAsyncThunk(
-  'property/getRoomMedia',
-  async ({ propertyId, roomId, params }, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.getRoomMedia(propertyId, roomId, params);
+      const response = await propertyAPI.getPrivacyPolicyTemplate();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to get room media');
+      return rejectWithValue(error.response?.data?.message || 'Failed to get privacy policy template');
     }
   }
 );
 
- const handlePropertyUpdate = (builder, thunk) => {
+export const getPrivacyPolicy = createAsyncThunk(
+  'property/getPrivacyPolicy',
+  async (propertyId, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getPrivacyPolicy(propertyId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to get privacy policy');
+    }
+  }
+);
+
+export const createOrUpdatePrivacyPolicy = createAsyncThunk(
+  'property/createOrUpdatePrivacyPolicy',
+  async ({ propertyId, data }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.createOrUpdatePrivacyPolicy(propertyId, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to save privacy policy');
+    }
+  }
+);
+
+export const updatePrivacyPolicySection = createAsyncThunk(
+  'property/updatePrivacyPolicySection',
+  async ({ propertyId, section, data }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.updatePrivacyPolicySection(propertyId, section, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update privacy policy section');
+    }
+  }
+);
+    
+    
+    
+    // Privacy Policy handlers
+    builder.addCase(getPrivacyPolicyTemplate.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.privacyPolicyTemplate = action.payload;
+    });
+    
+    builder.addCase(getPrivacyPolicy.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentPrivacyPolicy = action.payload;
+    });
+    
+    builder.addCase(createOrUpdatePrivacyPolicy.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentPrivacyPolicy = action.payload;
+    });
+     
+    builder.addCase(updatePrivacyPolicySection.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentPrivacyPolicy = action.payload;
+    });
+    
+    // Handle pending and rejected states for all privacy policy actions
+    [getPrivacyPolicyTemplate, getPrivacyPolicy, createOrUpdatePrivacyPolicy, updatePrivacyPolicySection].forEach(thunk => {
       builder.addCase(thunk.pending, (state) => {
         state.isLoading = true;
         state.error = null;
-      });
-
-      builder.addCase(thunk.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.currentProperty = action.payload;
-        
-        // Update in the user's property list if it exists
-        const index = state.userProperties.findIndex(p => p._id === action.payload._id);
-        if (index !== -1) {
-          state.userProperties[index] = action.payload;
-        }
       });
       builder.addCase(thunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });
-    };
-
-
-        handlePropertyUpdate(builder, updateBasicInfo);
-        handlePropertyUpdate(builder, updateLocation);
-        handlePropertyUpdate(builder, updateAmenities);
-        handlePropertyUpdate(builder, addRooms);
-        handlePropertyUpdate(builder, updateRoom);
-        handlePropertyUpdate(builder, uploadRoomMedia);
-        handlePropertyUpdate(builder, updateRoomMediaItem);
-        handlePropertyUpdate(builder, deleteRoomMediaItem);
-        handlePropertyUpdate(builder, completeMediaStep);
+    });

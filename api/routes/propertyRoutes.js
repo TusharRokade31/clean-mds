@@ -33,6 +33,30 @@ import {
   getRoomMedia,
   deleteRoomMediaItem
 } from '../controllers/propertyController.js';
+
+
+import {
+  getPrivacyPolicy,
+  createOrUpdatePrivacyPolicy,
+  updatePrivacyPolicySection,
+  getPrivacyPolicyHistory,
+  deletePrivacyPolicy,
+  getPrivacyPolicyTemplate,
+  addCustomPolicy,
+  updateCustomPolicy,
+  deleteCustomPolicy
+} from '../controllers/privacyPolicyController.js';
+
+
+import { 
+  getFinanceLegal,
+  updateFinanceDetails,
+  updateLegalDetails,
+  uploadRegistrationDocument,
+  deleteFinanceLegal
+} from '../controllers/financeLegalController.js';
+
+
 import { protect } from '../middleware/authMiddleware.js';
 import { check } from 'express-validator' ;
 import { upload, uploadMedia } from '../middleware/uploadMiddleware.js';
@@ -188,4 +212,53 @@ router.get('/stats/states', getStateWisePropertyStats);
 // Check property availability for specific dates - public route
 router.get('/:id/availability', checkPropertyAvailability);
 
+
+
+router.post('/:propertyId/custom-policies', addCustomPolicy);
+router.put('/:propertyId/custom-policies/:policyId', updateCustomPolicy);
+router.delete('/:propertyId/custom-policies/:policyId', deleteCustomPolicy);
+
+// Privacy Policy routes
+router.get('/template/privacy-policy', getPrivacyPolicyTemplate);
+router.get('/:propertyId/privacy-policy', getPrivacyPolicy);
+router.post('/:propertyId/privacy-policy', createOrUpdatePrivacyPolicy);
+router.put('/:propertyId/privacy-policy/section', updatePrivacyPolicySection);
+router.get('/:propertyId/privacy-policy/history', getPrivacyPolicyHistory);
+router.delete('/:propertyId/privacy-policy', deletePrivacyPolicy);
+
+
+
+// Get or create finance legal data
+router.get('/:propertyId/finance-legal', protect, getFinanceLegal);
+
+// Update finance details
+router.put('/:propertyId/finance', 
+  protect,
+  [
+    check('bankDetails.accountNumber', 'Account number is required').optional().not().isEmpty(),
+    check('bankDetails.ifscCode', 'Valid IFSC code is required').optional().matches(/^[A-Z]{4}0[A-Z0-9]{6}$/),
+    check('taxDetails.pan', 'Valid PAN is required').optional().matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)
+  ],
+  updateFinanceDetails
+);
+
+// Update legal details
+router.put('/:propertyId/legal',
+  protect,
+  [
+    check('ownershipDetails.ownershipType', 'Ownership type is required').optional().not().isEmpty(),
+    check('ownershipDetails.propertyAddress', 'Property address is required').optional().not().isEmpty()
+  ],
+  updateLegalDetails
+);
+
+// Upload registration document
+router.post('/:propertyId/legal/upload-document',
+  protect,
+  upload.single('registrationDocument'),
+  uploadRegistrationDocument
+);
+
+// Delete finance legal data
+router.delete('/:propertyId/finance-legal', protect, deleteFinanceLegal);
 export default router;

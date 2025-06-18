@@ -5,11 +5,13 @@ import {
   Box, Typography, Button, Grid, Card, CardMedia, CardContent,
   IconButton, Chip, TextField, Dialog, DialogTitle, DialogContent,
   DialogActions, FormControlLabel, Checkbox, Alert, LinearProgress,
-  List, ListItem, ListItemIcon, ListItemText, Badge
+  List, ListItem, ListItemIcon, ListItemText, Badge, Divider, Paper,
+  ImageList, ImageListItem, ImageListItemBar
 } from '@mui/material';
 import {
-  CloudUpload, Delete, Edit, Star, StarBorder, 
-  Image as ImageIcon, VideoFile, Close, Warning
+  CloudUpload, Delete, Edit, Star, StarBorder,
+  Image as ImageIcon, VideoFile, Close, Warning, Search,
+  ArrowBack, ArrowForward
 } from '@mui/icons-material';
 import {
   uploadPropertyMedia, updateMediaItem, deleteMediaItem,
@@ -19,16 +21,19 @@ import {
 const MediaForm = ({ propertyId, onSave, onBack }) => {
   const dispatch = useDispatch();
   const { currentProperty, isLoading, error } = useSelector(state => state.property);
-  
+
   const [uploadProgress, setUploadProgress] = useState(0);
   const [editingMedia, setEditingMedia] = useState(null);
   const [editDialog, setEditDialog] = useState(false);
+  const [tagGroupDialog, setTagGroupDialog] = useState(false);
+  const [selectedTagGroup, setSelectedTagGroup] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [mediaFilter, setMediaFilter] = useState('all');
   const [tagFilter, setTagFilter] = useState('');
   const [customTag, setCustomTag] = useState('');
   const [validationError, setValidationError] = useState('');
   const [validationDetails, setValidationDetails] = useState(null);
-  
+
   const fileInputRef = useRef(null);
 
   const images = currentProperty?.media?.images || [];
@@ -44,10 +49,10 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
     'Activities and Experiences',
     'Bhojnalay',
     'Bonfire',
-    'Entrance ',
+    'Entrance',
     'Food',
     'Food Menu',
-    'Kitchen ',
+    'Kitchen',
     'Living area',
     'Lobby/ Common Area',
     'Lounge',
@@ -58,24 +63,30 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
     'Bed',
   ];
 
-  // Filter media based on type and tags
-  const filteredMedia = allMedia.filter(item => {
-    const typeMatch = mediaFilter === 'all' || 
-      (mediaFilter === 'image' && item.type === 'image') ||
-      (mediaFilter === 'video' && item.type === 'video') ||
-      (mediaFilter === 'untagged' && (!item.tags || item.tags.length === 0));
+  // Group media by tags - each media item can appear in multiple groups
+  const getMediaByTag = () => {
+    const groupedMedia = {};
     
-    const tagMatch = !tagFilter || 
-      item.tags?.some(tag => tag.toLowerCase().includes(tagFilter.toLowerCase()));
+    allMedia.forEach(item => {
+      if (item.tags && item.tags.length > 0) {
+        item.tags.forEach(tag => {
+          if (!groupedMedia[tag]) {
+            groupedMedia[tag] = [];
+          }
+          groupedMedia[tag].push(item);
+        });
+      }
+    });
     
-    return typeMatch && tagMatch;
-  });
+    return groupedMedia;
+  };
+
+  const groupedMedia = getMediaByTag();
 
   const handleFileSelect = async (event) => {
     const files = Array.from(event.target.files);
     setValidationError('');
-    
-    // Validate file count
+
     if (files.length > 20) {
       setValidationError('You can upload maximum 20 files at once');
       if (fileInputRef.current) {
@@ -86,7 +97,6 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
 
     if (files.length === 0) return;
 
-    // Create FormData and upload immediately
     const formData = new FormData();
     files.forEach(file => {
       formData.append('media', file);
@@ -94,8 +104,6 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
 
     try {
       await dispatch(uploadPropertyMedia({ propertyId, formData })).unwrap();
-      
-      // Clear the file input after successful upload
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -122,10 +130,15 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
     setEditDialog(true);
   };
 
+  const handleTagGroupClick = (tag, mediaItems) => {
+    setSelectedTagGroup({ tag, mediaItems });
+    setSelectedImageIndex(0);
+    setTagGroupDialog(true);
+  };
+
   const handleSaveEdit = async () => {
     if (!editingMedia) return;
 
-    // Validate that at least one tag is selected
     if (!editingMedia.tags || editingMedia.tags.length === 0) {
       alert('Please select at least one tag before saving.');
       return;
@@ -148,22 +161,7 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
     }
   };
 
-  const handleSetCover = async (mediaItem) => {
-    if (mediaItem.type !== 'image') return;
-
-    try {
-      await dispatch(updateMediaItem({
-        propertyId,
-        mediaId: mediaItem._id,
-        data: { isCover: !mediaItem.isCover }
-      })).unwrap();
-    } catch (error) {
-      console.error('Set cover failed:', error);
-    }
-  };
-
   const handleCompleteStep = async () => {
-    // First validate that all media items have tags
     if (itemsWithoutTags.length > 0) {
       setValidationDetails(itemsWithoutTags);
       setValidationError(`${itemsWithoutTags.length} media item(s) are missing tags. Please add tags to all media items before proceeding.`);
@@ -172,8 +170,6 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
 
     try {
       const Result = await dispatch(completeMediaStep(propertyId)).unwrap();
-      console.log(Result, 'save and continue')
-      // onSave();
     } catch (error) {
       console.error('Complete step failed:', error);
     }
@@ -181,10 +177,10 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
 
   const handleTagToggle = (tag) => {
     if (!editingMedia) return;
-    
+
     const currentTags = editingMedia.tags || [];
     const isSelected = currentTags.includes(tag);
-    
+
     if (isSelected) {
       setEditingMedia(prev => ({
         ...prev,
@@ -215,188 +211,236 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
     }
   };
 
-  // Helper function to check if media item has tags
-  const hasNoTags = (mediaItem) => {
-    return !mediaItem.tags || mediaItem.tags.length === 0;
+  const nextImage = () => {
+    if (selectedTagGroup && selectedImageIndex < selectedTagGroup.mediaItems.length - 1) {
+      setSelectedImageIndex(selectedImageIndex + 1);
+    }
+  };
+
+  const previousImage = () => {
+    if (selectedTagGroup && selectedImageIndex > 0) {
+      setSelectedImageIndex(selectedImageIndex - 1);
+    }
+  };
+
+  const handleSetCoverFromGroup = async (mediaItem) => {
+    if (mediaItem.type !== 'image') return;
+    
+    try {
+      await dispatch(updateMediaItem({
+        propertyId,
+        mediaId: mediaItem._id,
+        data: {
+          ...mediaItem,
+          isCover: true
+        }
+      })).unwrap();
+    } catch (error) {
+      console.error('Set cover failed:', error);
+    }
+  };
+
+  // Tag Group Card Component
+  const TagGroupCard = ({ tag, mediaItems }) => {
+    const firstImage = mediaItems[0];
+    const imageCount = mediaItems.filter(item => item.type === 'image').length;
+    const videoCount = mediaItems.filter(item => item.type === 'video').length;
+
+    return (
+      <Card 
+        sx={{
+          width: 280,
+          height: 200,
+          position: 'relative',
+          cursor: 'pointer',
+          border: '1px solid #e0e0e0',
+          borderRadius: 2,
+          overflow: 'hidden',
+          '&:hover': {
+            transform: 'scale(1.02)',
+            transition: 'transform 0.2s ease-in-out',
+            boxShadow: 3
+          }
+        }}
+        onClick={() => handleTagGroupClick(tag, mediaItems)}
+      >
+        {firstImage.type === 'image' ? (
+          <CardMedia
+            component="img"
+            image={`http://localhost:5000/${firstImage.url}`}
+            alt={firstImage.filename}
+            sx={{
+              width: '100%',
+              height: '70%',
+              objectFit: 'cover'
+            }}
+          />
+        ) : (
+          <video
+            src={`http://localhost:5000/${firstImage.url}`}
+            style={{
+              width: '100%',
+              height: '70%',
+              objectFit: 'cover'
+            }}
+            muted
+            loop
+            autoPlay
+            preload="metadata"
+          />
+        )}
+
+        <CardContent sx={{ height: '30%', p: 1.5 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+            {tag}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {imageCount > 0 && (
+              <Chip 
+                label={`${imageCount} Images`} 
+                size="small" 
+                color="primary" 
+                variant="outlined"
+                sx={{ fontSize: '0.7rem' }}
+              />
+            )}
+            {videoCount > 0 && (
+              <Chip 
+                label={`${videoCount} Videos`} 
+                size="small" 
+                color="secondary" 
+                variant="outlined"
+                sx={{ fontSize: '0.7rem' }}
+              />
+            )}
+          </Box>
+        </CardContent>
+
+        {/* Total count badge */}
+        <Badge 
+          badgeContent={mediaItems.length} 
+          color="primary"
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            '& .MuiBadge-badge': {
+              fontSize: '0.75rem',
+              minWidth: 20,
+              height: 20
+            }
+          }}
+        />
+      </Card>
+    );
   };
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>
-        Photos and Videos
-      </Typography>
-      
-      <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-        Upload at least 10 media items to showcase your property. 
-        Include high-quality photos and videos that highlight your property's best features.
-        Maximum 20 files can be uploaded at once. Each media item must have at least one tag.
-      </Typography>
+      {/* Header */}
+      <div className='flex justify-between items-center mb-4'>
+        <Typography variant="h5" gutterBottom>
+          Photos and Videos
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,video/*"
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<CloudUpload />}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Uploading...' : 'Upload Files'}
+          </Button>
+        </Box>
+      </div>
 
-      {/* Show validation error */}
+      {/* Alerts */}
       {validationError && (
-        <Alert 
-          severity="error" 
-          sx={{ mb: 2 }}
-          action={
-            validationDetails && (
-              <Button 
-                color="inherit" 
-                size="small"
-                onClick={() => setMediaFilter('untagged')}
-              >
-                Show Untagged
-              </Button>
-            )
-          }
-        >
+        <Alert severity="error" sx={{ mb: 2 }}>
           {validationError}
-          {validationDetails && (
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="body2">
-                Untagged items: {validationDetails.map(item => item.filename).join(', ')}
-              </Typography>
-            </Box>
-          )}
         </Alert>
       )}
 
-      {/* Show API error */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
-      {/* Upload Section */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Upload Media
+      {isLoading && (
+        <Box sx={{ mt: 2, mb: 2 }}>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            Uploading files...
           </Typography>
-          
-          <Box sx={{ mb: 2 }}>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              onChange={handleFileSelect}
-              style={{ display: 'none' }}
-            />
-            <Button
-              variant="contained"
-              startIcon={<CloudUpload />}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-              sx={{ mr: 2 }}
-            >
-              {isLoading ? 'Uploading...' : 'Select & Upload Files'}
-            </Button>
-            
-            <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 1 }}>
-              Select up to 20 files. Files will be uploaded immediately after selection.
-              Remember to add tags to each uploaded file.
-            </Typography>
-          </Box>
+          <LinearProgress />
+        </Box>
+      )}
 
-          {isLoading && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                Uploading files...
-              </Typography>
-              <LinearProgress />
-            </Box>
-          )}
-        </CardContent>
-      </Card>
+      {/* Tagged Media Groups */}
+      {Object.keys(groupedMedia).length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom>
+            Media by Tags
+          </Typography>
+          <Grid container spacing={2}>
+            {Object.entries(groupedMedia).map(([tag, mediaItems]) => (
+              <Grid item key={tag}>
+                <TagGroupCard tag={tag} mediaItems={mediaItems} />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
 
-      {/* Filter Section */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-        <Button
-          variant={mediaFilter === 'all' ? 'contained' : 'outlined'}
-          onClick={() => setMediaFilter('all')}
-        >
-          All ({allMedia.length})
-        </Button>
-        <Button
-          variant={mediaFilter === 'image' ? 'contained' : 'outlined'}
-          onClick={() => setMediaFilter('image')}
-        >
-          Images ({images.length})
-        </Button>
-        <Button
-          variant={mediaFilter === 'video' ? 'contained' : 'outlined'}
-          onClick={() => setMediaFilter('video')}
-        >
-          Videos ({videos.length})
-        </Button>
-        <Badge badgeContent={itemsWithoutTags.length} color="error">
-          <Button
-            variant={mediaFilter === 'untagged' ? 'contained' : 'outlined'}
-            onClick={() => setMediaFilter('untagged')}
-            color={itemsWithoutTags.length > 0 ? 'error' : 'primary'}
-          >
-            Untagged ({itemsWithoutTags.length})
-          </Button>
-        </Badge>
-        
-        <TextField
-          size="small"
-          placeholder="Filter by tags..."
-          value={tagFilter}
-          onChange={(e) => setTagFilter(e.target.value)}
-          sx={{ ml: 'auto', width: 200 }}
-        />
-      </Box>
-
-      {/* Media Grid */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {filteredMedia.map((mediaItem) => (
-          <Grid item xs={6} sm={4} md={3} lg={2} key={mediaItem._id}>
-            <Card sx={{ 
-              aspectRatio: '1/1',
-              border: hasNoTags(mediaItem) ? '2px solid #f44336' : 'none'
-            }}>
-              <Box sx={{ 
-                position: 'relative',
-                width: '100%',
-                paddingBottom: '75%',
-                overflow: 'hidden'
-              }}>
-                {mediaItem.type === 'image' ? (
-                  <CardMedia
-                    component="img"
-                    image={`http://localhost:5000/${mediaItem.url}`}
-                    alt={mediaItem.filename}
-                    sx={{ 
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
-                ) : (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      bgcolor: 'grey.200'
-                    }}
-                  >
+      {/* Untagged Media */}
+      {itemsWithoutTags.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom color="error">
+            Untagged Media ({itemsWithoutTags.length})
+          </Typography>
+          <Grid container spacing={2}>
+            {itemsWithoutTags.map((mediaItem) => (
+              <Grid item key={mediaItem._id}>
+                <Card 
+                  sx={{
+                    width: 200,
+                    height: 150,
+                    position: 'relative',
+                    cursor: 'pointer',
+                    border: '2px solid #f44336',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    '&:hover': {
+                      transform: 'scale(1.02)',
+                      transition: 'transform 0.2s ease-in-out',
+                      boxShadow: 3
+                    }
+                  }}
+                  onClick={() => handleEditMedia(mediaItem)}
+                >
+                  {mediaItem.type === 'image' ? (
+                    <CardMedia
+                      component="img"
+                      image={`http://localhost:5000/${mediaItem.url}`}
+                      alt={mediaItem.filename}
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  ) : (
                     <video
                       src={`http://localhost:5000/${mediaItem.url}`}
                       style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover'
@@ -406,109 +450,32 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
                       autoPlay
                       preload="metadata"
                     />
-                  </Box>
-                )}
-                
-                {mediaItem.isCover && (
+                  )}
                   <Chip
-                    label="Cover"
-                    color="primary"
-                    size="small"
-                    sx={{ position: 'absolute', top: 4, left: 4 }}
-                  />
-                )}
-                
-                {hasNoTags(mediaItem) && (
-                  <Chip
-                    label="No Tags"
+                    label="Needs Tags"
                     color="error"
                     size="small"
-                    icon={<Warning />}
-                    sx={{ position: 'absolute', bottom: 4, left: 4 }}
-                  />
-                )}
-                
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 4,
-                    right: 4,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 0.5
-                  }}
-                >
-                  {/* {mediaItem.type === 'image' && (
-                    <IconButton
-                      size="small"
-                      onClick={() => handleSetCover(mediaItem)}
-                      sx={{ bgcolor: 'rgba(255,255,255,0.8)' }}
-                    >
-                      {mediaItem.isCover ? <Star color="primary" /> : <StarBorder />}
-                    </IconButton>
-                  )} */}
-                  <IconButton
-                    size="small"
-                    onClick={() => handleEditMedia(mediaItem)}
                     sx={{ 
-                      bgcolor: hasNoTags(mediaItem) ? 'rgba(244,67,54,0.8)' : 'rgba(255,255,255,0.8)'
+                      position: 'absolute', 
+                      top: 8, 
+                      left: 8,
+                      fontSize: '0.7rem',
+                      height: 20
                     }}
-                  >
-                    <Edit color={hasNoTags(mediaItem) ? 'error' : 'inherit'} />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDeleteMedia(mediaItem._id)}
-                    sx={{ bgcolor: 'rgba(255,255,255,0.8)' }}
-                  >
-                    <Delete />
-                  </IconButton>
-                </Box>
-              </Box>
-              
-              <CardContent sx={{ p: 1, height: 60 }}>
-                <Typography variant="caption" noWrap sx={{ display: 'block' }}>
-                  {mediaItem.filename}
-                </Typography>
-                <Box sx={{ mt: 0.5 }}>
-                  {mediaItem.tags && mediaItem.tags.length > 0 ? (
-                    <>
-                      {mediaItem.tags.slice(0, 2).map((tag) => (
-                        <Chip
-                          key={tag}
-                          label={tag}
-                          size="small"
-                          sx={{ 
-                            mr: 0.5, 
-                            mb: 0.5, 
-                            fontSize: '0.6rem',
-                            height: 16
-                          }}
-                        />
-                      ))}
-                      {mediaItem.tags.length > 2 && (
-                        <Typography variant="caption" color="textSecondary">
-                          +{mediaItem.tags.length - 2} more
-                        </Typography>
-                      )}
-                    </>
-                  ) : (
-                    <Typography variant="caption" color="error">
-                      No tags assigned
-                    </Typography>
-                  )}
-                </Box>
-              </CardContent>
-            </Card>
+                  />
+                </Card>
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
+        </Box>
+      )}
 
-      <Alert 
-        severity={allMedia.length >= 10 ? "success" : "info"} 
+      {/* Status Alerts */}
+      <Alert
+        severity={allMedia.length >= 10 ? "success" : "info"}
         sx={{ mb: 2 }}
       >
-        {allMedia.length >= 10 
+        {allMedia.length >= 10
           ? `Great! You have ${allMedia.length} media items uploaded.`
           : `You need at least 10 media items. Currently have ${allMedia.length}.`
         }
@@ -516,110 +483,239 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
 
       {itemsWithoutTags.length > 0 && (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          {itemsWithoutTags.length} media item(s) need tags before you can proceed. 
-          Click the edit button on items with red borders to add tags.
+          {itemsWithoutTags.length} media item(s) need tags before you can proceed.
+          Click on items with red borders to add tags.
         </Alert>
       )}
 
-      {/* Edit Dialog with validation */}
-      <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          Edit Media Item
-          {editingMedia && (!editingMedia.tags || editingMedia.tags.length === 0) && (
-            <Chip label="Tags Required" color="error" size="small" sx={{ ml: 2 }} />
+      {/* Tag Group Dialog */}
+      <Dialog open={tagGroupDialog} onClose={() => setTagGroupDialog(false)} maxWidth="lg" fullWidth>
+        <DialogTitle sx={{ pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">
+            {selectedTagGroup?.tag} ({selectedTagGroup?.mediaItems.length} items)
+          </Typography>
+          <IconButton onClick={() => setTagGroupDialog(false)}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {selectedTagGroup && (
+            <Grid container spacing={3}>
+              {/* Main Image Display */}
+              <Grid item size={{xs:12,md:8}}>
+                <Box sx={{ position: 'relative' }}>
+                  {selectedTagGroup.mediaItems[selectedImageIndex]?.type === 'image' ? (
+                    <img
+                      src={`http://localhost:5000/${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
+                      alt={selectedTagGroup.mediaItems[selectedImageIndex].filename}
+                      style={{
+                        width: '100%',
+                        height: '500px',
+                        objectFit: 'cover',
+                        borderRadius: '8px'
+                      }}
+                    />
+                  ) : (
+                    <video
+                      src={`http://localhost:5000/${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
+                      style={{
+                        width: '100%',
+                        height: '500px',
+                        objectFit: 'cover',
+                        borderRadius: '8px'
+                      }}
+                      controls
+                    />
+                  )}
+                  
+                  {/* Navigation arrows */}
+                  {selectedImageIndex > 0 && (
+                    <IconButton
+                      sx={{
+                        position: 'absolute',
+                        left: 16,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        bgcolor: 'rgba(0,0,0,0.5)',
+                        color: 'white',
+                        '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
+                      }}
+                      onClick={previousImage}
+                    >
+                      <ArrowBack />
+                    </IconButton>
+                  )}
+                  
+                  {selectedImageIndex < selectedTagGroup.mediaItems.length - 1 && (
+                    <IconButton
+                      sx={{
+                        position: 'absolute',
+                        right: 16,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        bgcolor: 'rgba(0,0,0,0.5)',
+                        color: 'white',
+                        '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
+                      }}
+                      onClick={nextImage}
+                    >
+                      <ArrowForward />
+                    </IconButton>
+                  )}
+
+                  {/* Image counter */}
+                  <Chip
+                    label={`${selectedImageIndex + 1} / ${selectedTagGroup.mediaItems.length}`}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 16,
+                      right: 16,
+                      bgcolor: 'rgba(0,0,0,0.7)',
+                      color: 'white'
+                    }}
+                  />
+                </Box>
+
+                {/* Action buttons for current image */}
+                <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+                  {selectedTagGroup.mediaItems[selectedImageIndex]?.type === 'image' && (
+                    <Button
+                      variant="outlined"
+                      startIcon={<Star />}
+                      onClick={() => handleSetCoverFromGroup(selectedTagGroup.mediaItems[selectedImageIndex])}
+                      disabled={selectedTagGroup.mediaItems[selectedImageIndex]?.isCover}
+                    >
+                      {selectedTagGroup.mediaItems[selectedImageIndex]?.isCover ? 'Cover Photo' : 'Set as Cover'}
+                    </Button>
+                  )}
+                  
+                  <Button
+                    variant="outlined"
+                    startIcon={<Edit />}
+                    onClick={() => handleEditMedia(selectedTagGroup.mediaItems[selectedImageIndex])}
+                  >
+                    Edit Tags
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<Delete />}
+                    onClick={() => handleDeleteMedia(selectedTagGroup.mediaItems[selectedImageIndex]._id)}
+                  >
+                    Delete
+                  </Button>
+                </Box>
+              </Grid>
+
+            </Grid>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog (existing) */}
+      <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="lg" fullWidth>
+        <DialogTitle sx={{ pb: 1 }}>
+          {editingMedia?.tags?.length > 0 ? editingMedia.tags[0] : 'Untitled'} 
+          ({editingMedia ? '1' : '0'})
         </DialogTitle>
         <DialogContent>
           {editingMedia && (
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Filename: {editingMedia.filename}
-              </Typography>
-              
-              {editingMedia.type === 'image' && (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={editingMedia.isCover || false}
-                      onChange={(e) => setEditingMedia(prev => ({
-                        ...prev,
-                        isCover: e.target.checked
-                      }))}
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ position: 'relative' }}>
+                  {editingMedia.type === 'image' ? (
+                    <img
+                      src={`http://localhost:5000/${editingMedia.url}`}
+                      alt={editingMedia.filename}
+                      style={{
+                        width: '100%',
+                        height: '400px',
+                        objectFit: 'cover',
+                        borderRadius: '8px'
+                      }}
                     />
-                  }
-                  label="Set as cover image"
-                />
-              )}
-              
-              <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-                Selected Tags *
-              </Typography>
-              
-              <Box sx={{ 
-                mb: 2, 
-                minHeight: 40, 
-                border: `1px solid ${(!editingMedia.tags || editingMedia.tags.length === 0) ? '#f44336' : '#e0e0e0'}`, 
-                borderRadius: 1, 
-                p: 1,
-                bgcolor: (!editingMedia.tags || editingMedia.tags.length === 0) ? '#ffebee' : '#f9f9f9'
-              }}>
-                {editingMedia.tags.length > 0 ? (
-                  editingMedia.tags.map((tag) => (
-                    <Chip
-                      key={tag}
-                      label={tag}
-                      onDelete={() => removeTag(tag)}
-                      deleteIcon={<Close />}
-                      sx={{ mr: 0.5, mb: 0.5 }}
-                      color="primary"
-                      variant="outlined"
+                  ) : (
+                    <video
+                      src={`http://localhost:5000/${editingMedia.url}`}
+                      style={{
+                        width: '100%',
+                        height: '400px',
+                        objectFit: 'cover',
+                        borderRadius: '8px'
+                      }}
+                      controls
                     />
-                  ))
-                ) : (
-                  <Typography variant="body2" color="error">
-                    Please select at least one tag
-                  </Typography>
-                )}
-              </Box>
-              
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Add Tags
-              </Typography>
-              
-              <Box sx={{ 
-                maxHeight: 300, 
-                overflow: 'auto', 
-                border: '1px solid #e0e0e0', 
-                borderRadius: 1,
-                mb: 2
-              }}>
-                <List dense>
-                  {availableTags.map((tag) => (
-                    <ListItem key={tag} dense>
-                      <ListItemIcon>
-                        <Checkbox
-                          edge="start"
-                          checked={editingMedia.tags.includes(tag)}
-                          onChange={() => handleTagToggle(tag)}
-                          size="small"
-                        />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={tag}
-                        primaryTypographyProps={{ fontSize: '0.875rem' }}
+                  )}
+                  <IconButton
+                    sx={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      bgcolor: 'rgba(255,255,255,0.8)'
+                    }}
+                    onClick={() => handleDeleteMedia(editingMedia._id)}
+                  >
+                    <Delete />
+                  </IconButton>
+                </Box>
+
+                {editingMedia.type === 'image' && (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={editingMedia.isCover || false}
+                        onChange={(e) => setEditingMedia(prev => ({
+                          ...prev,
+                          isCover: e.target.checked
+                        }))}
                       />
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-              
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Add Custom Tag
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    }
+                    label="Set as cover photo"
+                    sx={{ mt: 2 }}
+                  />
+                )}
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" gutterBottom>
+                  Tags Added
+                </Typography>
+
+                <Box sx={{
+                  mb: 2,
+                  minHeight: 60,
+                  border: `1px solid ${(!editingMedia.tags || editingMedia.tags.length === 0) ? '#f44336' : '#e0e0e0'}`,
+                  borderRadius: 1,
+                  p: 2,
+                  bgcolor: '#f9f9f9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 1
+                }}>
+                  {editingMedia.tags.length > 0 ? (
+                    editingMedia.tags.map((tag) => (
+                      <Chip
+                        key={tag}
+                        label={tag}
+                        onDelete={() => removeTag(tag)}
+                        deleteIcon={<Close />}
+                        color="primary"
+                        variant="outlined"
+                      />
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No tags selected
+                    </Typography>
+                  )}
+                </Box>
+
                 <TextField
+                  fullWidth
                   size="small"
-                  placeholder="Enter custom tag..."
+                  placeholder="Add Tags"
                   value={customTag}
                   onChange={(e) => setCustomTag(e.target.value)}
                   onKeyPress={(e) => {
@@ -627,24 +723,47 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
                       addCustomTag();
                     }
                   }}
-                  sx={{ flexGrow: 1 }}
+                  sx={{ mb: 2 }}
+                  InputProps={{
+                    startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />
+                  }}
                 />
-                <Button 
-                  onClick={addCustomTag}
-                  variant="outlined"
-                  size="small"
-                  disabled={!customTag.trim()}
-                >
-                  Add Tag
-                </Button>
-              </Box>
-            </Box>
+
+                <Box sx={{
+                  maxHeight: 300,
+                  overflow: 'auto',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 1
+                }}>
+                  <List dense>
+                    {availableTags.map((tag) => (
+                      <ListItem key={tag} dense button onClick={() => handleTagToggle(tag)}>
+                        <ListItemIcon>
+                          <Checkbox
+                            edge="start"
+                            checked={editingMedia.tags.includes(tag)}
+                            onChange={() => handleTagToggle(tag)}
+                            size="small"
+                          />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={tag}
+                          primaryTypographyProps={{ fontSize: '0.875rem' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              </Grid>
+            </Grid>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialog(false)}>Cancel</Button>
-          <Button 
-            onClick={handleSaveEdit} 
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setEditDialog(false)} variant="outlined">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveEdit}
             variant="contained"
             disabled={!editingMedia?.tags || editingMedia.tags.length === 0}
           >

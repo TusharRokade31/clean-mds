@@ -6,9 +6,13 @@ import { propertyAPI } from './propertyAPI';
 // Initial state
 const initialState = {
   properties: [],
-  draftProperties:[],
+  draftProperties: [],
   currentProperty: null,
-  currentMedia:[],
+  currentPrivacyPolicy: null,
+  currentFinanceLegal: null,
+  privacyPolicyTemplate: null,
+  privacyPolicyHistory: [],
+  currentMedia: [],
   featuredProperties: [],
   stateProperties: {},
   cityProperties: {},
@@ -302,7 +306,7 @@ export const finalizeProperty = createAsyncThunk(
 
 export const reviewProperty = createAsyncThunk(
   'property/reviewProperty',
-  async ({id, status} , { rejectWithValue }) => {
+  async ({ id, status }, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.reviewProperty(id, status);
       return response.data;
@@ -372,6 +376,146 @@ export const checkPropertyAvailability = createAsyncThunk(
   }
 );
 
+export const addCustomPolicy = createAsyncThunk(
+  'property/addCustomPolicy',
+  async ({ propertyId, title, description }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.addCustomPolicy(propertyId, { title, description });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to add custom policy');
+    }
+  }
+);
+
+export const updateCustomPolicy = createAsyncThunk(
+  'property/updateCustomPolicy',
+  async ({ propertyId, policyId, title, description, isActive }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.updateCustomPolicy(propertyId, policyId, {
+        title,
+        description,
+        isActive
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update custom policy');
+    }
+  }
+);
+
+export const deleteCustomPolicy = createAsyncThunk(
+  'property/deleteCustomPolicy',
+  async ({ propertyId, policyId }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.deleteCustomPolicy(propertyId, policyId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete custom policy');
+    }
+  }
+);
+
+
+// Privacy Policy Thunks
+export const getPrivacyPolicyTemplate = createAsyncThunk(
+  'property/getPrivacyPolicyTemplate',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getPrivacyPolicyTemplate();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to get privacy policy template');
+    }
+  }
+);
+
+export const getPrivacyPolicy = createAsyncThunk(
+  'property/getPrivacyPolicy',
+  async (propertyId, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getPrivacyPolicy(propertyId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to get privacy policy');
+    }
+  }
+);
+
+export const createOrUpdatePrivacyPolicy = createAsyncThunk(
+  'property/createOrUpdatePrivacyPolicy',
+  async ({ propertyId, data }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.createOrUpdatePrivacyPolicy(propertyId, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to save privacy policy');
+    }
+  }
+);
+
+export const updatePrivacyPolicySection = createAsyncThunk(
+  'property/updatePrivacyPolicySection',
+  async ({ propertyId, section, data }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.updatePrivacyPolicySection(propertyId, section, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update privacy policy section');
+    }
+  }
+);
+
+
+// Finance Legal Thunks
+export const getFinanceLegal = createAsyncThunk(
+  'property/getFinanceLegal',
+  async (propertyId, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getFinanceLegal(propertyId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to get finance legal data');
+    }
+  }
+);
+
+export const updateFinanceDetails = createAsyncThunk(
+  'property/updateFinanceDetails',
+  async ({ propertyId, data }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.updateFinanceDetails(propertyId, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update finance details');
+    }
+  }
+);
+
+export const updateLegalDetails = createAsyncThunk(
+  'property/updateLegalDetails',
+  async ({ propertyId, data }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.updateLegalDetails(propertyId, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update legal details');
+    }
+  }
+);
+
+export const uploadRegistrationDocument = createAsyncThunk(
+  'property/uploadRegistrationDocument',
+  async ({ propertyId, formData }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.uploadRegistrationDocument(propertyId, formData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to upload document');
+    }
+  }
+);
+
 // Property slice
 const propertySlice = createSlice({
   name: 'property',
@@ -416,7 +560,7 @@ const propertySlice = createSlice({
 
 
     // Get Draft properties
-        // Get all properties
+    // Get all properties
     builder.addCase(getDraftProperties.pending, (state) => {
       state.isLoading = true;
       state.error = null;
@@ -468,7 +612,7 @@ const propertySlice = createSlice({
       builder.addCase(thunk.fulfilled, (state, action) => {
         state.isLoading = false;
         state.currentProperty = action.payload;
-        
+
         // Update in the user's property list if it exists
         const index = state.userProperties.findIndex(p => p._id === action.payload._id);
         if (index !== -1) {
@@ -482,125 +626,125 @@ const propertySlice = createSlice({
     };
 
 
-        handlePropertyUpdate(builder, updateBasicInfo);
-        handlePropertyUpdate(builder, updateLocation);
-        handlePropertyUpdate(builder, updateAmenities);
-        handlePropertyUpdate(builder, addRooms);
-        handlePropertyUpdate(builder, updateRoom);
-        handlePropertyUpdate(builder, uploadRoomMedia);
-        handlePropertyUpdate(builder, updateRoomMediaItem);
-        handlePropertyUpdate(builder, deleteRoomMediaItem);
-        handlePropertyUpdate(builder, completeMediaStep);
+    handlePropertyUpdate(builder, updateBasicInfo);
+    handlePropertyUpdate(builder, updateLocation);
+    handlePropertyUpdate(builder, updateAmenities);
+    handlePropertyUpdate(builder, addRooms);
+    handlePropertyUpdate(builder, updateRoom);
+    handlePropertyUpdate(builder, uploadRoomMedia);
+    handlePropertyUpdate(builder, updateRoomMediaItem);
+    handlePropertyUpdate(builder, deleteRoomMediaItem);
+    handlePropertyUpdate(builder, completeMediaStep);
 
-        // Specific handlers for media operations
-        // uploadPropertyMedia handler
-        builder.addCase(uploadPropertyMedia.pending, (state) => {
-          state.isLoading = true;
-          state.error = null;
-        });
+    // Specific handlers for media operations
+    // uploadPropertyMedia handler
+    builder.addCase(uploadPropertyMedia.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
 
-        builder.addCase(uploadPropertyMedia.fulfilled, (state, action) => {
-          state.isLoading = false;
-          const updatedProperty = action.payload;
-          
-          if (updatedProperty) {
-            state.currentProperty = updatedProperty;
-            const index = state.userProperties.findIndex(p => p._id === updatedProperty._id);
-            if (index !== -1) {
-              state.userProperties[index] = updatedProperty;
-            }
-          }
-        });
+    builder.addCase(uploadPropertyMedia.fulfilled, (state, action) => {
+      state.isLoading = false;
+      const updatedProperty = action.payload;
 
-        builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
-          state.isLoading = false;
-          state.error = action.payload;
-        });
+      if (updatedProperty) {
+        state.currentProperty = updatedProperty;
+        const index = state.userProperties.findIndex(p => p._id === updatedProperty._id);
+        if (index !== -1) {
+          state.userProperties[index] = updatedProperty;
+        }
+      }
+    });
 
-        // deleteMediaItem handler
-        builder.addCase(deleteMediaItem.pending, (state) => {
-          state.isLoading = true;
-          state.error = null;
-        });
+    builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
 
-        builder.addCase(deleteMediaItem.fulfilled, (state, action) => {
-          state.isLoading = false;
-          const updatedProperty = action.payload;
-          console.log(updatedProperty)
-          
-          if (updatedProperty) {
-            state.currentProperty = updatedProperty;
-            const index = state.userProperties.findIndex(p => p._id === updatedProperty._id);
-            if (index !== -1) {
-              state.userProperties[index] = updatedProperty;
-            }
-          }
-        });
+    // deleteMediaItem handler
+    builder.addCase(deleteMediaItem.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
 
-        builder.addCase(deleteMediaItem.rejected, (state, action) => {
-          state.isLoading = false;
-          state.error = action.payload;
-        });
+    builder.addCase(deleteMediaItem.fulfilled, (state, action) => {
+      state.isLoading = false;
+      const updatedProperty = action.payload;
+      console.log(updatedProperty)
 
-        // updateMediaItem handler
-        builder.addCase(updateMediaItem.pending, (state) => {
-          state.isLoading = true;
-          state.error = null;
-        });
+      if (updatedProperty) {
+        state.currentProperty = updatedProperty;
+        const index = state.userProperties.findIndex(p => p._id === updatedProperty._id);
+        if (index !== -1) {
+          state.userProperties[index] = updatedProperty;
+        }
+      }
+    });
 
-        builder.addCase(updateMediaItem.fulfilled, (state, action) => {
-          state.isLoading = false;
-          const updatedProperty = action.payload;
-          console.log(updatedProperty)
+    builder.addCase(deleteMediaItem.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
 
-          
-          if (updatedProperty) {
-            state.currentProperty = updatedProperty;
-            const index = state.userProperties.findIndex(p => p._id === updatedProperty._id);
-            if (index !== -1) {
-              state.userProperties[index] = updatedProperty;
-            }
-          }
-        });
+    // updateMediaItem handler
+    builder.addCase(updateMediaItem.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
 
-        builder.addCase(updateMediaItem.rejected, (state, action) => {
-          state.isLoading = false;
-          state.error = action.payload;
-        });
+    builder.addCase(updateMediaItem.fulfilled, (state, action) => {
+      state.isLoading = false;
+      const updatedProperty = action.payload;
+      console.log(updatedProperty)
 
-    
+
+      if (updatedProperty) {
+        state.currentProperty = updatedProperty;
+        const index = state.userProperties.findIndex(p => p._id === updatedProperty._id);
+        if (index !== -1) {
+          state.userProperties[index] = updatedProperty;
+        }
+      }
+    });
+
+    builder.addCase(updateMediaItem.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
+
 
     // delete room
-      builder.addCase(deleteRoom.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.error = null;
-        // Update current property with the response
-        if (action.payload) {
-          state.currentProperty = action.payload;
-        }
-      })
-      builder.addCase(deleteRoom.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      builder.addCase(deleteRoom.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      }); 
-      //getMediaByTags
-      builder.addCase(getMediaByTags.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      });
-      builder.addCase(getMediaByTags.fulfilled, (state, action) => {
-        state.isLoading = false;
-        // Store media items in a separate state property if needed
-        state.currentMedia = action.payload;
-      });
-      builder.addCase(getMediaByTags.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      });
+    builder.addCase(deleteRoom.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.error = null;
+      // Update current property with the response
+      if (action.payload) {
+        state.currentProperty = action.payload;
+      }
+    })
+    builder.addCase(deleteRoom.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    builder.addCase(deleteRoom.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+    //getMediaByTags
+    builder.addCase(getMediaByTags.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getMediaByTags.fulfilled, (state, action) => {
+      state.isLoading = false;
+      // Store media items in a separate state property if needed
+      state.currentMedia = action.payload;
+    });
+    builder.addCase(getMediaByTags.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
 
     // Delete property
     builder.addCase(deleteProperty.pending, (state) => {
@@ -619,6 +763,101 @@ const propertySlice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     });
+
+    builder.addCase(addCustomPolicy.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentPrivacyPolicy = action.payload;
+    });
+
+    builder.addCase(updateCustomPolicy.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentPrivacyPolicy = action.payload;
+    });
+
+    builder.addCase(deleteCustomPolicy.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentPrivacyPolicy = action.payload;
+    });
+
+    // Handle pending and rejected states for custom policy actions
+[addCustomPolicy, updateCustomPolicy, deleteCustomPolicy].forEach(thunk => {
+  builder.addCase(thunk.pending, (state) => {
+    state.isLoading = true;
+    state.error = null;
+  });
+  builder.addCase(thunk.rejected, (state, action) => {
+    state.isLoading = false;
+    state.error = action.payload;
+  });
+});
+
+    // Privacy Policy handlers
+    builder.addCase(getPrivacyPolicyTemplate.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.privacyPolicyTemplate = action.payload;
+    });
+
+    builder.addCase(getPrivacyPolicy.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentPrivacyPolicy = action.payload;
+    });
+
+    builder.addCase(createOrUpdatePrivacyPolicy.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentPrivacyPolicy = action.payload;
+    });
+
+    builder.addCase(updatePrivacyPolicySection.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentPrivacyPolicy = action.payload;
+    });
+
+    // Handle pending and rejected states for all privacy policy actions
+    [getPrivacyPolicyTemplate, getPrivacyPolicy, createOrUpdatePrivacyPolicy, updatePrivacyPolicySection].forEach(thunk => {
+      builder.addCase(thunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      });
+      builder.addCase(thunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
+    });
+
+      // Finance Legal handlers
+  builder.addCase(getFinanceLegal.fulfilled, (state, action) => {
+    state.isLoading = false;
+    state.currentFinanceLegal = action.payload;
+    console.log('Finance legal data received:', action.payload);
+  })
+  builder.addCase(updateFinanceDetails.fulfilled, (state, action) => {
+    state.isLoading = false;
+    state.currentFinanceLegal = action.payload;
+  })
+  builder.addCase(updateLegalDetails.fulfilled, (state, action) => {
+    state.isLoading = false;
+    state.currentFinanceLegal = action.payload;
+  })
+  builder.addCase(uploadRegistrationDocument.fulfilled, (state, action) => {
+    state.isLoading = false;
+    state.currentFinanceLegal = action.payload;
+  });
+
+// Handle pending and rejected states
+[getFinanceLegal, updateFinanceDetails, updateLegalDetails, uploadRegistrationDocument].forEach(thunk => {
+
+    builder.addCase(thunk.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    builder.addCase(thunk.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
+    });
+
+    
 
     // Get properties by state
     builder.addCase(getPropertiesByState.pending, (state) => {
@@ -681,6 +920,7 @@ const propertySlice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     });
+
   },
 });
 
