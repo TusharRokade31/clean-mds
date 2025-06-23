@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from 'react-redux'
-import { getAllProperties, getDraftProperties } from '@/redux/features/property/propertySlice'
+import { getAllProperties, getDraftProperties, deleteProperty, resetCurrentProperty } from '@/redux/features/property/propertySlice'
+import { useRouter } from 'next/navigation'
 import Link from "next/link"
 import { Edit, Trash2, Eye, Plus } from "lucide-react"
 
 export default function Listing() {
   const dispatch = useDispatch()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('published')
+  const [deleteLoading, setDeleteLoading] = useState(null) // Track which property is being deleted
   
   const { properties, draftProperties, isLoading, error } = useSelector((state) => ({
     properties: state.property.properties,
@@ -22,15 +25,33 @@ export default function Listing() {
     dispatch(getDraftProperties())
   }, [dispatch])
 
-
   const handleCreateNew = () => {
-  // Clear any existing property state before navigating
-  dispatch(resetCurrentProperty());
-  sessionStorage.setItem('createNew', 'true');
-  router.push('/host/onboarding/new');
-};
+    // Clear any existing property state before navigating
+    dispatch(resetCurrentProperty());
+    sessionStorage.setItem('createNew', 'true');
+    router.push('/host/onboarding/new');
+  };
 
-
+  const handleDelete = async (propertyId) => {
+    if (window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+      try {
+        setDeleteLoading(propertyId)
+        await dispatch(deleteProperty(propertyId)).unwrap()
+        
+        // Refresh the property lists after successful deletion
+        dispatch(getAllProperties())
+        dispatch(getDraftProperties())
+        
+        // Show success message (you can replace this with your preferred notification system)
+        alert('Property deleted successfully!')
+      } catch (error) {
+        console.error('Delete failed:', error)
+        alert('Failed to delete property: ' + (error.message || 'Unknown error'))
+      } finally {
+        setDeleteLoading(null)
+      }
+    }
+  }
 
   const renderPropertyTable = (propertyList) => (
     <div className="overflow-x-auto">
@@ -50,25 +71,19 @@ export default function Listing() {
               <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">{property.placeName}</td>
               <td className="whitespace-nowrap px-6 py-4 text-sm">{property.propertyType}</td>
               <td className="whitespace-nowrap px-6 py-4 text-sm">
-                {property.location.city}, {property.location.state}
+                {property.location?.city}, {property.location?.state}
               </td>
               <td className="whitespace-nowrap px-6 py-4 text-sm">
                 <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                   property.status === 'published' ? 'bg-green-100 text-green-800' : 
                   property.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 
+                  property.status === 'rejected' ? 'bg-red-100 text-red-800' :
                   'bg-gray-100 text-gray-800'
                 }`}>
                   {property.status}
                 </span>
               </td>
               <td className="whitespace-nowrap px-6 py-4 text-sm flex space-x-2">
-                <Link 
-                  href={`/host/view/${property._id}`} 
-                  className="text-blue-600 hover:text-blue-900"
-                  title="View Property"
-                >
-                  <Eye className="h-5 w-5" />
-                </Link>
                 <Link 
                   href={`/host/onboarding/${property._id}`} 
                   className="text-green-600 hover:text-green-900"
@@ -77,11 +92,16 @@ export default function Listing() {
                   <Edit className="h-5 w-5" />
                 </Link>
                 <button 
-                  className="text-red-600 hover:text-red-900"
+                  className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Delete Property"
-                  // onClick={() => handleDelete(property._id)}
+                  onClick={() => handleDelete(property._id)}
+                  disabled={deleteLoading === property._id}
                 >
-                  <Trash2 className="h-5 w-5" />
+                  {deleteLoading === property._id ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
+                  ) : (
+                    <Trash2 className="h-5 w-5" />
+                  )}
                 </button>
               </td>
             </tr>

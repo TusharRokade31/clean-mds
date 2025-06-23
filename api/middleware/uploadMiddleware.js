@@ -68,6 +68,20 @@ function checkFileType(file, cb) {
   }
 }
 
+export function validateImageSize(file) {
+  const imageTypes = /jpeg|jpg|png|gif|webp/;
+  const extname = path.extname(file.originalname).toLowerCase();
+  const mimetype = file.mimetype;
+  
+  const isImage = imageTypes.test(extname.substring(1)) && mimetype.startsWith('image/');
+  
+  if (isImage && file.size < 100 * 1024) { // 100KB = 100 * 1024 bytes
+    return { valid: false, error: 'Image file size must be at least 100KB!' };
+  }
+  
+  return { valid: true };
+}
+
 // Document file type checking
 function checkDocumentType(file, cb) {
   const documentTypes = /pdf|doc|docx|jpeg|jpg|png/;

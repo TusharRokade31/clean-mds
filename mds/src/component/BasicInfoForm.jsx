@@ -1,10 +1,71 @@
+import { useEffect, useState } from 'react';
 import { 
   TextField, FormControl, InputLabel, Select, 
   MenuItem, FormHelperText, Grid, Typography,
-  Alert
+  Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { checkEmailVerificationStatus, sendEmailOTP, verifyEmailOTP } from '@/redux/features/property/propertySlice';
+export default function BasicInfoForm({ formData, onChange, errors, propertyId, onEmailVerified }) {
+  const dispatch = useDispatch();
+   const { isLoading, otpSent, emailVerified, error, currentProperty } = useSelector(state => state.property);
+  
+  
+  const [showOTPDialog, setShowOTPDialog] = useState(false);
+  const [otp, setOtp] = useState('');
+   const [emailForVerification, setEmailForVerification] = useState('');
 
-export default function BasicInfoForm({ formData, onChange, errors }) {
+  // Check verification status when component mounts or propertyId changes
+  useEffect(() => {
+    if (propertyId) {
+      dispatch(checkEmailVerificationStatus(propertyId));
+    }
+  }, [propertyId, dispatch]);
+
+  // Check if current property email is verified
+  const isCurrentEmailVerified = currentProperty?.emailVerified && 
+                                 currentProperty?.email === formData.email;
+
+  const handleSendOTP = async () => {
+    if (!formData.email) {
+      alert('Please enter email address first');
+      return;
+    }
+    
+    setEmailForVerification(formData.email);
+    try {
+      await dispatch(sendEmailOTP({ 
+        propertyId, 
+        email: formData.email 
+      })).unwrap();
+      setShowOTPDialog(true);
+    } catch (error) {
+      console.error('Failed to send OTP:', error);
+    }
+  };
+
+   const handleVerifyOTP = async () => {
+    try {
+      await dispatch(verifyEmailOTP({ 
+        propertyId, 
+        email: emailForVerification, 
+        otp 
+      })).unwrap();
+      
+      setShowOTPDialog(false);
+      setOtp('');
+      
+      // Call the callback to update basic info in parent component
+      if (onEmailVerified) {
+        await onEmailVerified();
+      }
+      
+      alert('Email verified successfully!');
+    } catch (error) {
+      console.error('Failed to verify OTP:', error);
+    }
+  };
+
   const propertyTypes = [
     'Dharamshala (Basic spiritual lodging run by religious trusts or communities)', 'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)'
   ];
@@ -206,30 +267,10 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
       </p>
        <Grid container sx={{mt:3}} spacing={3}>
 
-        <Grid item sx={{xs:12, md:6}}>
+          <Grid item sx={{xs:12, md:6}}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
           <TextField
-           
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                color: "#000",
-
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#2e2e2e",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1976d2",
-                  },
-                },
-                "& .MuiInputLabel-outlined": {
-                  color: "#2e2e2e",
-                  "&.Mui-focused": {
-                    color: "secondary.main",
-
-                  },
-                },
-              },
-            }}
+            sx={{ flex: 1 /* your existing styles */ }}
             fullWidth
             label="Email Address"
             type="email"
@@ -238,7 +279,53 @@ export default function BasicInfoForm({ formData, onChange, errors }) {
             error={!!errors.email}
             placeholder=""
           />
-        </Grid>
+          <Button 
+            variant="outlined" 
+            onClick={handleSendOTP}
+            disabled={isLoading || !formData.email || isCurrentEmailVerified}
+            style={{ height: '56px', minWidth: '120px' }}
+          >
+            {isCurrentEmailVerified ? 'Verified ✓' : 'Verify Email'}
+          </Button>
+        </div>
+        {isCurrentEmailVerified && (
+          <Alert severity="success" sx={{ mt: 1 }}>
+            Email verified successfully!
+          </Alert>
+        )}
+      </Grid>
+
+      {/* OTP Verification Dialog */}
+      <Dialog open={showOTPDialog} onClose={() => setShowOTPDialog(false)}>
+        <DialogTitle>Email Verification</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            We've sent a 6-digit OTP to {emailForVerification}
+          </Typography>
+          <TextField
+            fullWidth
+            label="Enter OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            inputProps={{ maxLength: 6, inputMode: 'numeric' }}
+          />
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowOTPDialog(false)}>Cancel</Button>
+          <Button 
+            onClick={handleVerifyOTP}
+            disabled={isLoading || otp.length !== 6}
+            variant="contained"
+          >
+            Verify
+          </Button>
+        </DialogActions>
+      </Dialog>
         
         <Grid item sx={{xs:12, md:6}}>
           <TextField

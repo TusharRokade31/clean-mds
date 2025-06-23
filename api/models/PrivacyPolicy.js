@@ -76,10 +76,7 @@ customCancellationHours: {
       ]
     }],
     
-    allowSameCityIds: {
-      type: Boolean,
-      default: true
-    }
+
   },
 
   // Property Restrictions

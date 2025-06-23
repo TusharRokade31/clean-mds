@@ -55,6 +55,10 @@ const MediaSchema = new Schema({
 
 // Room schema
 const RoomSchema = new Schema({
+  numberRoom: { 
+    type: Number, 
+    required: [true, 'Room name is required'] 
+  },
   roomName: { 
     type: String, 
     required: [true, 'Room name is required'] 
@@ -82,6 +86,11 @@ const RoomSchema = new Schema({
       ref: 'Media'
     }
   },
+
+  FloorBedding: {
+    available: { type: Boolean, default: false },
+    count: { type: String }
+  },
   
   // Sleeping arrangement
   beds: [{
@@ -97,7 +106,8 @@ const RoomSchema = new Schema({
     accommodates: { 
       type: Number,
       required: [true, 'Number of people the bed accommodates is required']
-    }
+    },
+  
   }],
   
   // Alternative sleeping arrangement
@@ -129,21 +139,21 @@ const RoomSchema = new Schema({
   },
   
   // Bathroom details
-  bathrooms: {
-    count: { 
-      type: Number, 
-      required: [true, 'Bathroom count is required'],
-      min: [0, 'Bathroom count cannot be negative']
-    },
-    private: { 
-      type: Boolean, 
-      default: true 
-    },
-    shared: { 
-      type: Boolean, 
-      default: true 
-    }
+bathrooms: {
+  count: { 
+    type: Number, 
+    required: [true, 'Bathroom count is required'],
+    min: [0, 'Bathroom count cannot be negative']
   },
+  private: { 
+    type: Boolean, 
+    default: true 
+  },
+  shared: { 
+    type: Boolean, 
+    default: false  // Change default so only one is true initially
+  }
+},
   
   // Meal plan  
   mealPlan: {
@@ -252,6 +262,11 @@ const PropertySchema = new Schema({
   email: {
     type: String,
     required: [true, 'Email is required']
+  },
+
+   emailVerified: {
+    type: Boolean,
+    default: false
   },
   mobileNumber: {
     type: String,
@@ -372,7 +387,9 @@ media: {
     step2Completed: { type: Boolean, default: false },
     step3Completed: { type: Boolean, default: false },
     step4Completed: { type: Boolean, default: false },
-     step5Completed: { type: Boolean, default: false },
+    step5Completed: { type: Boolean, default: false },
+    step6Completed: { type: Boolean, default: false },
+    step7Completed: { type: Boolean, default: false },
     formCompleted: { type: Boolean, default: false }
   },
   

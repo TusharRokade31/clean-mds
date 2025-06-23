@@ -204,8 +204,8 @@ export default function AmenitiesForm({ formData, onChange, errors, onSave }) {
         },
         {
           name: "Food Options Available",
-          options: ['Veg','Jain'],
-          Suboptions: []
+          options: [],
+          Suboptions: ['Veg','Jain']
         },
         {
           name: 'Breakfast',

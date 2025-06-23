@@ -14,6 +14,21 @@ export const propertyAPI = {
     const response = await axiosInstance.put(`/properties/${id}/basic-info`, data);
     return response.data;
   },
+
+  sendEmailOTP : async (propertyId, data) => {
+  const response = await axiosInstance.post(`/properties/${propertyId}/send-otp`, data);
+  return response.data;
+  },
+
+  checkEmailVerificationStatus: async (propertyId) => {
+  const response = await api.get(`/properties/${propertyId}/email-verification-status`);
+  return response.data;
+ },
+
+  verifyEmailOTP: async (propertyId, data) => {
+  const response = await axiosInstance.post(`/properties/${propertyId}/verify-otp`, data);
+  return response.data;
+  },
   
   // Update property location
   updateLocation: async (id, data) => {
@@ -212,6 +227,13 @@ updatePrivacyPolicySection: async (propertyId, section, data) => {
   return response.data;
 },
 
+
+completePrivacyPolicyStep: async (propertyId) => {
+  const response = await axiosInstance.post(`/properties/${propertyId}/privacy-policy/complete-step`);
+  return response.data;
+},
+
+
 getPrivacyPolicyHistory: async (propertyId) => {
   const response = await axiosInstance.get(`/properties/${propertyId}/privacy-policy/history`);
   return response.data;
@@ -221,7 +243,6 @@ deletePrivacyPolicy: async (propertyId) => {
   const response = await axiosInstance.delete(`/properties/${propertyId}/privacy-policy`);
   return response.data;
 },
-
 
 
 getFinanceLegal: async (propertyId) => {
@@ -247,6 +268,12 @@ uploadRegistrationDocument: async (propertyId, formData) => {
   });
   return response.data;
 },
+
+completeFinanceLegalStep: async (propertyId) => {
+  const response = await axiosInstance.post(`/properties/${propertyId}/legal/complete-step`);
+  return response.data;
+},
+
 
 deleteFinanceLegal: async (propertyId) => {
   const response = await axiosInstance.delete(`/properties/${propertyId}/finance-legal`);

@@ -34,6 +34,7 @@ import {
   LocationOn as LocationIcon
 } from '@mui/icons-material';
 import {
+  completeFinanceLegalStep,
   getFinanceLegal,
   updateFinanceDetails,
   updateLegalDetails,
@@ -64,7 +65,7 @@ const UploadArea = styled(Box)(({ theme }) => ({
   },
 }));
 
-const FinanceLegalForm = ({ propertyId }) => {
+const FinanceLegalForm = ({ propertyId, onComplete }) => {
   const dispatch = useDispatch();
   const { currentFinanceLegal, isLoading, error } = useSelector(state => state.property);
   
@@ -185,6 +186,17 @@ const handleFileUpload = async (e) => {
   
   setSelectedFile(null);
 };
+
+  // completion handlers:
+  const handleCompleteStep = async () => {
+  try {
+    await dispatch(completeFinanceLegalStep(propertyId)).unwrap();
+    onComplete?.();
+    alert('Finance & Legal step completed successfully!');
+  } catch (error) {
+    alert(`Validation errors:\n${error.errors?.join('\n') || error.message}`);
+  }
+  };
 
   const handleFileSelect = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -486,24 +498,37 @@ const handleFileUpload = async (e) => {
         </Box>
       )}
 
-      <Box sx={{ mt: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-        {currentFinanceLegal?.financeCompleted && (
-          <Chip 
-            icon={<CheckCircleIcon />} 
-            label="Finance Section Completed" 
-            color="success" 
-            variant="outlined"
-          />
-        )}
-        {currentFinanceLegal?.legalCompleted && (
-          <Chip 
-            icon={<CheckCircleIcon />} 
-            label="Legal Section Completed" 
-            color="success" 
-            variant="outlined"
-          />
-        )}
-      </Box>
+      <Box sx={{ mt: 4, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+    {currentFinanceLegal?.financeCompleted && (
+      <Chip 
+        icon={<CheckCircleIcon />} 
+        label="Finance Section Completed" 
+        color="success" 
+        variant="outlined"
+      />
+    )}
+    {currentFinanceLegal?.legalCompleted && (
+      <Chip 
+        icon={<CheckCircleIcon />} 
+        label="Legal Section Completed" 
+        color="success" 
+        variant="outlined"
+      />
+    )}
+  </Box>
+  
+  <Button 
+    variant="contained" 
+    // color="success"
+    size="large"
+    onClick={handleCompleteStep}
+    disabled={isLoading}
+    sx={{ minWidth: '200px' }}
+  >
+    Complete Finance Legal
+  </Button>
+</Box>
     </Paper>
   );
 };

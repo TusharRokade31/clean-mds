@@ -80,6 +80,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
     
     return groupedMedia;
   };
+  
 
   // Check which media items are missing tags for a room
   const getRoomItemsWithoutTags = (room) => {
@@ -820,19 +821,20 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
         </DialogActions>
       </Dialog>
 
+     
       {/* Navigation buttons */}
-      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-        <Button variant="outlined" onClick={onBack}>
-          Previous
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleCompleteStep}
-          disabled={isLoading || allMedia.length < 10 || itemsWithoutTags.length > 0}
-        >
-          Save & Continue
-        </Button>
-      </Box> */}
+        {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+          <Button variant="outlined" onClick={onBack}>
+            Previous
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCompleteStep}
+            disabled={isLoading || allMedia.length < 10 || itemsWithoutTags.length > 0}
+          >
+            Save & Continue
+          </Button>
+        </Box> */}
     </Box>
   );
 };

@@ -31,7 +31,10 @@ import {
   uploadRoomMedia,
   updateRoomMediaItem,
   getRoomMedia,
-  deleteRoomMediaItem
+  deleteRoomMediaItem,
+  sendEmailOTP,
+  verifyEmailOTP,
+  checkEmailVerificationStatus
 } from '../controllers/propertyController.js';
 
 
@@ -44,7 +47,8 @@ import {
   getPrivacyPolicyTemplate,
   addCustomPolicy,
   updateCustomPolicy,
-  deleteCustomPolicy
+  deleteCustomPolicy,
+  completePrivacyPolicyStep
 } from '../controllers/privacyPolicyController.js';
 
 
@@ -53,13 +57,14 @@ import {
   updateFinanceDetails,
   updateLegalDetails,
   uploadRegistrationDocument,
-  deleteFinanceLegal
+  deleteFinanceLegal,
+  completeFinanceLegalStep
 } from '../controllers/financeLegalController.js';
 
 
 import { protect } from '../middleware/authMiddleware.js';
 import { check } from 'express-validator' ;
-import { upload, uploadMedia } from '../middleware/uploadMiddleware.js';
+import { upload, uploadMedia, validateImageSize } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -79,6 +84,16 @@ router.put(
   ],
   saveBasicInfo
 );
+
+// Send OTP for email verification
+router.post('/:propertyId/send-otp', protect, sendEmailOTP);
+
+// Verify OTP
+router.post('/:propertyId/verify-otp', protect, verifyEmailOTP);
+
+//email-verification-status
+router.get('/:propertyId/email-verification-status', protect, checkEmailVerificationStatus);
+
 
 // Step 2: Save Location
 router.put(
@@ -125,7 +140,54 @@ router.delete(
   deleteRoom
 );
 
-router.post('/:propertyId/rooms/:roomId/media', protect, upload.array('media', 20), uploadRoomMedia);
+router.post(
+  '/:propertyId/rooms/:roomId/media', 
+  protect, 
+  upload.array('media', 20),
+  (req, res, next) => {
+    // Validate each uploaded file
+    if (req.files && req.files.length > 0) {
+      const invalidFiles = [];
+      
+      req.files.forEach((file, index) => {
+        const validation = validateImageSize(file);
+        if (!validation.valid) {
+          invalidFiles.push({
+            filename: file.originalname,
+            error: validation.error
+          });
+          // Delete the invalid file
+          try {
+            fs.unlinkSync(file.path);
+          } catch (err) {
+            console.error('Error deleting invalid file:', err);
+          }
+        }
+      });
+      
+      if (invalidFiles.length > 0) {
+        // Delete all uploaded files if any are invalid
+        req.files.forEach(file => {
+          try {
+            fs.unlinkSync(file.path);
+          } catch (err) {
+            console.error('Error deleting file:', err);
+          }
+        });
+        
+        return res.status(400).json({
+          success: false,
+          message: 'Some files do not meet requirements',
+          invalidFiles: invalidFiles
+        });
+      }
+    }
+    
+    // If all files are valid, proceed to the controller
+    next();
+  },
+  uploadRoomMedia
+);
 router.put('/:propertyId/rooms/:roomId/media/:mediaId', protect, updateRoomMediaItem);
 router.delete('/:propertyId/rooms/:roomId/media/:mediaId', protect, deleteRoomMediaItem);
 router.get('/:propertyId/rooms/:roomId/media', getRoomMedia);
@@ -143,6 +205,48 @@ router.post(
   '/:propertyId/media/upload',
   protect,
   uploadMedia.array('media', 20), // Allow up to 20 files
+  (req, res, next) => {
+    // Validate each uploaded file
+    if (req.files && req.files.length > 0) {
+      const invalidFiles = [];
+      
+      req.files.forEach((file, index) => {
+        const validation = validateImageSize(file);
+        if (!validation.valid) {
+          invalidFiles.push({
+            filename: file.originalname,
+            error: validation.error
+          });
+          // Delete the invalid file
+          try {
+            fs.unlinkSync(file.path);
+          } catch (err) {
+            console.error('Error deleting invalid file:', err);
+          }
+        }
+      });
+      
+      if (invalidFiles.length > 0) {
+        // Delete all uploaded files if any are invalid
+        req.files.forEach(file => {
+          try {
+            fs.unlinkSync(file.path);
+          } catch (err) {
+            console.error('Error deleting file:', err);
+          }
+        });
+        
+        return res.status(400).json({
+          success: false,
+          message: 'Some files do not meet requirements',
+          invalidFiles: invalidFiles
+        });
+      }
+    }
+    
+    // If all files are valid, proceed to the controller
+    next();
+  },
   uploadPropertyMedia
 );
 
@@ -223,6 +327,7 @@ router.get('/template/privacy-policy', getPrivacyPolicyTemplate);
 router.get('/:propertyId/privacy-policy', getPrivacyPolicy);
 router.post('/:propertyId/privacy-policy', createOrUpdatePrivacyPolicy);
 router.put('/:propertyId/privacy-policy/section', updatePrivacyPolicySection);
+router.post('/:propertyId/privacy-policy/complete-step', completePrivacyPolicyStep);
 router.get('/:propertyId/privacy-policy/history', getPrivacyPolicyHistory);
 router.delete('/:propertyId/privacy-policy', deletePrivacyPolicy);
 
@@ -258,6 +363,10 @@ router.post('/:propertyId/legal/upload-document',
   upload.single('registrationDocument'),
   uploadRegistrationDocument
 );
+
+
+// routes/financeLegalRoutes.js
+router.post('/:propertyId/legal/complete-step', completeFinanceLegalStep);
 
 // Delete finance legal data
 router.delete('/:propertyId/finance-legal', protect, deleteFinanceLegal);

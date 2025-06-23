@@ -45,7 +45,8 @@ import {
     updatePrivacyPolicySection,
     addCustomPolicy,
     updateCustomPolicy,
-    deleteCustomPolicy
+    deleteCustomPolicy,
+    completePrivacyPolicyStep
 } from '@/redux/features/property/propertySlice';
 
 // Styled components for custom styling
@@ -78,7 +79,7 @@ function TabPanel({ children, value, index, ...other }) {
     );
 }
 
-const PrivacyPolicyForm = ({ propertyId }) => {
+const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
     const dispatch = useDispatch();
     const {
         currentPrivacyPolicy,
@@ -101,7 +102,6 @@ const PrivacyPolicyForm = ({ propertyId }) => {
                 allowOnlyMaleGuests: false
             },
             acceptableIdentityProofs: [],
-            allowSameCityIds: true
         },
         propertyRestrictions: {
             nonVegetarianFood: {
@@ -309,6 +309,17 @@ const PrivacyPolicyForm = ({ propertyId }) => {
     };
 
 
+ // completion handlers:
+    const handleCompleteStep = async () => {
+    try {
+        await dispatch(completePrivacyPolicyStep(propertyId)).unwrap();
+        onComplete?.();
+        alert('Finance & Legal step completed successfully!');
+    } catch (error) {
+        alert(`Validation errors:\n${error.errors?.join('\n') || error.message}`);
+    }
+    };
+
     const timeOptions = [
         '6:00 am', '7:00 am', '8:00 am', '9:00 am', '10:00 am', '11:00 am',
         '12:00 pm (noon)', '1:00 pm', '2:00 pm', '3:00 pm', '4:00 pm', '5:00 pm',
@@ -384,7 +395,7 @@ const PrivacyPolicyForm = ({ propertyId }) => {
                             Privacy Policy & Property Rules
                         </Typography>
                         <Typography variant="body1" className="text-gray-600">
-                            Configure your property's privacy policy and house rules
+                            Configure your property's privacy policy and property rules
                         </Typography>
                     </div>
 
@@ -420,7 +431,26 @@ const PrivacyPolicyForm = ({ propertyId }) => {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <FormControl fullWidth>
+                                <FormControl sx={{
+            "& .MuiOutlinedInput-root": {
+
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#2e2e2e",
+              },
+              "&.Mui-focused": {
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1976d2",
+                },
+              },
+              "& .MuiInputLabel-outlined": {
+                color: "#2e2e2e",
+                "&.Mui-focused": {
+                  color: "secondary.main",
+
+                },
+              },
+            },
+          }}  fullWidth>
                                     <InputLabel>Check-in Time</InputLabel>
                                     <Select
                                         value={formData.checkInCheckOut?.checkInTime || ''}
@@ -433,7 +463,26 @@ const PrivacyPolicyForm = ({ propertyId }) => {
                                     </Select>
                                 </FormControl>
 
-                                <FormControl fullWidth>
+                                <FormControl sx={{
+            "& .MuiOutlinedInput-root": {
+
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#2e2e2e",
+              },
+              "&.Mui-focused": {
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1976d2",
+                },
+              },
+              "& .MuiInputLabel-outlined": {
+                color: "#2e2e2e",
+                "&.Mui-focused": {
+                  color: "secondary.main",
+
+                },
+              },
+            },
+          }}  fullWidth>
                                     <InputLabel>Check-out Time</InputLabel>
                                     <Select
                                         value={formData.checkInCheckOut?.checkOutTime || ''}
@@ -447,7 +496,7 @@ const PrivacyPolicyForm = ({ propertyId }) => {
                                 </FormControl>
                             </div>
 
-                            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                            <div className="flex items-center justify-between p-4 border rounded-lg">
                                 <Typography variant="body1" className="text-gray-800">
                                     Do you have 24-hour check-in?
                                 </Typography>
@@ -737,20 +786,7 @@ const PrivacyPolicyForm = ({ propertyId }) => {
                                         </Typography>
                                     </FormControl>
 
-                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pt-2">
-                                        <Typography variant="body2" className="text-gray-800 flex-1">
-                                            Are IDs of the same city as the property allowed?
-                                        </Typography>
-                                        <RadioGroup
-                                            row
-                                            value={formData.propertyRules?.allowSameCityIds}
-                                            onChange={(e) => handleInputChange('propertyRules', 'allowSameCityIds', e.target.value === 'true')}
-                                            className="gap-4"
-                                        >
-                                            <FormControlLabel value={false} control={<Radio size="small" />} label="No" />
-                                            <FormControlLabel value={true} control={<Radio size="small" />} label="Yes" />
-                                        </RadioGroup>
-                                    </div>
+                                   
                                 </div>
                             </Paper>
 
@@ -1064,7 +1100,7 @@ const PrivacyPolicyForm = ({ propertyId }) => {
                 </CardContent>
             </Card>
 
-            <div className="flex justify-center mt-8 pt-6 border-t border-gray-200">
+            <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
                 <Button
                     variant="contained"
                     color="primary"
@@ -1074,7 +1110,17 @@ const PrivacyPolicyForm = ({ propertyId }) => {
                 >
                     Save All Changes
                 </Button>
-            </div>
+                
+                <Button
+                    variant="contained"
+                    // color="success"
+                    size="large"
+                    onClick={handleCompleteStep}
+                    className="px-8 py-3"
+                >
+                    Complete Policy And Rules
+                </Button>
+                </div>
 
             <Dialog
                 open={customPolicyDialog}

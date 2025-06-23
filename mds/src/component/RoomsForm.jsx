@@ -31,7 +31,7 @@ function TabPanel({ children, value, index, ...other }) {
   );
 }
 
-export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, onSave, onBack }) {
+export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, onComplete, onSave, onBack }) {
   const dispatch = useDispatch();
   const [isAddingRoom, setIsAddingRoom] = useState(false);
   const [isEditingRoom, setIsEditingRoom] = useState(false);
@@ -68,7 +68,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
       bathrooms: {
         count: 1,
         private: true,
-        shared: true,
+        shared: false,  // Only one should be true initially
       },
       mealPlan: {
         available: false,
@@ -315,6 +315,21 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
     }));
   };
 
+  const handleBathroomTypeChange = (type, checked) => {
+  if (checked) {
+    // If checking one, uncheck the other
+    setCurrentRoomData(prev => ({
+      ...prev,
+      bathrooms: {
+        ...prev.bathrooms,
+        private: type === 'private',
+        shared: type === 'shared'
+      }
+    }));
+  }
+  // If unchecking, we don't allow it (at least one must be selected)
+};
+
   const handleNestedChange = (section, field, value) => {
     setCurrentRoomData(prev => ({
       ...prev,
@@ -325,19 +340,24 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
     }));
   };
 
-  // Handle availability changes
-  const handleAvailabilityChange = (index, field, value) => {
-    const updatedAvailability = [...currentRoomData.availability];
-    updatedAvailability[index] = {
-      ...updatedAvailability[index],
-      [field]: value
-    };
 
-    setCurrentRoomData(prev => ({
-      ...prev,
-      availability: updatedAvailability
-    }));
+   const handleSave = async () => {
+     onComplete?.()   
   };
+
+  // Handle availability changes
+  // const handleAvailabilityChange = (index, field, value) => {
+  //   const updatedAvailability = [...currentRoomData.availability];
+  //   updatedAvailability[index] = {
+  //     ...updatedAvailability[index],
+  //     [field]: value
+  //   };
+
+  //   setCurrentRoomData(prev => ({
+  //     ...prev,
+  //     availability: updatedAvailability
+  //   }));
+  // };
 
   // const addAvailabilityPeriod = () => {
   //   setCurrentRoomData(prev => ({
@@ -406,7 +426,8 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
     return (
       <Grid container spacing={2} sx={{ mb: 2, pb: 2, borderBottom: '1px solid #e0e0e0' }}>
         <Grid item xs={12}>
-          <FormControl sx={{
+          <FormControl 
+          sx={{
             "& .MuiOutlinedInput-root": {
 
               "& .MuiOutlinedInput-notchedOutline": {
@@ -425,7 +446,8 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                 },
               },
             },
-          }} component="fieldset">
+          }} 
+          component="fieldset">
             <FormLabel component="legend" sx={{ fontWeight: 'bold', mb: 1 }}>
               {amenity.name}
             </FormLabel>
@@ -633,6 +655,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
     // if (!currentRoomData.roomType) errors.roomType = 'Room type is required';
     if (!currentRoomData.roomName) errors.roomName = 'Room name is required';
     if (!currentRoomData.roomSize || currentRoomData.roomSize <= 0) errors.roomSize = 'Valid room size is required';
+    if (!currentRoomData.numberRoom || currentRoomData.numberRoom <= 0) errors.numberRoom = 'Valid number of rooms is required';
 
     // Validate beds
     if (currentRoomData.beds.length === 0) {
@@ -685,7 +708,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
         const updatedRooms = [...localRooms, currentRoomData];
         setLocalRooms(updatedRooms);
         onAddRoom(updatedRooms);
-
+        onComplete?.()
         setIsAddingRoom(false);
         setCurrentRoomData(getInitialRoomData());
         setFormErrors({});
@@ -1076,7 +1099,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                       },
                     }}
                       fullWidth
-                      label="Count *"
+                      label="Number of Beds(of this type) *"
                       type="number"
                       value={bed.count}
                       onChange={(e) => handleBedChange(index, 'count', parseInt(e.target.value))}
@@ -1138,6 +1161,44 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
               >
                 Add Another Bed
               </Button>
+            </Grid>
+
+            {/* Bed Configuration - Same as before */}
+            <Grid item size={{ xs: 12 }}>
+              <Typography variant="subtitle1" gutterBottom>Number of rooms (of this type) *</Typography>
+
+               <Grid item size={{xs:4}}>
+                  <TextField
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#2e2e2e",
+                        },
+                        "&.Mui-focused": {
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#1976d2",
+                          },
+                        },
+                        "& .MuiInputLabel-outlined": {
+                          color: "#2e2e2e",
+                          "&.Mui-focused": {
+                            color: "secondary.main",
+
+                          },
+                        },
+                      }, marginTop:'10px'
+                    }}
+                    fullWidth
+                    label="Number of rooms (of this type) *"
+                    type="number"
+                    value={currentRoomData.numberRoom}
+                    onChange={(e) => handleRoomChange('numberRoom', e.target.value)}
+                    error={!!formErrors.numberRoom}
+                    helperText={formErrors.numberRoom}
+                  />
+                </Grid>
+
             </Grid>
 
             <FormControlLabel
@@ -1345,6 +1406,29 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                 </Grid>
 
                 <Grid item xs={6}>
+                <Box display="flex" gap={2}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={currentRoomData.bathrooms.private}
+                        onChange={(e) => handleBathroomTypeChange('private', e.target.checked)}
+                      />
+                    }
+                    label="Private Bathroom"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={currentRoomData.bathrooms.shared}
+                        onChange={(e) => handleBathroomTypeChange('shared', e.target.checked)}
+                      />
+                    }
+                    label="Shared Bathroom"
+                  />
+                </Box>
+              </Grid>
+
+                {/* <Grid item xs={6}>
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -1363,7 +1447,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                     }
                     label="Shared Bathroom"
                   />
-                </Grid>
+                </Grid> */}
               </Grid>
             </Grid>
 
@@ -1532,7 +1616,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
 
           </Grid>
           {/* Availability */}
-          <Grid item xs={12}>
+          {/* <Grid item xs={12}>
             <Divider className="my-3" />
             <Typography sx={{marginTop:"10px"}} variant="subtitle1" gutterBottom>Availability</Typography>
 
@@ -1646,7 +1730,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
               </Grid>
             ))}
 
-          </Grid>
+          </Grid> */}
 
           {/* Room Amenities */}
           <Grid item xs={12}>
@@ -1720,6 +1804,10 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
           </Button>
         </div>
       )}
+
+      <Button onClick={handleSave} variant="contained">
+        Save Rooms
+      </Button>
 
       {errors && errors.rooms && (
         <Typography color="error" className="mt-4">

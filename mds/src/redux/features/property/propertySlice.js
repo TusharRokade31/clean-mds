@@ -84,6 +84,46 @@ export const getProperty = createAsyncThunk(
 );
 
 
+export const sendEmailOTP = createAsyncThunk(
+  'property/sendEmailOTP',
+  async ({ propertyId, email }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.sendEmailOTP(propertyId, { email });
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
+    }
+  }
+);
+
+// Add new action for checking verification status
+export const checkEmailVerificationStatus = createAsyncThunk(
+  'property/checkEmailVerificationStatus',
+  async (propertyId, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.checkEmailVerificationStatus(propertyId);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to check verification status');
+    }
+  }
+);
+
+// Update verifyEmailOTP to return property data
+export const verifyEmailOTP = createAsyncThunk(
+  'property/verifyEmailOTP',
+  async ({ propertyId, email, otp }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.verifyEmailOTP(propertyId, { email, otp });
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to verify OTP');
+    }
+  }
+);
+
+
+
 export const updateBasicInfo = createAsyncThunk(
   'property/updateBasicInfo',
   async ({ id, data }, { rejectWithValue }) => {
@@ -467,6 +507,20 @@ export const updatePrivacyPolicySection = createAsyncThunk(
 );
 
 
+
+export const completePrivacyPolicyStep = createAsyncThunk(
+  'property/completePrivacyPolicyStep', 
+  async (propertyId, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.completePrivacyPolicyStep(propertyId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+
 // Finance Legal Thunks
 export const getFinanceLegal = createAsyncThunk(
   'property/getFinanceLegal',
@@ -515,6 +569,22 @@ export const uploadRegistrationDocument = createAsyncThunk(
     }
   }
 );
+
+
+// Add to your propertySlice.js
+export const completeFinanceLegalStep = createAsyncThunk(
+  'property/completeFinanceLegalStep',
+  async (propertyId, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.completeFinanceLegalStep(propertyId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+
 
 // Property slice
 const propertySlice = createSlice({
@@ -602,6 +672,40 @@ const propertySlice = createSlice({
       state.error = action.payload;
     });
 
+    builder.addCase(sendEmailOTP.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    builder.addCase(sendEmailOTP.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.otpSent = true;
+    })
+    builder.addCase(sendEmailOTP.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+      state.otpSent = false;
+    })
+    builder.addCase(verifyEmailOTP.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+   builder.addCase(verifyEmailOTP.fulfilled, (state, action) => {
+    state.isLoading = false;
+    state.emailVerified = true;
+    // Update current property if returned
+    if (action.payload.property) {
+      state.currentProperty = action.payload.property;
+    }
+  })
+  builder.addCase(checkEmailVerificationStatus.fulfilled, (state, action) => {
+    state.emailVerified = action.payload.emailVerified;
+  });
+    builder.addCase(verifyEmailOTP.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+      state.emailVerified = false;
+    });
+
 
     const handlePropertyUpdate = (builder, thunk) => {
       builder.addCase(thunk.pending, (state) => {
@@ -656,10 +760,18 @@ const propertySlice = createSlice({
       }
     });
 
-    builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
-      state.isLoading = false;
-      state.error = action.payload;
-    });
+builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
+  state.isLoading = false;
+  // Handle both string errors and detailed error objects
+  if (action.payload?.invalidFiles) {
+    state.error = {
+      message: action.payload.message,
+      invalidFiles: action.payload.invalidFiles
+    };
+  } else {
+    state.error = action.payload;
+  }
+});
 
     // deleteMediaItem handler
     builder.addCase(deleteMediaItem.pending, (state) => {

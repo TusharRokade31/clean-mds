@@ -267,6 +267,139 @@ export const uploadRegistrationDocument = async (req, res) => {
     });
   }
 };
+
+// Complete step 7 - Finance Legal
+export const completeFinanceLegalStep = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    
+    // Check if property exists
+    const property = await Property.findById(propertyId);
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+
+    // Get finance legal data
+    let financeLegal = await FinanceLegal.findOne({ 
+      property: propertyId 
+    });
+
+    if (!financeLegal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Finance legal data not found'
+      });
+    }
+
+    // Validate required fields for step completion
+    const validationErrors = [];
+
+    // Finance section validation
+    const bankDetails = financeLegal.finance.bankDetails;
+    const taxDetails = financeLegal.finance.taxDetails;
+
+    // Check bank details
+    if (!bankDetails.accountNumber || !bankDetails.reenterAccountNumber) {
+      validationErrors.push('Account number and re-enter account number are required');
+    }
+
+    if (bankDetails.accountNumber !== bankDetails.reenterAccountNumber) {
+      validationErrors.push('Account numbers do not match');
+    }
+
+    if (!bankDetails.ifscCode) {
+      validationErrors.push('IFSC code is required');
+    }
+
+    if (!bankDetails.bankName) {
+      validationErrors.push('Bank name is required');
+    }
+
+    // Check tax details
+    if (!taxDetails.pan) {
+      validationErrors.push('PAN is required');
+    }
+
+    if (taxDetails.hasGSTIN && !taxDetails.gstin) {
+      validationErrors.push('GSTIN is required when GSTIN option is selected');
+    }
+
+    if (taxDetails.hasTAN && !taxDetails.tan) {
+      validationErrors.push('TAN is required when TAN option is selected');
+    }
+
+    // Legal section validation
+    const ownershipDetails = financeLegal.legal.ownershipDetails;
+
+    if (!ownershipDetails.ownershipType) {
+      validationErrors.push('Ownership type is required');
+    }
+
+    if (!ownershipDetails.propertyAddress) {
+      validationErrors.push('Property address is required');
+    }
+
+    if (!ownershipDetails.registrationDocument || !ownershipDetails.registrationDocument.url) {
+      validationErrors.push('Registration document is required');
+    }
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Finance legal data is incomplete',
+        errors: validationErrors
+      });
+    }
+
+    // Update completion status
+    financeLegal.financeCompleted = true;
+    financeLegal.legalCompleted = true;
+    await financeLegal.save();
+
+    // Update property step completion
+    property.formProgress.step7Completed = true;
+    
+    // Check if all steps are completed
+    const allStepsCompleted = 
+      property.formProgress.step1Completed &&
+      property.formProgress.step2Completed &&
+      property.formProgress.step3Completed &&
+      property.formProgress.step4Completed &&
+      property.formProgress.step5Completed &&
+      property.formProgress.step6Completed &&
+      property.formProgress.step7Completed;
+
+    if (allStepsCompleted) {
+      property.formProgress.formCompleted = true;
+      property.status = 'pending'; // Change status to pending for review
+    }
+
+    await property.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Finance legal step completed successfully',
+      data: {
+        propertyId: property._id,
+        step7Completed: true,
+        formCompleted: property.formProgress.formCompleted,
+        financeLegal: financeLegal
+      }
+    });
+
+  } catch (error) {
+    console.error('Complete finance legal step error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
 // Delete finance legal data
 export const deleteFinanceLegal = async (req, res) => {
   try {

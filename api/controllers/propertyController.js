@@ -6,6 +6,8 @@ import State from '../models/State.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 import { unlink } from 'fs/promises';
+import { generateOTP, sendOTPEmail } from '../services/emailService.js';
+import OTP from '../models/OTP.js';
 
 const errorResponse = (res, statusCode, message, errors = null) => {
   return res.status(statusCode).json({
@@ -156,6 +158,8 @@ export const initializeProperty = async (req, res) => {
         step3Completed: false,
         step4Completed: false,
         step5Completed: false,
+        step6Completed: false,
+        step7Completed: false,
         formCompleted: false
       }
     });
@@ -175,7 +179,140 @@ export const initializeProperty = async (req, res) => {
   }
 };
 
-// Save Step 1: Basic Info
+export const sendEmailOTP = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    const { email } = req.body;
+
+    if (!email) {
+      return errorResponse(res, 400, 'Email is required');
+    }
+
+    // Check if property exists and belongs to user
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
+    
+    if (!property) {
+      return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    
+    // Save OTP to database
+    await OTP.findOneAndUpdate(
+      { email, propertyId, userId: req.user.id },
+      { 
+        otp,
+        verified: false,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
+      },
+      { upsert: true, new: true }
+    );
+
+    // Send OTP email
+    const emailResult = await sendOTPEmail(email, otp, property.placeName || 'Your Property');
+    
+    if (!emailResult.success) {
+      return errorResponse(res, 500, 'Failed to send OTP email', emailResult.error);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'OTP sent successfully to your email'
+    });
+
+  } catch (error) {
+    return errorResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+// Verify OTP
+export const verifyEmailOTP = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return errorResponse(res, 400, 'Email and OTP are required');
+    }
+
+    // Find OTP record
+    const otpRecord = await OTP.findOne({ 
+      email, 
+      propertyId, 
+      userId: req.user.id,
+      verified: false
+    });
+
+    if (!otpRecord) {
+      return errorResponse(res, 400, 'Invalid or expired OTP');
+    }
+
+    // Check if OTP matches
+    if (otpRecord.otp !== otp) {
+      return errorResponse(res, 400, 'Invalid OTP');
+    }
+
+    // Check if OTP is expired
+    if (otpRecord.expiresAt < new Date()) {
+      await OTP.deleteOne({ _id: otpRecord._id });
+      return errorResponse(res, 400, 'OTP has expired');
+    }
+
+    // Mark OTP as verified
+    otpRecord.verified = true;
+    await otpRecord.save();
+
+    // UPDATE: Mark email as verified in the property
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
+
+    if (property) {
+      property.emailVerified = true;
+      await property.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Email verified successfully',
+      property // Return updated property
+    });
+
+  } catch (error) {
+    return errorResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+
+export const checkEmailVerificationStatus = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
+    
+    if (!property) {
+      return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+    
+    return res.status(200).json({
+      success: true,
+      emailVerified: property.emailVerified || false,
+      email: property.email
+    });
+  } catch (error) {
+    return errorResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+// Modified saveBasicInfo with email verification check
 export const saveBasicInfo = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -184,7 +321,7 @@ export const saveBasicInfo = async (req, res) => {
     }
 
     const { propertyId } = req.params;
-    const { propertyType, placeName, placeRating, propertyBuilt, bookingSince, rentalForm, email, mobileNumber,landline } = req.body;
+    const { propertyType, placeName, placeRating, propertyBuilt, bookingSince, rentalForm, email, mobileNumber, landline } = req.body;
     
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
@@ -194,6 +331,30 @@ export const saveBasicInfo = async (req, res) => {
     
     if (!property) {
       return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+
+    // Check if email is verified (only if email is being changed)
+    if (email && email !== property.email) {
+      // If email is different, require verification
+      const otpRecord = await OTP.findOne({ 
+        email, 
+        propertyId, 
+        userId: req.user.id,
+        verified: true
+      });
+
+      if (!otpRecord) {
+        return errorResponse(res, 400, 'Please verify your email address first');
+      }
+      
+      // Mark new email as verified
+      property.emailVerified = true;
+    } else if (email === property.email && property.emailVerified) {
+      // Same email and already verified - keep verification status
+      // No action needed
+    } else if (email && !property.emailVerified) {
+      // Same email but not verified yet
+      return errorResponse(res, 400, 'Please verify your email address first');
     }
     
     // Update property with basic info
@@ -209,6 +370,9 @@ export const saveBasicInfo = async (req, res) => {
     property.formProgress.step1Completed = true;
     
     await property.save();
+
+    // Clean up verified OTP records for this email and property
+    await OTP.deleteMany({ email, propertyId, verified: true });
     
     return res.status(200).json({
       success: true,
@@ -1156,15 +1320,17 @@ export const completePropertyListing = async (req, res) => {
     }
     
     // Check if all steps are completed
-    const { step1Completed, step2Completed, step3Completed, step4Completed, step5Completed  } = property.formProgress;
+    const { step1Completed, step2Completed, step3Completed, step4Completed, step5Completed, step6Completed, step7Completed  } = property.formProgress;
     
-    if (!step1Completed || !step2Completed || !step3Completed || !step4Completed || !step5Completed) {
+    if (!step1Completed || !step2Completed || !step3Completed || !step4Completed || !step5Completed || !step6Completed || !step7Completed) {
       return errorResponse(res, 400, 'Cannot complete listing - some steps are incomplete', {
         step1Completed,
         step2Completed,
         step3Completed,
         step4Completed,
-        step5Completed
+        step5Completed,
+        step6Completed,
+        step7Completed
       });
     }
     

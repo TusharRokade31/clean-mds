@@ -39,7 +39,6 @@ export const getPrivacyPolicy = async (req, res) => {
             allowOnlyMaleGuests: false
           },
           acceptableIdentityProofs: [],
-          allowSameCityIds: true
         },
         propertyRestrictions: {
           nonVegetarianFood: {
@@ -322,6 +321,112 @@ export const createOrUpdatePrivacyPolicy = async (req, res) => {
   }
 };
 
+
+// Complete step 6 - Privacy Policy
+export const completePrivacyPolicyStep = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    
+    // Check if property exists
+    const property = await Property.findById(propertyId);
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+
+    // Get privacy policy
+    const privacyPolicy = await PrivacyPolicy.findOne({ 
+      property: propertyId, 
+      isActive: true 
+    });
+
+    if (!privacyPolicy) {
+      return res.status(404).json({
+        success: false,
+        message: 'Privacy policy not found'
+      });
+    }
+
+    // Validate required fields for step completion
+    const validationErrors = [];
+
+    // Check check-in/check-out times
+    if (!privacyPolicy.checkInCheckOut.checkInTime || !privacyPolicy.checkInCheckOut.checkOutTime) {
+      validationErrors.push('Check-in and check-out times are required');
+    }
+
+    // Check cancellation policy
+    if (!privacyPolicy.cancellationPolicy) {
+      validationErrors.push('Cancellation policy is required');
+    }
+
+    // Check guest profile settings
+    const guestProfile = privacyPolicy.propertyRules.guestProfile;
+    if (guestProfile.allowUnmarriedCouples === undefined || 
+        guestProfile.allowGuestsBelow18 === undefined || 
+        guestProfile.allowOnlyMaleGuests === undefined) {
+      validationErrors.push('Guest profile preferences must be set');
+    }
+
+    // Check identity proofs
+    if (!privacyPolicy.propertyRules.acceptableIdentityProofs || 
+        privacyPolicy.propertyRules.acceptableIdentityProofs.length === 0) {
+      validationErrors.push('At least one acceptable identity proof must be selected');
+    }
+
+    // Check property restrictions
+    const restrictions = privacyPolicy.propertyRestrictions;
+    if (restrictions.nonVegetarianFood.allowed === undefined) {
+      validationErrors.push('Non-vegetarian food policy must be set');
+    }
+
+    if (restrictions.alcoholSmoking.alcoholAllowed === undefined || 
+        restrictions.alcoholSmoking.smokingAllowed === undefined) {
+      validationErrors.push('Alcohol and smoking policies must be set');
+    }
+
+    if (restrictions.noiseRestrictions.quietHours.enabled === undefined) {
+      validationErrors.push('Quiet hours policy must be set');
+    }
+
+    // Check pet policy
+    if (privacyPolicy.petPolicy.petsAllowed === undefined) {
+      validationErrors.push('Pet policy must be set');
+    }
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Privacy policy is incomplete',
+        errors: validationErrors
+      });
+    }
+
+    // Update property step completion
+    property.formProgress.step6Completed = true;
+    await property.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Privacy policy step completed successfully',
+      data: {
+        propertyId: property._id,
+        step6Completed: true,
+        privacyPolicy: privacyPolicy
+      }
+    });
+
+  } catch (error) {
+    console.error('Complete privacy policy step error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
 // Update specific sections of privacy policy
 export const updatePrivacyPolicySection = async (req, res) => {
   try {
@@ -449,7 +554,6 @@ export const getPrivacyPolicyTemplate = async (req, res) => {
           allowOnlyMaleGuests: false
         },
         acceptableIdentityProofs: ['passport', 'drivers_license', 'national_id'],
-        allowSameCityIds: true
       },
       propertyRestrictions: {
         nonVegetarianFood: {

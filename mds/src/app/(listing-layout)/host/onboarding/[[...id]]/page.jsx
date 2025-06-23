@@ -57,6 +57,53 @@ export default function PropertyForm() {
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [draftProperties, setDraftProperties] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
+  const [completedTabs, setCompletedTabs] = useState(new Set())
+
+
+  const isTabAccessible = (tabIndex) => {
+    if (tabIndex === 0) return true; // First tab is always accessible
+    
+    // Check if all previous tabs are completed
+    for (let i = 0; i < tabIndex; i++) {
+      if (!completedTabs.has(i)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+
+    // Update completed tabs based on current property progress
+  useEffect(() => {
+    if (currentProperty?.formProgress) {
+      const progress = currentProperty.formProgress;
+      const completed = new Set();
+      
+      if (progress.step1Completed) completed.add(0);
+      if (progress.step2Completed) completed.add(1);
+      if (progress.step3Completed) completed.add(2);
+      if (progress.step4Completed) completed.add(3);
+      if (progress.step5Completed) completed.add(4);
+      if (progress.step6Completed) completed.add(5);
+      if (progress.step7Completed) completed.add(6);
+      
+      setCompletedTabs(completed);
+    }
+  }, [currentProperty]);
+
+
+    const handleTabCompletion = (tabIndex) => {
+    // Mark tab as completed
+    setCompletedTabs(prev => new Set([...prev, tabIndex]));
+    
+    // Auto-advance to next tab if not on last tab
+    if (tabIndex < steps.length - 1) {
+      setTimeout(() => {
+        setActiveTab(tabIndex + 1);
+      }, 500); // Small delay for better UX
+    }
+  };
+
 
   const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -194,6 +241,8 @@ const validateLandline = (landline) => {
         else if (!progress.step3Completed) setActiveTab(2);
         else if (!progress.step4Completed) setActiveTab(3);
         else if (!progress.step5Completed) setActiveTab(4);
+        else if (!progress.step6Completed) setActiveTab(5);
+        else if (!progress.step7Completed) setActiveTab(6);
         else setActiveTab(5);
       }
     }
@@ -266,17 +315,18 @@ const validateLandline = (landline) => {
   };
 
   // Handle tab change - allow free navigation
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-    setValidationErrors({});
+   const handleTabChange = (event, newValue) => {
+    if (isTabAccessible(newValue)) {
+      setActiveTab(newValue);
+      setValidationErrors({});
+    }
   };
 
-  // Save current step
+   // Save current step and mark as completed (for tabs 0-2)
   const saveCurrentStep = async () => {
     if (!currentProperty?._id) return false;
 
     const errors = validateStep(activeTab);
-    console.log(errors)
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return false;
@@ -305,22 +355,28 @@ const validateLandline = (landline) => {
           }));
           break;
         default:
-          return true; // For steps that handle their own saving
+          return true;
       }
       
-      return result && result.type.endsWith('/fulfilled');
+      const success = result && result.type.endsWith('/fulfilled');
+      
+      // Mark tab as completed and auto-advance if save was successful
+      if (success && activeTab <= 2) {
+        handleTabCompletion(activeTab);
+      }
+      
+      return success;
     } catch (error) {
-      console.log(error)
+      console.log(error);
       setValidationErrors({ save: 'Failed to save data' });
       return false;
     }
   };
 
   // Handle next button
-  const handleNext = async () => {
-    const success = await saveCurrentStep();
-    if (success && activeTab < steps.length - 1) {
-      setActiveTab(activeTab + 1);
+   const handleNext = async () => {
+    if (activeTab <= 2) {
+      await saveCurrentStep(); // This will auto-advance if successful
     }
   };
 
@@ -351,7 +407,7 @@ const validateLandline = (landline) => {
   return (
     <>
       {/* Draft Properties Modal */}
-      <Dialog open={showDraftModal} onClose={() => setShowDraftModal(false)} maxWidth="md">
+      <Dialog open={showDraftModal}  maxWidth="md">
         <DialogTitle>Continue Your Listing</DialogTitle>
         <DialogContent>
           <Typography className="mb-4">
@@ -382,7 +438,7 @@ const validateLandline = (landline) => {
         </DialogActions>
       </Dialog>
 
-      <Paper className="max-w-7xl mx-auto my-8 p-4">
+       <Paper className="max-w-7xl mx-auto my-8 p-4">
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {validationErrors.save && <Alert severity="error" sx={{ mb: 2 }}>{validationErrors.save}</Alert>}
         {validationErrors.rooms && <Alert severity="error" sx={{ mb: 2 }}>{validationErrors.rooms}</Alert>}
@@ -398,7 +454,29 @@ const validateLandline = (landline) => {
               indicatorColor="primary"
             >
               {steps.map((step, index) => (
-                <Tab key={index} label={step} />
+                <Tab 
+                  key={index} 
+                  label={step} 
+                  disabled={!isTabAccessible(index)}
+                  sx={{
+                    '&.Mui-disabled': {
+                      opacity: 0.5,
+                      cursor: 'not-allowed'
+                    },
+                    position: 'relative',
+                    ...(completedTabs.has(index) && {
+                      '&::after': {
+                        content: '"✓"',
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        fontSize: '12px',
+                        color: 'green',
+                        fontWeight: 'bold'
+                      }
+                    })
+                  }}
+                />
               ))}
             </Tabs>
           </Box>
@@ -406,8 +484,19 @@ const validateLandline = (landline) => {
           <TabPanel value={activeTab} index={0}>
             <BasicInfoForm 
               formData={formData.basicInfo}
-              onChange={(field, value) => handleInputChange('basicInfo', field, value)}
-              errors={validationErrors}
+  onChange={(field, value) => handleInputChange('basicInfo', field, value)}
+  errors={validationErrors}
+  propertyId={currentProperty?._id}
+  onEmailVerified={async () => {
+    // Update the basic info after email verification
+    await dispatch(updateBasicInfo({
+      id: currentProperty._id,
+      data: {
+        ...formData.basicInfo,
+        emailVerified: true
+      }
+    }));
+  }}
             />
           </TabPanel>
           
@@ -436,35 +525,47 @@ const validateLandline = (landline) => {
               onAddRoom={(updatedRooms) => {
                 setFormData(prev => ({ ...prev, rooms: updatedRooms }));
               }}
+              onComplete={() => handleTabCompletion(3)} // Add completion callback
             />
           </TabPanel>
           
           <TabPanel value={activeTab} index={4}>
-            <MediaForm propertyId={currentProperty?._id} />
-            <RoomMediaForm propertyId={currentProperty?._id} />
+            <MediaForm 
+              propertyId={currentProperty?._id}
+              onComplete={() => handleTabCompletion(4)} // Add completion callback
+            />
+            <RoomMediaForm 
+              propertyId={currentProperty?._id}
+              onComplete={() => handleTabCompletion(4)} // This might need different handling
+            />
           </TabPanel>
           
           <TabPanel value={activeTab} index={5}>
-            <PoliciesFrom propertyId={currentProperty?._id}/>
-            
+            <PoliciesFrom 
+              propertyId={currentProperty?._id}
+              onComplete={() => handleTabCompletion(5)} // Add completion callback
+            />
           </TabPanel>
           
           <TabPanel value={activeTab} index={6}>
-            <FinanceLegalForm propertyId={currentProperty?._id}/>
-
+            <FinanceLegalForm 
+              propertyId={currentProperty?._id}
+              onComplete={() => handleTabCompletion(6)} // Add completion callback
+            />
           </TabPanel>
         </Box>
         
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-          <Button
-            variant="outlined"
-            disabled={activeTab === 0}
-            onClick={handlePrevious}
-          >
-            Previous
-          </Button>
-          
-          {activeTab < steps.length - 1 ? (
+        {/* Only show navigation buttons for first 3 tabs */}
+        {activeTab <= 2 && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+            <Button
+              variant="outlined"
+              disabled={activeTab === 0}
+              onClick={handlePrevious}
+            >
+              Previous
+            </Button>
+            
             <Button
               variant="contained"
               onClick={handleNext}
@@ -472,16 +573,22 @@ const validateLandline = (landline) => {
             >
               {isLoading ? 'Saving...' : 'Save & Continue'}
             </Button>
-          ) : (
+          </Box>
+        )}
+        
+        {/* Show completion button only on last tab */}
+        {activeTab === steps.length - 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
             <Button
               variant="contained"
               onClick={handleComplete}
               disabled={isLoading}
+              size="large"
             >
               {isLoading ? 'Completing...' : 'Complete Listing'}
             </Button>
-          )}
-        </Box>
+          </Box>
+        )}
       </Paper>
     </>
   );

@@ -18,7 +18,7 @@ import {
   getMediaByTags, completeMediaStep, validatePropertyMedia
 } from '@/redux/features/property/propertySlice';
 
-const MediaForm = ({ propertyId, onSave, onBack }) => {
+const MediaForm = ({ propertyId, onComplete, onBack }) => {
   const dispatch = useDispatch();
   const { currentProperty, isLoading, error } = useSelector(state => state.property);
 
@@ -170,6 +170,7 @@ const MediaForm = ({ propertyId, onSave, onBack }) => {
 
     try {
       const Result = await dispatch(completeMediaStep(propertyId)).unwrap();
+      onComplete?.();
     } catch (error) {
       console.error('Complete step failed:', error);
     }
