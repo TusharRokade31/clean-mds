@@ -274,7 +274,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
         {firstImage.type === 'image' ? (
           <CardMedia
             component="img"
-            image={`http://localhost:5000/${firstImage.url}`}
+            image={`https://mds-backend-bweu.onrender.com/${firstImage.url}`}
             alt={firstImage.filename}
             sx={{
               width: '100%',
@@ -284,7 +284,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
           />
         ) : (
           <video
-            src={`http://localhost:5000/${firstImage.url}`}
+            src={`https://mds-backend-bweu.onrender.com/${firstImage.url}`}
             style={{
               width: '100%',
               height: '70%',
@@ -479,7 +479,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                           {mediaItem.type === 'image' ? (
                             <CardMedia
                               component="img"
-                              image={`http://localhost:5000/${mediaItem.url}`}
+                              image={`https://mds-backend-bweu.onrender.com/${mediaItem.url}`}
                               alt={mediaItem.filename}
                               sx={{
                                 width: '100%',
@@ -489,7 +489,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                             />
                           ) : (
                             <video
-                              src={`http://localhost:5000/${mediaItem.url}`}
+                              src={`https://mds-backend-bweu.onrender.com/${mediaItem.url}`}
                               style={{
                                 width: '100%',
                                 height: '100%',
@@ -556,7 +556,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                 <Box sx={{ position: 'relative' }}>
                   {selectedTagGroup.mediaItems[selectedImageIndex]?.type === 'image' ? (
                     <img
-                      src={`http://localhost:5000/${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
+                      src={`https://mds-backend-bweu.onrender.com/${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
                       alt={selectedTagGroup.mediaItems[selectedImageIndex].filename}
                       style={{
                         width: '100%',
@@ -567,7 +567,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                     />
                   ) : (
                     <video
-                      src={`http://localhost:5000/${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
+                      src={`https://mds-backend-bweu.onrender.com/${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
                       style={{
                         width: '100%',
                         height: '500px',
@@ -675,7 +675,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                 <Box sx={{ position: 'relative' }}>
                   {editingMedia.type === 'image' ? (
                     <img
-                      src={`http://localhost:5000/${editingMedia.url}`}
+                      src={`https://mds-backend-bweu.onrender.com/${editingMedia.url}`}
                       alt={editingMedia.filename}
                       style={{
                         width: '100%',
@@ -686,7 +686,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                     />
                   ) : (
                     <video
-                      src={`http://localhost:5000/${editingMedia.url}`}
+                      src={`https://mds-backend-bweu.onrender.com/${editingMedia.url}`}
                       style={{
                         width: '100%',
                         height: '400px',
