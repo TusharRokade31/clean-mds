@@ -296,7 +296,7 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
       </Grid>
 
       {/* OTP Verification Dialog */}
-      <Dialog open={showOTPDialog} onClose={() => setShowOTPDialog(false)}>
+      <Dialog open={showOTPDialog} >
         <DialogTitle>Email Verification</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2 }}>

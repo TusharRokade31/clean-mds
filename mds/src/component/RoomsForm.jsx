@@ -11,6 +11,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import { useDispatch } from 'react-redux';
 import { addRooms, deleteRoom, updateRoom } from '@/redux/features/property/propertySlice';
+import RoomMediaForm from './RoomMediaForm';
 
 // Tab Panel Component for Room Amenities
 function TabPanel({ children, value, index, ...other }) {
@@ -37,6 +38,8 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
   const [isEditingRoom, setIsEditingRoom] = useState(false);
   const [editingRoomIndex, setEditingRoomIndex] = useState(-1);
   const [currentRoomData, setCurrentRoomData] = useState(getInitialRoomData());
+  const [roomMedia, setRoomMedia] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [localRooms, setLocalRooms] = useState(rooms);
   const [selectedAmenityTab, setSelectedAmenityTab] = useState(0);
@@ -307,6 +310,7 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
     'Standard Room', 'Deluxe Room', 'Suite', 'Executive Suite', 'Family Room',
     'Studio', 'Cottage', 'Villa', 'Apartment', 'Dormitory'
   ];
+  
 
   const handleRoomChange = (field, value) => {
     setCurrentRoomData(prev => ({
@@ -345,33 +349,6 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
      onComplete?.()   
   };
 
-  // Handle availability changes
-  // const handleAvailabilityChange = (index, field, value) => {
-  //   const updatedAvailability = [...currentRoomData.availability];
-  //   updatedAvailability[index] = {
-  //     ...updatedAvailability[index],
-  //     [field]: value
-  //   };
-
-  //   setCurrentRoomData(prev => ({
-  //     ...prev,
-  //     availability: updatedAvailability
-  //   }));
-  // };
-
-  // const addAvailabilityPeriod = () => {
-  //   setCurrentRoomData(prev => ({
-  //     ...prev,
-  //     availability: [
-  //       ...prev.availability,
-  //       {
-  //         startDate: new Date().toISOString().split('T')[0],
-  //         endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-  //         availableUnits: 1
-  //       }
-  //     ]
-  //   }));
-  // };
 
   const removeAvailabilityPeriod = (index) => {
     if (currentRoomData.availability.length <= 1) return;
@@ -890,21 +867,6 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
           <Grid container spacing={3}>
             {/* Basic Room Details - Same as before */}
             <Grid item size={{ xs: 12, md: 6 }}>
-              {/* <FormControl fullWidth  className="mb-4">
-                <InputLabel>Room Type *</InputLabel>
-                <Select
-                  value={currentRoomData.roomType}
-                  onChange={(e) => handleRoomChange('roomType', e.target.value)}
-                  label="Room Type *"
-                >
-                  {roomTypes.map(type => (
-                    <MenuItem key={type} value={type}>{type}</MenuItem>
-                  ))}
-                  <MenuItem value="Other">Other</MenuItem>
-                </Select>
-                {formErrors.roomType && <FormHelperText>{formErrors.roomType}</FormHelperText>}
-              </FormControl> */}
-
               <TextField
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -1427,27 +1389,6 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                   />
                 </Box>
               </Grid>
-
-                {/* <Grid item xs={6}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={currentRoomData.bathrooms.private}
-                        onChange={(e) => handleNestedChange('bathrooms', 'private', e.target.checked)}
-                      />
-                    }
-                    label="Private Bathroom"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={currentRoomData.bathrooms.shared}
-                        onChange={(e) => handleNestedChange('bathrooms', 'shared', e.target.checked)}
-                      />
-                    }
-                    label="Shared Bathroom"
-                  />
-                </Grid> */}
               </Grid>
             </Grid>
 
@@ -1608,129 +1549,8 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
                 </Grid>
               </Grid>
             </Grid>
-
-
-
-
-
-
           </Grid>
-          {/* Availability */}
-          {/* <Grid item xs={12}>
-            <Divider className="my-3" />
-            <Typography sx={{marginTop:"10px"}} variant="subtitle1" gutterBottom>Availability</Typography>
 
-            {currentRoomData.availability.map((period, index) => (
-              <Grid sx={{marginTop:"15px"}} container spacing={2} key={index} className="mb-3 items-end">
-                <Grid item xs={12} md={3}>
-                  <TextField sx={{
-                    "& .MuiOutlinedInput-root": {
-
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
-                        "&.Mui-focused": {
-                          color: "secondary.main",
-
-                        },
-                      },
-                    },
-                  }}
-                    fullWidth
-                    label="Start Date *"
-                    type="date"
-                    value={period.startDate}
-                    onChange={(e) => handleAvailabilityChange(index, 'startDate', e.target.value)}
-                    error={!!formErrors.availability?.[index]?.startDate}
-                    helperText={formErrors.availability?.[index]?.startDate}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={3}>
-                  <TextField sx={{
-                    "& .MuiOutlinedInput-root": {
-
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
-                        "&.Mui-focused": {
-                          color: "secondary.main",
-
-                        },
-                      },
-                    },
-                  }}
-                    fullWidth
-                    label="End Date *"
-                    type="date"
-                    value={period.endDate}
-                    onChange={(e) => handleAvailabilityChange(index, 'endDate', e.target.value)}
-                    error={!!formErrors.availability?.[index]?.endDate}
-                    helperText={formErrors.availability?.[index]?.endDate}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <TextField sx={{
-                    "& .MuiOutlinedInput-root": {
-
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
-                        "&.Mui-focused": {
-                          color: "secondary.main",
-
-                        },
-                      },
-                    },
-                  }}
-                    fullWidth
-                    label="Available Units *"
-                    type="number"
-                    value={period.availableUnits}
-                    onChange={(e) => handleAvailabilityChange(index, 'availableUnits', parseInt(e.target.value))}
-                    error={!!formErrors.availability?.[index]?.availableUnits}
-                    helperText={formErrors.availability?.[index]?.availableUnits}
-                    InputProps={{ inputProps: { min: 1 } }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={2} className="flex justify-end">
-                  <IconButton
-                    color="error"
-                    onClick={() => removeAvailabilityPeriod(index)}
-                    disabled={currentRoomData.availability.length <= 1}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Grid>
-              </Grid>
-            ))}
-
-          </Grid> */}
 
           {/* Room Amenities */}
           <Grid item xs={12}>
@@ -1775,6 +1595,8 @@ export default function RoomsForm({ rooms = [], propertyId, onAddRoom, errors, o
               ))}
             </Box>
           </Grid>
+
+            
 
           <div className="flex justify-end mt-4 gap-2">
             <Button

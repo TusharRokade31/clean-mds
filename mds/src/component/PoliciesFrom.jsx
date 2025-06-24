@@ -1140,6 +1140,7 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
                         <TextField
                             fullWidth
                             label="Policy Title"
+                            className='mb-5'
                             value={newCustomPolicy.title}
                             onChange={(e) => setNewCustomPolicy(prev => ({ ...prev, title: e.target.value }))}
                             placeholder="e.g., Swimming Pool Rules"
