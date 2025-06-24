@@ -28,11 +28,8 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
   const [tagGroupDialog, setTagGroupDialog] = useState(false);
   const [selectedTagGroup, setSelectedTagGroup] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [mediaFilter, setMediaFilter] = useState('all');
-  const [tagFilter, setTagFilter] = useState('');
   const [customTag, setCustomTag] = useState('');
   const [validationError, setValidationError] = useState('');
-  const [selectedRoom, setSelectedRoom] = useState(null);
   const [expandedRoom, setExpandedRoom] = useState(null);
   
   const fileInputRefs = useRef({});
@@ -345,7 +342,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
   return (
     <Box>
       <Typography variant="h5" gutterBottom>
-        Room Photos and Videos
+        Upload Room Photos and Videos
       </Typography>
       
       <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
@@ -663,7 +660,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
       </Dialog>
 
       {/* Edit Dialog */}
-           <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="lg" fullWidth>
+      <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="lg" fullWidth>
         <DialogTitle sx={{ pb: 1 }}>
           {editingMedia?.tags?.length > 0 ? editingMedia.tags[0] : 'Untitled'} 
           ({editingMedia ? '1' : '0'})
@@ -820,21 +817,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
           </Button>
         </DialogActions>
       </Dialog>
-
-     
-      {/* Navigation buttons */}
-        {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-          <Button variant="outlined" onClick={onBack}>
-            Previous
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleCompleteStep}
-            disabled={isLoading || allMedia.length < 10 || itemsWithoutTags.length > 0}
-          >
-            Save & Continue
-          </Button>
-        </Box> */}
+  
     </Box>
   );
 };
