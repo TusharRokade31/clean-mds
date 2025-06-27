@@ -1,9 +1,9 @@
-import adminRoutes from './routes/adminRoutes.js';
-import propertyRoutes from './routes/propertyRoutes.js';
-import stateRoutes from './routes/stateRoutes.js';
-import stayRoutes from './routes/stayRoutes.js';
-import userRoutes from './routes/userRoutes.js';
-import authRoutes from './routes/authRoutes.js';
+import adminRoutes from './adminRoutes.js';
+import propertyRoutes from './propertyRoutes.js';
+import stateRoutes from './stateRoutes.js';
+import stayRoutes from './stayRoutes.js';
+import userRoutes from './userRoutes.js';
+import authRoutes from './authRoutes.js';
 
 
 const registerRoutes = (app) => {
