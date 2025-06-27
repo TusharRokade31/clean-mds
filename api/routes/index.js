@@ -7,6 +7,7 @@ import authRoutes from './authRoutes.js';
 
 
 const registerRoutes = (app) => {
+  app.use('/',authRoutes);
   app.use('/api/auth', authRoutes);
   app.use('/api/users', userRoutes);
   app.use('/api/admin', adminRoutes);
