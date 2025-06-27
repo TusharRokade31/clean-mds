@@ -33,8 +33,6 @@ export default function AmenitiesForm({ formData, amenityCategories, onChange, e
   };
 
 
-
-
   // Get amenity value from form data
   const getAmenityValue = (category, amenityName) => {
     const key = amenityName.replace(/[^a-zA-Z0-9]/g, '');

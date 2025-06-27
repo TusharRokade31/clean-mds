@@ -47,7 +47,6 @@ TabPanel.propTypes = {
 };
 
 export default function PropertyForm() {
-  const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const { id } = useParams();
   const router = useRouter();
@@ -798,13 +797,13 @@ const validateMandatoryAmenities = () => {
           </TabPanel>
           
           <TabPanel value={activeTab} index={4}>
-            <MediaForm 
-              propertyId={currentProperty?._id}
-              onComplete={() => handleTabCompletion(4)} // Add completion callback
-            />
             <RoomMediaForm 
               propertyId={currentProperty?._id}
               onComplete={() => handleTabCompletion(4)} // This might need different handling
+            />
+            <MediaForm 
+              propertyId={currentProperty?._id}
+              onComplete={() => handleTabCompletion(4)} // Add completion callback
             />
           </TabPanel>
           
@@ -837,7 +836,7 @@ const validateMandatoryAmenities = () => {
             <Button
               variant="contained"
               onClick={handleNext}
-              disabled={isLoading}
+              disabled={validateMandatoryAmenities().length > 0 || isLoading}
             >
               {isLoading ? 'Saving...' : 'Save & Continue'}
             </Button>

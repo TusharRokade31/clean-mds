@@ -527,7 +527,6 @@ export const addRoom = async (req, res) => {
     
     // Add room to property
     property.rooms.push(roomData);
-    property.formProgress.step4Completed = property.rooms.length > 0;
     
     await property.save();
     
@@ -631,6 +630,43 @@ export const deleteRoom = async (req, res) => {
     return errorResponse(res, 500, 'Server error', error.message);
   }
 };
+
+
+export const completeRoomsStep = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    
+    // Check if property exists and belongs to user
+    const property = await Property.findOne({ 
+      _id: propertyId,
+      owner: req.user.id
+    });
+    
+    if (!property) {
+      return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+    
+    // Ensure at least one room has been added
+    if (!Array.isArray(property.rooms) || property.rooms.length < 1) {
+      return errorResponse(res, 400, 'You must add at least one room before completing this step');
+    }
+    
+    // Mark step 4 as completed
+    property.formProgress.step4Completed = true;
+    
+    await property.save();
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Rooms step completed successfully',
+      property
+    });
+    
+  } catch (error) {
+    return errorResponse(res, 500, 'Server error', error.message);
+  }
+};
+
 
 // Upload Media (Images and Videos)
 export const uploadPropertyMedia = async (req, res) => {

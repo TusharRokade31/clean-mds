@@ -1,5 +1,6 @@
 // Current routes from your propertyRoutes.js
 import express from 'express';
+import fs from 'fs';
 import { 
   deleteProperty, 
   // finalizeProperty, 
@@ -34,7 +35,8 @@ import {
   deleteRoomMediaItem,
   sendEmailOTP,
   verifyEmailOTP,
-  checkEmailVerificationStatus
+  checkEmailVerificationStatus,
+  completeRoomsStep
 } from '../controllers/propertyController.js';
 
 
@@ -126,6 +128,13 @@ router.post(
     check('sizeUnit', 'Size unit is required').not().isEmpty()
   ],
   addRoom
+);
+
+// Complete media step
+router.put(
+  '/:propertyId/rooms/complete',  // This must come FIRST
+  protect,
+  completeRoomsStep
 );
 
 router.put(

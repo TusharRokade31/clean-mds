@@ -66,7 +66,7 @@ export default function AccountLayout({ children }) {
                 href="/account/billing"
                 className="py-2 block"
               >
-                Account Billing
+                Payment Methods
               </Link>
             </motion.div>
           </div>

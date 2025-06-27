@@ -1,5 +1,3 @@
-// src/redux/features/property/propertySlice.ts
-// src/redux/features/property/propertySlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { propertyAPI } from './propertyAPI';
 
@@ -171,7 +169,7 @@ export const addRooms = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.addRooms(id, data);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update property Rooms');
     }
@@ -184,7 +182,7 @@ export const deleteRoom = createAsyncThunk(
   async ({ propertyId, roomId }, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.deleteRoom(propertyId, roomId);
-      return response.data;
+      return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete room');
     }
@@ -250,7 +248,7 @@ export const uploadRoomMedia = createAsyncThunk(
   async ({ propertyId, roomId, formData }, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.uploadRoomMedia(propertyId, roomId, formData);
-      return response.property;
+      return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to upload room media');
     }
@@ -262,7 +260,7 @@ export const updateRoomMediaItem = createAsyncThunk(
   async ({ propertyId, roomId, mediaId, data }, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.updateRoomMediaItem(propertyId, roomId, mediaId, data);
-      return response.property;
+      return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update room media item');
     }
@@ -316,6 +314,20 @@ export const completeMediaStep = createAsyncThunk(
     }
   }
 );
+
+
+export const completeRoomsStep = createAsyncThunk(
+  'property/completeRoomsStep',
+  async (propertyId, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.completeRoomsStep(propertyId);
+      return response.property;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to complete media step');
+    }
+  }
+);
+
 
 
 export const deleteProperty = createAsyncThunk(
@@ -733,12 +745,14 @@ const propertySlice = createSlice({
     handlePropertyUpdate(builder, updateBasicInfo);
     handlePropertyUpdate(builder, updateLocation);
     handlePropertyUpdate(builder, updateAmenities);
-    handlePropertyUpdate(builder, addRooms);
+    // handlePropertyUpdate(builder, addRooms);
+    // handlePropertyUpdate(builder, deleteRoom);
     handlePropertyUpdate(builder, updateRoom);
-    handlePropertyUpdate(builder, uploadRoomMedia);
-    handlePropertyUpdate(builder, updateRoomMediaItem);
+    // handlePropertyUpdate(builder, uploadRoomMedia);
+    // handlePropertyUpdate(builder, updateRoomMediaItem);
     handlePropertyUpdate(builder, deleteRoomMediaItem);
     handlePropertyUpdate(builder, completeMediaStep);
+    handlePropertyUpdate(builder, completeRoomsStep);
 
     // Specific handlers for media operations
     // uploadPropertyMedia handler
@@ -823,26 +837,7 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
-
-
-
-    // delete room
-    builder.addCase(deleteRoom.fulfilled, (state, action) => {
-      state.isLoading = false;
-      state.error = null;
-      // Update current property with the response
-      if (action.payload) {
-        state.currentProperty = action.payload;
-      }
-    })
-    builder.addCase(deleteRoom.pending, (state) => {
-      state.isLoading = true;
-      state.error = null;
-    })
-    builder.addCase(deleteRoom.rejected, (state, action) => {
-      state.isLoading = false;
-      state.error = action.payload;
-    });
+  
     //getMediaByTags
     builder.addCase(getMediaByTags.pending, (state) => {
       state.isLoading = true;
@@ -875,6 +870,89 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
+
+    builder.addCase(addRooms.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      });
+
+    builder.addCase(addRooms.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentProperty = action.payload.property;
+
+      // Update in the user's property list if it exists
+      const index = state.userProperties.findIndex(p => p._id === action.payload._id);
+      if (index !== -1) {
+        state.userProperties[index] = action.payload;
+      }
+      });
+      builder.addCase(addRooms.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
+
+
+      builder.addCase(uploadRoomMedia.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      });
+
+    builder.addCase(uploadRoomMedia.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentProperty = action.payload.property;
+
+      // Update in the user's property list if it exists
+      const index = state.userProperties.findIndex(p => p._id === action.payload._id);
+      if (index !== -1) {
+        state.userProperties[index] = action.payload;
+      }
+      });
+      builder.addCase(uploadRoomMedia.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
+
+
+            builder.addCase(updateRoomMediaItem.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      });
+
+    builder.addCase(updateRoomMediaItem.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentProperty = action.payload.property;
+
+      // Update in the user's property list if it exists
+      const index = state.userProperties.findIndex(p => p._id === action.payload._id);
+      if (index !== -1) {
+        state.userProperties[index] = action.payload;
+      }
+      });
+      builder.addCase(updateRoomMediaItem.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
+
+
+      builder.addCase(deleteRoom.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      });
+
+      builder.addCase(deleteRoom.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentProperty = action.payload.property;
+
+        // Update in the user's property list if it exists
+        const index = state.userProperties.findIndex(p => p._id === action.payload._id);
+        if (index !== -1) {
+          state.userProperties[index] = action.payload;
+        }
+      });
+      builder.addCase(deleteRoom.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
 
     builder.addCase(addCustomPolicy.fulfilled, (state, action) => {
       state.isLoading = false;

@@ -49,7 +49,8 @@ export const propertyAPI = {
   },
 
   deleteRoom: async (propertyId, roomId) => {
-    return await axiosInstance.delete(`/properties/${propertyId}/rooms/${roomId}`);
+    const response = await axiosInstance.delete(`/properties/${propertyId}/rooms/${roomId}`);
+    return response.data;
   },
 
   // Update property rooms
@@ -113,6 +114,13 @@ export const propertyAPI = {
     const response = await axiosInstance.put(`/properties/${propertyId}/media/complete`);
     return response.data;
   },
+
+
+  completeRoomsStep: async (propertyId) => {
+    const response = await axiosInstance.put(`/properties/${propertyId}/rooms/complete`);
+    return response.data;
+  },
+  
   
   // Get all properties (for admin or host)
   getAllProperties: async () => {

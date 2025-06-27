@@ -13,6 +13,9 @@ export default function AccountPage() {
     name: '',
     email: '',
     gender: '',
+    state:'',
+    maritalStatus:'',
+    city:'',
     dateOfBirth: '',
     address: '',
     phoneNumber: '',
@@ -59,10 +62,29 @@ export default function AccountPage() {
   if (isLoading && !user) {
     return <div className="text-center py-12">Loading...</div>
   }
+
+  const states = [
+"Haryana", "Andaman and Nicobar", "Delhi", "Dadra and Nagar Haveli", "Chhattisgarh", "Assam", "Arunachal Pradesh", "Nagaland", "Ladakh", "Lakshadweep", "Telangana", "Sikkim", "West Bengal", "Jharkhand", "Meghalaya", "Odisha", "Uttarakhand", "Jammu and Kashmir", "Tripura", "Mizoram", "Rajasthan", "Manipur", "Gujarat", "Goa", "Bihar", "Andhra Pradesh", "Karnataka", "Daman and Diu", "Maharashtra", "Madhya Pradesh", "Uttar Pradesh", "Kerala", "Chandigarh", "Tamil Nadu", "Puducherry", "Punjab", "Himachal Pradesh", "Others",
+]
+
+const cities = [
+"Delhi",
+"Mumbai",
+"Bengaluru",
+"Goa",
+"Chennai",
+"Dubai",
+"Jaipur",
+"Hyderabad",
+"Bangkok",
+"Singapore",
+"Pattaya",
+"Phuket",
+]
   
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Account information</h1>
+      <h1 className="text-2xl font-bold mb-6">General Information</h1>
       
       <div>
         {message && (
@@ -89,8 +111,9 @@ export default function AccountPage() {
         
         <form className='w-full ps-4' onSubmit={handleSubmit}>
           <div className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block mb-2 font-medium">Name</label>
+            <div className='flex'>
+              <div className='flex-1/2'>
+              <label htmlFor="name" className="block mb-2 font-medium">First Name</label>
               <input
                 type="text"
                 id="name"
@@ -99,6 +122,19 @@ export default function AccountPage() {
                 onChange={handleChange}
                 className="w-full p-2 border rounded"
               />
+            </div>
+
+             <div className='flex-1/2'>
+              <label htmlFor="name" className="block mb-2 font-medium">Last Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full p-2 ms-2 border rounded"
+              />
+            </div>
             </div>
             
             <div>
@@ -141,6 +177,48 @@ export default function AccountPage() {
                 onChange={handleChange}
                 className="w-full p-2 border rounded"
               />
+            </div>
+
+            <div>
+              <label htmlFor="MaritalStatus" className="block mb-2 font-medium">Marital Status</label>
+              <select
+                id="MaritalStatus"
+                name="MaritalStatus"
+                value={formData.maritalStatus}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="Married">Married</option>
+                <option value="Single">Single</option>
+              </select>
+            </div>
+
+
+            <div>
+              <label htmlFor="city" className="block mb-2 font-medium">City</label>
+              <select
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              >
+                {cities.map((city)=> <option key={city} value={city}>{city}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="state" className="block mb-2 font-medium">State</label>
+              <select
+                id="state"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                className="w-full p-2 border rounded"
+              >
+                {states.map((state)=> <option key={state} value={state}>{state}</option>)}
+                
+              </select>
             </div>
             
             <div>
