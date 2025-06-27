@@ -5,12 +5,8 @@ import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import cors from "cors";
 import errorHandler from './middleware/error.js';
-import authRoutes from './routes/authRoutes.js';
-import userRoutes from './routes/userRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
-import propertyRoutes from './routes/propertyRoutes.js';
-import stateRoutes from './routes/stateRoutes.js';
-import stayRoutes from './routes/stayRoutes.js';
+import registerRoutes from './routes/index.js';
+
 
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -50,15 +46,9 @@ app.get("/", (req, res) => {
   res.send("Server is running...");
 });
 
-// Mount authentication routes
-app.use('/api/auth', authRoutes);
 
 // Add the new routes
-app.use('/api/users', userRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/properties', propertyRoutes);
-app.use('/api/states', stateRoutes);
-app.use('/api/stays', stayRoutes);
+registerRoutes(app)
 
 // Error handling middleware - should be last
 app.use(errorHandler);
