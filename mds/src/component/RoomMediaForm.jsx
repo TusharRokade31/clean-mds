@@ -119,6 +119,8 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
     if (window.confirm('Are you sure you want to delete this media item?')) {
       try {
         await dispatch(deleteRoomMediaItem({ propertyId, roomId, mediaId })).unwrap();
+        setTagGroupDialog(false)
+        setEditDialog(false)
       } catch (error) {
         console.error('Delete failed:', error);
       }
@@ -271,7 +273,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
         {firstImage.type === 'image' ? (
           <CardMedia
             component="img"
-            image={`https://mds-backend-bweu.onrender.com/${firstImage.url}`}
+            image={`http://localhost:5000/${firstImage.url}`}
             alt={firstImage.filename}
             sx={{
               width: '100%',
@@ -281,7 +283,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
           />
         ) : (
           <video
-            src={`https://mds-backend-bweu.onrender.com/${firstImage.url}`}
+            src={`http://localhost:5000/${firstImage.url}`}
             style={{
               width: '100%',
               height: '70%',
@@ -476,7 +478,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                           {mediaItem.type === 'image' ? (
                             <CardMedia
                               component="img"
-                              image={`https://mds-backend-bweu.onrender.com/${mediaItem.url}`}
+                              image={`http://localhost:5000/${mediaItem.url}`}
                               alt={mediaItem.filename}
                               sx={{
                                 width: '100%',
@@ -486,7 +488,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                             />
                           ) : (
                             <video
-                              src={`https://mds-backend-bweu.onrender.com/${mediaItem.url}`}
+                              src={`http://localhost:5000/${mediaItem.url}`}
                               style={{
                                 width: '100%',
                                 height: '100%',
@@ -553,7 +555,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                 <Box sx={{ position: 'relative' }}>
                   {selectedTagGroup.mediaItems[selectedImageIndex]?.type === 'image' ? (
                     <img
-                      src={`https://mds-backend-bweu.onrender.com/${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
+                      src={`http://localhost:5000/${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
                       alt={selectedTagGroup.mediaItems[selectedImageIndex].filename}
                       style={{
                         width: '100%',
@@ -564,7 +566,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                     />
                   ) : (
                     <video
-                      src={`https://mds-backend-bweu.onrender.com/${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
+                      src={`http://localhost:5000/${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
                       style={{
                         width: '100%',
                         height: '500px',
@@ -672,7 +674,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                 <Box sx={{ position: 'relative' }}>
                   {editingMedia.type === 'image' ? (
                     <img
-                      src={`https://mds-backend-bweu.onrender.com/${editingMedia.url}`}
+                      src={`http://localhost:5000/${editingMedia.url}`}
                       alt={editingMedia.filename}
                       style={{
                         width: '100%',
@@ -683,7 +685,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                     />
                   ) : (
                     <video
-                      src={`https://mds-backend-bweu.onrender.com/${editingMedia.url}`}
+                      src={`http://localhost:5000/${editingMedia.url}`}
                       style={{
                         width: '100%',
                         height: '400px',
