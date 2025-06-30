@@ -1461,7 +1461,7 @@ export const deleteProperty = async (req, res) => {
     }
     
     // Check ownership
-    if (property.host.toString() !== req.user._id && req.user.role !== 'admin') {
+    if (property.owner.toString() !== req.user._id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to delete this property'
@@ -1469,17 +1469,17 @@ export const deleteProperty = async (req, res) => {
     }
     
     // Delete associated images
-    if (property.images.cover) {
-      fs.unlinkSync(property.images.cover);
+    if (property?.images?.cover) {
+      fs.unlinkSync(property?.images?.cover);
     }
     
-    if (property.images.additional && property.images.additional.length > 0) {
+    if (property?.images?.additional && property?.images?.additional?.length > 0) {
       property.images.additional.forEach(imagePath => {
         fs.unlinkSync(imagePath);
       });
     }
     
-    await property.remove();
+    await property.deleteOne();
     
     res.status(200).json({
       success: true,
