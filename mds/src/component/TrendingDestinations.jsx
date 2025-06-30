@@ -34,6 +34,7 @@ const TrendingDestinations = () => {
     dispatch(fetchFeaturedCities(false));
   }, [dispatch]);
 
+
   return (
     <section className="max-w-7xl mx-auto px-4 py-8">
       <h2 className="text-3xl font-semibold md:text-4xl text-gray-900 mb-2">Trending Destinations</h2>
@@ -56,17 +57,9 @@ const TrendingDestinations = () => {
             >
               <div className="rounded-lg overflow-hidden bg-white">
                 <div className="relative h-48 w-full">
-                  {/* <Image 
-                    src={`http://localhost:5000/${destination.image || ''}`}
-                    alt={destination.name}
-                    fill
-                    // className="object-cover"
-                    className="h-full w-full rounded-2xl object-cover"
-                  /> */}
-                  {/* {console.log(`http://localhost:5000/${destination.image}`)} */}
                       <Link href={'/coming-soon'}>
                         <Image 
-                            overrideSrc={`https://mds-backend-bweu.onrender.com/${destination.image || ''}`}
+                            overrideSrc={`${process.env.NEXT_PUBLIC_IMAGE_URL}${destination.image || ''}`}
                             className="h-full w-full rounded-2xl object-cover"
                             alt={destination.name}
                             fill

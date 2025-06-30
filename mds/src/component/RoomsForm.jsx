@@ -656,13 +656,13 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
         {firstImage.type === 'image' ? (
           <CardMedia
             component="img"
-            image={`http://localhost:5000/${firstImage.url}`}
+            image={`${process.env.NEXT_PUBLIC_IMAGE_URL}${firstImage.url}`}
             alt={firstImage.filename}
             sx={{ width: '100%', height: '70%', objectFit: 'cover' }}
           />
         ) : (
           <video
-            src={`http://localhost:5000/${firstImage.url}`}
+            src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${firstImage.url}`}
             style={{ width: '100%', height: '70%', objectFit: 'cover' }}
             muted loop autoPlay preload="metadata"
           />
@@ -799,13 +799,13 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
                     {mediaItem.type === 'image' ? (
                       <CardMedia
                         component="img"
-                        image={`http://localhost:5000/${mediaItem.url}`}
+                        image={`${process.env.NEXT_PUBLIC_IMAGE_URL}${mediaItem.url}`}
                         alt={mediaItem.filename}
                         sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                     ) : (
                       <video
-                        src={`http://localhost:5000/${mediaItem.url}`}
+                        src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${mediaItem.url}`}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         muted loop autoPlay preload="metadata"
                       />
@@ -995,7 +995,7 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
                 <Grid item xs={12} md={6}>
                   {editingMedia.type === 'image' ? (
                     <img
-                      src={`http://localhost:5000/${editingMedia.url}`}
+                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${editingMedia.url}`}
                       alt={editingMedia.filename}
                       style={{
                         width: '100%',
@@ -1006,7 +1006,7 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
                     />
                   ) : (
                     <video
-                      src={`http://localhost:5000/${editingMedia.url}`}
+                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${editingMedia.url}`}
                       style={{
                         width: '100%',
                         height: '400px',

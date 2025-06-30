@@ -32,7 +32,7 @@ export default function page() {
                 transition={{ duration: 0.2 }}
               >
                 <Image
-				  src={`http://localhost:5000/uploads/cities/city-new-1746440840214.jpg`}
+				  src={`${process.env.NEXT_PUBLIC_IMAGE_URL}uploads/cities/city-new-1746440840214.jpg`}
                   alt="Main view" 
                   layout="fill" 
                   objectFit="cover"
@@ -48,7 +48,7 @@ export default function page() {
                   transition={{ duration: 0.2 }}
                 >
                   <Image 
-				  src={`http://localhost:5000/uploads\cities\city-new-1746440840214.jpg`}
+				  src={`${process.env.NEXT_PUBLIC_IMAGE_URL}uploads\cities\city-new-1746440840214.jpg`}
                     alt="Tent interior" 
                     layout="fill" 
                     objectFit="cover"
@@ -61,7 +61,7 @@ export default function page() {
                   transition={{ duration: 0.2 }}
                 >
                   <Image 
-				  src={`http://localhost:5000/uploads\cities\city-new-1746440840214.jpg`}
+				  src={`${process.env.NEXT_PUBLIC_IMAGE_URL}uploads\cities\city-new-1746440840214.jpg`}
                     alt="Bedroom" 
                     layout="fill" 
                     objectFit="cover"
@@ -75,7 +75,7 @@ export default function page() {
                   transition={{ duration: 0.2 }}
                 >
                   <Image 
-				  src={`http://localhost:5000/uploads\cities\city-new-1746440840214.jpg`}
+				  src={`${process.env.NEXT_PUBLIC_IMAGE_URL}uploads\cities\city-new-1746440840214.jpg`}
                     alt="Living room" 
                     layout="fill" 
                     objectFit="cover"
@@ -87,7 +87,7 @@ export default function page() {
                   transition={{ duration: 0.2 }}
                 >
                   <Image 
-				  src={`http://localhost:5000/uploads\cities\city-new-1746440840214.jpg`}
+				  src={`${process.env.NEXT_PUBLIC_IMAGE_URL}uploads\cities\city-new-1746440840214.jpg`}
                     alt="Bathroom" 
                     layout="fill" 
                     objectFit="cover"
@@ -313,7 +313,7 @@ export default function page() {
                 transition={{ duration: 0.2 }}
               >
                 <Image 
-				  src={`http://localhost:5000/uploads/cities/city-new-1746440840214.jpg`}
+				  src={`${process.env.NEXT_PUBLIC_IMAGE_URL}uploads/cities/city-new-1746440840214.jpg`}
                   alt={`Gallery image ${i+1}`} 
                   layout="fill" 
                   objectFit="cover"
