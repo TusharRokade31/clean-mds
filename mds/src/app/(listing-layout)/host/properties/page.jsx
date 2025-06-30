@@ -2,47 +2,59 @@
 
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from 'react-redux'
-import { getAllProperties, getDraftProperties, deleteProperty, resetCurrentProperty } from '@/redux/features/property/propertySlice'
+import { getAllProperties, getDraftProperties, deleteProperty, resetCurrentProperty, reviewProperty } from '@/redux/features/property/propertySlice'
 import { useRouter } from 'next/navigation'
 import Link from "next/link"
-import { Edit, Trash2, Eye, Plus } from "lucide-react"
+import { Edit, Trash2, Eye, Plus, Check, X } from "lucide-react"
 
 export default function Listing() {
   const dispatch = useDispatch()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('published')
-  const [deleteLoading, setDeleteLoading] = useState(null) // Track which property is being deleted
+  const [deleteLoading, setDeleteLoading] = useState(null)
+  const [reviewLoading, setReviewLoading] = useState(null)
+  const [showReviewPopup, setShowReviewPopup] = useState(false)
+  const [selectedProperty, setSelectedProperty] = useState(null)
+  const [reviewAction, setReviewAction] = useState('')
   
-  const { properties, draftProperties, isLoading, error } = useSelector((state) => ({
+  const { properties, draftProperties, isLoading, error, user } = useSelector((state) => ({
     properties: state.property.properties,
     draftProperties: state.property.draftProperties,
     isLoading: state.property.isLoading,
-    error: state.property.error
+    error: state.property.error,
+    user: state.auth.user
   }))
+
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin'
 
   useEffect(() => {
     dispatch(getAllProperties())
     dispatch(getDraftProperties())
   }, [dispatch])
 
+  // Separate properties by status
+  const publishedProperties = properties?.filter(p => p.status === 'published') || []
+  const draftProperties_filtered = draftProperties?.filter(p => p.status === 'draft') || []
+  const pendingProperties = draftProperties?.filter(p => p.status === 'pending') || []
+  const rejectedProperties = draftProperties?.filter(p => p.status === 'rejected') || []
+
   const handleCreateNew = () => {
-    // Clear any existing property state before navigating
     dispatch(resetCurrentProperty());
     sessionStorage.setItem('createNew', 'true');
     router.push('/host/onboarding/new');
   };
 
-  const handleDelete = async (propertyId) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
       try {
-        setDeleteLoading(propertyId)
-        await dispatch(deleteProperty(propertyId)).unwrap()
+        setDeleteLoading(id)
+        const result = await dispatch(deleteProperty(id)).unwrap()
+        console.log(result)
         
-        // Refresh the property lists after successful deletion
         dispatch(getAllProperties())
         dispatch(getDraftProperties())
         
-        // Show success message (you can replace this with your preferred notification system)
         alert('Property deleted successfully!')
       } catch (error) {
         console.error('Delete failed:', error)
@@ -51,6 +63,45 @@ export default function Listing() {
         setDeleteLoading(null)
       }
     }
+  }
+
+  const handleReviewClick = (property, action) => {
+    setSelectedProperty(property)
+    setReviewAction(action)
+    setShowReviewPopup(true)
+  }
+
+  const handleReviewConfirm = async () => {
+    if (!selectedProperty || !reviewAction) return
+
+    try {
+      setReviewLoading(selectedProperty._id)
+      const newStatus = reviewAction === 'approve' ? 'published' : 'rejected'
+      
+      await dispatch(reviewProperty({ 
+        id: selectedProperty._id, 
+        status: { status: newStatus } 
+      })).unwrap()
+      
+      dispatch(getAllProperties())
+      dispatch(getDraftProperties())
+      
+      alert(`Property ${reviewAction === 'approve' ? 'approved' : 'rejected'} successfully!`)
+    } catch (error) {
+      console.error('Review failed:', error)
+      alert(`Failed to ${reviewAction} property: ` + (error.message || 'Unknown error'))
+    } finally {
+      setReviewLoading(null)
+      setShowReviewPopup(false)
+      setSelectedProperty(null)
+      setReviewAction('')
+    }
+  }
+
+  const handleReviewCancel = () => {
+    setShowReviewPopup(false)
+    setSelectedProperty(null)
+    setReviewAction('')
   }
 
   const renderPropertyTable = (propertyList) => (
@@ -77,6 +128,7 @@ export default function Listing() {
                 <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                   property.status === 'published' ? 'bg-green-100 text-green-800' : 
                   property.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 
+                  property.status === 'pending' ? 'bg-orange-100 text-orange-800' :
                   property.status === 'rejected' ? 'bg-red-100 text-red-800' :
                   'bg-gray-100 text-gray-800'
                 }`}>
@@ -91,6 +143,37 @@ export default function Listing() {
                 >
                   <Edit className="h-5 w-5" />
                 </Link>
+                
+                {/* Admin Review Actions - Only for pending properties */}
+                {isAdmin && property.status === 'pending' && (
+                  <>
+                    <button 
+                      className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Approve Property"
+                      onClick={() => handleReviewClick(property, 'approve')}
+                      disabled={reviewLoading === property._id}
+                    >
+                      {reviewLoading === property._id ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-green-600"></div>
+                      ) : (
+                        <Check className="h-5 w-5" />
+                      )}
+                    </button>
+                    <button 
+                      className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Reject Property"
+                      onClick={() => handleReviewClick(property, 'reject')}
+                      disabled={reviewLoading === property._id}
+                    >
+                      {reviewLoading === property._id ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
+                      ) : (
+                        <X className="h-5 w-5" />
+                      )}
+                    </button>
+                  </>
+                )}
+                
                 <button 
                   className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Delete Property"
@@ -111,12 +194,52 @@ export default function Listing() {
     </div>
   )
 
+  // Updated tabs with proper counts
+  const tabs = [
+    { key: 'published', label: 'Published', count: publishedProperties.length },
+    { key: 'draft', label: 'Draft', count: draftProperties_filtered.length },
+    { key: 'pending', label: 'Pending Review', count: pendingProperties.length },
+    { key: 'rejected', label: 'Rejected', count: rejectedProperties.length }
+  ]
+
+  // Filter tabs based on user role
+  const availableTabs = isAdmin ? tabs : tabs.filter(tab => tab.key !== 'pending')
+
+  const getCurrentProperties = () => {
+    switch (activeTab) {
+      case 'published':
+        return publishedProperties
+      case 'draft':
+        return draftProperties_filtered
+      case 'pending':
+        return pendingProperties
+      case 'rejected':
+        return rejectedProperties
+      default:
+        return []
+    }
+  }
+
+  const getEmptyMessage = () => {
+    switch (activeTab) {
+      case 'published':
+        return 'No published properties found.'
+      case 'draft':
+        return 'No draft properties found.'
+      case 'pending':
+        return 'No properties pending review.'
+      case 'rejected':
+        return 'No rejected properties found.'
+      default:
+        return 'No properties found.'
+    }
+  }
+
   return (
     <>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Property Management</h1>
         <div className="mt-4 sm:mt-0 flex gap-2">
-          {/* Create New Property Button */}
           <Link 
             href="/host/onboarding/new"
             className="inline-flex items-center gap-2 rounded-md bg-[#1035ac] px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
@@ -128,19 +251,20 @@ export default function Listing() {
         </div>
       </div>
 
-      <div className="mb-4 flex space-x-2">
-        <button 
-          className={`rounded-md px-3 py-1.5 text-sm ${activeTab === 'published' ? 'bg-[#1035ac] text-white' : 'bg-gray-100'}`}
-          onClick={() => setActiveTab('published')}
-        >
-          Published Properties ({properties?.length || 0})
-        </button>
-        <button 
-          className={`rounded-md px-3 py-1.5 text-sm ${activeTab === 'draft' ? 'bg-[#1035ac] text-white' : 'bg-gray-100'}`}
-          onClick={() => setActiveTab('draft')}
-        >
-          Draft Properties ({draftProperties?.length || 0})
-        </button>
+      <div className="mb-4 flex space-x-2 flex-wrap">
+        {availableTabs.map(tab => (
+          <button 
+            key={tab.key}
+            className={`rounded-md px-3 py-1.5 text-sm mb-2 ${
+              activeTab === tab.key 
+                ? 'bg-[#1035ac] text-white' 
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label} ({tab.count})
+          </button>
+        ))}
       </div>
 
       <div className="rounded-lg border bg-white p-4 shadow-sm lg:p-6">
@@ -150,16 +274,12 @@ export default function Listing() {
           </div>
         ) : error ? (
           <p className="text-red-500">Error: {error}</p>
-        ) : activeTab === 'published' ? (
-          properties?.length > 0 ? renderPropertyTable(properties) : (
-            <div className="text-center text-gray-500 py-8">
-              <p>No published properties found.</p>
-            </div>
-          )
+        ) : getCurrentProperties().length > 0 ? (
+          renderPropertyTable(getCurrentProperties())
         ) : (
-          draftProperties?.length > 0 ? renderPropertyTable(draftProperties) : (
-            <div className="text-center text-gray-500 py-8">
-              <p>No draft properties found.</p>
+          <div className="text-center text-gray-500 py-8">
+            <p>{getEmptyMessage()}</p>
+            {activeTab === 'draft' && (
               <Link 
                 href="/host/onboarding"
                 className="inline-flex items-center gap-2 mt-4 rounded-md bg-[#1035ac] px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
@@ -167,10 +287,47 @@ export default function Listing() {
                 <Plus className="h-4 w-4" />
                 Create Your First Property
               </Link>
-            </div>
-          )
+            )}
+          </div>
         )}
       </div>
+
+      {/* Review Confirmation Popup */}
+      {showReviewPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">
+              {reviewAction === 'approve' ? 'Approve Property' : 'Reject Property'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to {reviewAction} the property "{selectedProperty?.placeName}"?
+              {reviewAction === 'reject' && ' This will move it to rejected status.'}
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleReviewCancel}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                disabled={reviewLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReviewConfirm}
+                className={`px-4 py-2 text-white rounded-md disabled:opacity-50 ${
+                  reviewAction === 'approve' 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
+                disabled={reviewLoading}
+              >
+                {reviewLoading ? 'Processing...' : 
+                  (reviewAction === 'approve' ? 'Approve' : 'Reject')
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
