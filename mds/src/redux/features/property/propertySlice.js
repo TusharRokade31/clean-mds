@@ -1047,6 +1047,21 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
 
     });
 
+
+     // Get featured properties
+    builder.addCase(reviewProperty.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(reviewProperty.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentProperty = action.payload;
+    });
+    builder.addCase(reviewProperty.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
     
 
     // Get properties by state
@@ -1110,6 +1125,8 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
+
+    
 
   },
 });
