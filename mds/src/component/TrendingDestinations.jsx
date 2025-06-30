@@ -39,6 +39,8 @@ const TrendingDestinations = () => {
     <section className="max-w-7xl mx-auto px-4 py-8">
       <h2 className="text-3xl font-semibold md:text-4xl text-gray-900 mb-2">Trending Destinations</h2>
       <p className="text-lg text-gray-600 mb-6">Top Sacred Destinations Loved by Devotees</p>
+
+      
       
       <div className="relative">
       {isLoading ? (
