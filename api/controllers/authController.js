@@ -58,7 +58,7 @@ export const login = asyncHandler(async (req, res, next) => {
 // @route   GET /api/auth/me
 // @access  Private
 export const getMe = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
+  const user = await User.findById(req.user._id);
   
   res.status(200).json({
     success: true,

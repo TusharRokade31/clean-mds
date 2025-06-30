@@ -25,7 +25,7 @@ function TabPanel({ children, value, index, ...other }) {
   );
 }
 
-export default function AmenitiesForm({ formData, amenityCategories, onChange, errors, onSave }) {
+export default function AmenitiesForm({ formData, amenityCategories, onChange, errors, onSave, mandatoryErrors  }) {
   const [selectedTab, setSelectedTab] = useState(0);
   
   const handleTabChange = (event, newValue) => {

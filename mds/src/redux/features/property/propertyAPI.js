@@ -3,8 +3,8 @@ import axiosInstance from '../../../services/axios.config';
 
 export const propertyAPI = {
   // Initialize a new property
-  initializeProperty: async () => {
-    const response = await axiosInstance.post('/properties');
+  initializeProperty: async (forceNew) => {
+    const response = await axiosInstance.post('/properties', {forceNew} );
     return response.data;
   },
 

@@ -24,8 +24,8 @@ export const getAllProperties = async (req, res) => {
     let query = {};
     
     // If not admin, only show user's properties
-    if (req.user.role !== 'admin') {
-      query.host = req.user.id;
+    if (req.user.role !== 'admin') {  
+      query.owner = req.user._id;
     }
     
     const properties = await Property.find(query);
@@ -50,7 +50,7 @@ export const getDraftProperties = async (req, res) => {
 
   
     if (req.user.role !== 'admin') {
-      query.host = req.user.id;  
+      query.owner = req.user._id;  
     }
     
     const draftProperties = await Property.find(query);
@@ -81,7 +81,7 @@ export const getProperty = async (req, res) => {
     }
     
     // Check if user owns the property or is admin
-    if (property.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (property.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to access this property'
@@ -100,25 +100,43 @@ export const getProperty = async (req, res) => {
   }
 };
 
-
+ 
 // Initialize a new property for multistep form
 export const initializeProperty = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
+    const { forceNew } = req.body; // Add this parameter
 
-    // Check for existing draft
-    const existingDraft = await Property.findOne({ 
-      owner: userId, 
-      'formProgress.formCompleted': false 
-    });
+    // If not forcing new, check for recent draft creation (within last 5 seconds)
+    if (!forceNew) {
+      const recentDraft = await Property.findOne({ 
+        owner: userId, 
+        'formProgress.formCompleted': false,
+        createdAt: { $gte: new Date(Date.now() - 5000) } // 5 seconds ago
+      });
 
-    // if (existingDraft) {
-    //   return res.status(200).json({
-    //     success: true,
-    //     message: 'Draft property found',
-    //     property: existingDraft
-    //   });
-    // }
+      if (recentDraft) {
+        return res.status(200).json({
+          success: true,
+          message: 'Recent draft found',
+          property: recentDraft
+        });
+      }
+
+      // Check for any existing draft
+      const existingDraft = await Property.findOne({ 
+        owner: userId, 
+        'formProgress.formCompleted': false 
+      });
+
+      if (existingDraft) {
+        return res.status(200).json({
+          success: true,
+          message: 'Draft property found',
+          property: existingDraft
+        });
+      }
+    }
 
     // Create a new draft with required fields initialized
     const newProperty = await Property.create({
@@ -129,10 +147,10 @@ export const initializeProperty = async (req, res) => {
       propertyBuilt: '2024',
       bookingSince: '2024-01-01',
       rentalForm: 'Entire place',
-      email:"example@gmail.com",
-      mobileNumber:'0123456789',
+      email: "example@gmail.com",
+      mobileNumber: '0123456789',
       location: {
-        houseName:'House/Building Name',
+        houseName: 'House/Building Name',
         country: 'India',
         street: 'Draft Street',
         city: 'Draft City',
@@ -151,7 +169,7 @@ export const initializeProperty = async (req, res) => {
         security: new Map(),
         safety: new Map()
       },
-      rooms: [], // start with an empty array
+      rooms: [],
       formProgress: {
         step1Completed: false,
         step2Completed: false,
@@ -191,7 +209,7 @@ export const sendEmailOTP = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -203,7 +221,7 @@ export const sendEmailOTP = async (req, res) => {
     
     // Save OTP to database
     await OTP.findOneAndUpdate(
-      { email, propertyId, userId: req.user.id },
+      { email, propertyId, userId: req.user._id },
       { 
         otp,
         verified: false,
@@ -243,7 +261,7 @@ export const verifyEmailOTP = async (req, res) => {
     const otpRecord = await OTP.findOne({ 
       email, 
       propertyId, 
-      userId: req.user.id,
+      userId: req.user._id,
       verified: false
     });
 
@@ -269,7 +287,7 @@ export const verifyEmailOTP = async (req, res) => {
     // UPDATE: Mark email as verified in the property
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
 
     if (property) {
@@ -295,7 +313,7 @@ export const checkEmailVerificationStatus = async (req, res) => {
     
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -326,7 +344,7 @@ export const saveBasicInfo = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -339,7 +357,7 @@ export const saveBasicInfo = async (req, res) => {
       const otpRecord = await OTP.findOne({ 
         email, 
         propertyId, 
-        userId: req.user.id,
+        userId: req.user._id,
         verified: true
       });
 
@@ -404,7 +422,7 @@ export const saveLocation = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -476,7 +494,7 @@ export const saveAmenities = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -518,7 +536,7 @@ export const addRoom = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -558,7 +576,7 @@ export const updateRoom = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -601,7 +619,7 @@ export const deleteRoom = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -639,7 +657,7 @@ export const completeRoomsStep = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -686,7 +704,7 @@ export const uploadPropertyMedia = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -746,7 +764,7 @@ export const updateMediaItem = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -834,7 +852,7 @@ export const validatePropertyMedia = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -882,7 +900,7 @@ export const deleteMediaItem = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -954,7 +972,7 @@ export const uploadRoomMedia = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -1028,7 +1046,7 @@ export const updateRoomMediaItem = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -1130,7 +1148,7 @@ export const deleteRoomMediaItem = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -1300,7 +1318,7 @@ export const completeMediaStep = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -1348,7 +1366,7 @@ export const completePropertyListing = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user.id
+      owner: req.user._id
     });
     
     if (!property) {
@@ -1443,7 +1461,7 @@ export const deleteProperty = async (req, res) => {
     }
     
     // Check ownership
-    if (property.host.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (property.host.toString() !== req.user._id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to delete this property'
