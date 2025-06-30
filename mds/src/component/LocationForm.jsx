@@ -16,7 +16,18 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
   const autocompleteRef = useRef(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   
+  // Add caching states
+  const [geocodeCache, setGeocodeCache] = useState(new Map());
+  const [reverseGeocodeCache, setReverseGeocodeCache] = useState(new Map());
+  const [lastGeocodedAddress, setLastGeocodedAddress] = useState('');
+  
   const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+  // Helper function to create cache key for coordinates
+  const createCoordKey = (lat, lng) => `${lat.toFixed(6)},${lng.toFixed(6)}`;
+
+  // Helper function to create cache key for address
+  const createAddressKey = (address) => address.toLowerCase().trim();
 
   const initializeMap = (lat = 19.238068, lng = 72.852251) => {
     if (mapRef.current && window.google && isMapLoaded) {
@@ -49,6 +60,24 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
   const reverseGeocode = (lat, lng) => {
     if (!window.google) return;
     
+    const coordKey = createCoordKey(lat, lng);
+    
+    // Check cache first
+    if (reverseGeocodeCache.has(coordKey)) {
+      console.log('Using cached reverse geocode result for:', coordKey);
+      const cachedResult = reverseGeocodeCache.get(coordKey);
+      
+      // Update form with cached data
+      onChange('street', cachedResult.street);
+      onChange('city', cachedResult.city);
+      onChange('state', cachedResult.state);
+      onChange('country', cachedResult.country);
+      onChange('postalCode', cachedResult.postalCode);
+      onChange('coordinates', { lat, lng });
+      return;
+    }
+    
+    console.log('Making reverse geocode API call for:', coordKey);
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ location: { lat, lng } }, (results, status) => {
       if (status === 'OK' && results[0]) {
@@ -80,11 +109,24 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
 
         const street = `${streetNumber} ${route}`.trim();
         
-        onChange('street', street || locality);
-        onChange('city', locality);
-        onChange('state', administrativeAreaLevel1);
-        onChange('country', country);
-        onChange('postalCode', postalCode);
+        // Cache the result
+        const cacheData = {
+          street: street || locality,
+          city: locality,
+          state: administrativeAreaLevel1,
+          country: country,
+          postalCode: postalCode
+        };
+        
+        setReverseGeocodeCache(prev => new Map(prev.set(coordKey, cacheData)));
+        
+        // Update form
+        onChange('street', cacheData.street);
+        onChange('city', cacheData.city);
+        onChange('state', cacheData.state);
+        onChange('country', cacheData.country);
+        onChange('postalCode', cacheData.postalCode);
+        onChange('coordinates', { lat, lng });
       }
     });
   };
@@ -122,6 +164,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
         
         // Reverse geocode to get address
         reverseGeocode(latitude, longitude);
+        onChange('coordinates', { lat: latitude, lng: longitude });
         setIsGettingLocation(false);
       },
       (error) => {
@@ -190,52 +233,84 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
     }
   }, [isMapLoaded]);
 
-
+  // Enhanced geocoding with caching
   useEffect(() => {
-  // Function to geocode address and update map
-  const geocodeAndUpdateMap = () => {
-    if (!window.google || !map || !marker) return;
-    
-    // Build address string from form data
-    const addressParts = [
-      formData?.houseName,
-      formData?.street,
-      formData?.city,
-      formData?.state,
-      formData?.postalCode,
-      formData?.country
-    ].filter(part => part && part.trim() !== '');
-    
-    if (addressParts.length === 0) return;
-    
-    const fullAddress = addressParts.join(', ');
-    
-    const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ address: fullAddress }, (results, status) => {
-      if (status === 'OK' && results[0]) {
-        const location = results[0].geometry.location;
-        const lat = location.lat();
-        const lng = location.lng();
+    // Function to geocode address and update map
+    const geocodeAndUpdateMap = () => {
+      if (!window.google || !map || !marker) return;
+      
+      // Build address string from form data
+      const addressParts = [
+        formData?.houseName,
+        formData?.street,
+        formData?.city,
+        formData?.state,
+        formData?.postalCode,
+        formData?.country
+      ].filter(part => part && part.trim() !== '');
+      
+      if (addressParts.length === 0) return;
+      
+      const fullAddress = addressParts.join(', ');
+      const addressKey = createAddressKey(fullAddress);
+      
+      // Check if this is the same address we just geocoded
+      if (lastGeocodedAddress === addressKey) {
+        console.log('Skipping geocoding - same address as last request');
+        return;
+      }
+      
+      // Check cache first
+      if (geocodeCache.has(addressKey)) {
+        console.log('Using cached geocode result for:', fullAddress);
+        const cachedCoords = geocodeCache.get(addressKey);
         
         // Update map center and marker position
-        map.setCenter({ lat, lng });
+        map.setCenter({ lat: cachedCoords.lat, lng: cachedCoords.lng });
         map.setZoom(16);
-        marker.setPosition({ lat, lng });
+        marker.setPosition({ lat: cachedCoords.lat, lng: cachedCoords.lng });
         
-        console.log('Map updated to:', lat, lng, 'for address:', fullAddress);
-      } else {
-        console.log('Geocoding failed:', status);
+        // Update coordinates in form data
+        onChange('coordinates', { lat: cachedCoords.lat, lng: cachedCoords.lng });
+        
+        setLastGeocodedAddress(addressKey);
+        return;
       }
-    });
-  };
+      
+      console.log('Making geocode API call for:', fullAddress);
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode({ address: fullAddress }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+          const location = results[0].geometry.location;
+          const lat = location.lat();
+          const lng = location.lng();
+          
+          // Cache the result
+          setGeocodeCache(prev => new Map(prev.set(addressKey, { lat, lng })));
+          setLastGeocodedAddress(addressKey);
+          
+          // Update map center and marker position
+          map.setCenter({ lat, lng });
+          map.setZoom(16);
+          marker.setPosition({ lat, lng });
+          
+          // Update coordinates in form data
+          onChange('coordinates', { lat, lng });
+          
+          console.log('Map updated to:', lat, lng, 'for address:', fullAddress);
+        } else {
+          console.log('Geocoding failed:', status);
+        }
+      });
+    };
 
-  // Debounce the geocoding to avoid too many API calls
-  const timeoutId = setTimeout(() => {
-    geocodeAndUpdateMap();
-  }, 1000); // Wait 1 second after user stops typing
+    // Debounce the geocoding to avoid too many API calls
+    const timeoutId = setTimeout(() => {
+      geocodeAndUpdateMap();
+    }, 1000); // Wait 1 second after user stops typing
 
-  return () => clearTimeout(timeoutId);
-}, [formData?.houseName, formData?.street, formData?.city, formData?.state, formData?.postalCode, formData?.country, map, marker]);
+    return () => clearTimeout(timeoutId);
+  }, [formData?.houseName, formData?.street, formData?.city, formData?.state, formData?.postalCode, formData?.country, map, marker, geocodeCache, lastGeocodedAddress]);
 
   const handlePlaceSelect = () => {
     const place = autocompleteRef.current.getPlace();
@@ -245,11 +320,14 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
       return;
     }
 
+    let lat = null;
+    let lng = null;
+
     // Update map if geometry is available
     if (place.geometry && map && marker) {
       const location = place.geometry.location;
-      const lat = location.lat();
-      const lng = location.lng();
+      lat = location.lat();
+      lng = location.lng();
       
       // Update map center and marker position
       map.setCenter({ lat, lng });
@@ -295,6 +373,16 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
     onChange('state', administrativeAreaLevel1);
     onChange('country', country);
     onChange('postalCode', postalCode);
+
+    if (lat !== null && lng !== null) {
+      onChange('coordinates', { lat, lng });
+      
+      // Cache the place selection result
+      const fullAddress = place.formatted_address || [street, locality, administrativeAreaLevel1, country, postalCode].filter(Boolean).join(', ');
+      const addressKey = createAddressKey(fullAddress);
+      setGeocodeCache(prev => new Map(prev.set(addressKey, { lat, lng })));
+      setLastGeocodedAddress(addressKey);
+    }
     
     // Clear the search input
     if (searchInputRef.current) {
@@ -315,7 +403,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
         'Maharashtra': ['Mumbai', 'Pune', 'Nagpur'],
         'Karnataka': ['Bangalore', 'Mysore'],
         'Tamil Nadu': ['Chennai', 'Coimbatore'],
-        'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur']
+        'Rajasthan': ['Jaipur', 'Jodhour', 'Udaipur']
       };
       
       setCities(stateCities[formData?.state] || []);
@@ -378,195 +466,195 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
           >
             {isGettingLocation ? 'Getting Location...' : 'Or Use My Current Location'}
           </Typography>
-           <Grid sx={{mt: 3}} container spacing={3}>
-        {/* Your existing form fields */}
-        <Grid item size={{xs:6}}>
-          <TextField
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#2e2e2e",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1976d2",
+          
+          <Grid sx={{mt: 3}} container spacing={3}>
+            {/* Your existing form fields */}
+            <Grid item size={{xs:6}}>
+              <TextField
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#2e2e2e",
+                    },
+                    "&.Mui-focused": {
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                    "& .MuiInputLabel-outlined": {
+                      color: "#2e2e2e",
+                      "&.Mui-focused": {
+                        color: "secondary.main",
+                      },
+                    },
                   },
-                },
-                "& .MuiInputLabel-outlined": {
-                  color: "#2e2e2e",
-                  "&.Mui-focused": {
-                    color: "secondary.main",
+                }}
+                fullWidth
+                label="House/Building/Apartment No."
+                value={formData?.houseName || ''}
+                onChange={(e) => onChange('houseName', e.target.value)}
+                error={!!errors?.houseName}
+                helperText={errors?.houseName}
+              />
+            </Grid>
+            
+            <Grid item size={{xs:6}}>
+              <TextField
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#2e2e2e",
+                    },
+                    "&.Mui-focused": {
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                    "& .MuiInputLabel-outlined": {
+                      color: "#2e2e2e",
+                      "&.Mui-focused": {
+                        color: "secondary.main",
+                      },
+                    },
                   },
-                },
-              },
-            }}
-            fullWidth
-            label="House/Building/Apartment No."
-            value={formData?.houseName || ''}
-            onChange={(e) => onChange('houseName', e.target.value)}
-            error={!!errors?.houseName}
-            helperText={errors?.houseName}
-          />
-        </Grid>
-        
-        <Grid item size={{xs:6}}>
-          <TextField
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#2e2e2e",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1976d2",
+                }}
+                fullWidth
+                label="Locality/Area/Street/Sector"
+                value={formData?.street || ''}
+                onChange={(e) => onChange('street', e.target.value)}
+                error={!!errors?.street}
+                helperText={errors?.street}
+                InputProps={{
+                  readOnly: false,
+                }}
+              />
+            </Grid>
+            
+            <Grid item size={{xs:6}}>
+              <TextField
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#2e2e2e",
+                    },
+                    "&.Mui-focused": {
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                    "& .MuiInputLabel-outlined": {
+                      color: "#2e2e2e",
+                      "&.Mui-focused": {
+                        color: "secondary.main",
+                      },
+                    },
                   },
-                },
-                "& .MuiInputLabel-outlined": {
-                  color: "#2e2e2e",
-                  "&.Mui-focused": {
-                    color: "secondary.main",
+                }}
+                fullWidth
+                label="Pincode"
+                value={formData?.postalCode || ''}
+                onChange={(e) => onChange('postalCode', e.target.value)}
+                error={!!errors?.postalCode}
+                helperText={errors?.postalCode}
+              />
+            </Grid>
+            
+            <Grid item size={{xs:6}}>
+              <TextField
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#2e2e2e",
+                    },
+                    "&.Mui-focused": {
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                    "& .MuiInputLabel-outlined": {
+                      color: "#2e2e2e",
+                      "&.Mui-focused": {
+                        color: "secondary.main",
+                      },
+                    },
                   },
-                },
-              },
-            }}
-            fullWidth
-            label="Locality/Area/Street/Sector"
-            value={formData?.street || ''}
-            onChange={(e) => onChange('street', e.target.value)}
-            error={!!errors?.street}
-            helperText={errors?.street}
-            InputProps={{
-              readOnly: false,
-            }}
-          />
-        </Grid>
-        
-        <Grid item size={{xs:6}}>
-          <TextField
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#2e2e2e",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1976d2",
-                  },
-                },
-                "& .MuiInputLabel-outlined": {
-                  color: "#2e2e2e",
-                  "&.Mui-focused": {
-                    color: "secondary.main",
-                  },
-                },
-              },
-            }}
-            fullWidth
-            label="Pincode"
-            value={formData?.postalCode || ''}
-            onChange={(e) => onChange('postalCode', e.target.value)}
-            error={!!errors?.postalCode}
-            helperText={errors?.postalCode}
+                }}
+                fullWidth
+                label="Country"
+                value={formData?.country || ''}
+                onChange={(e) => onChange('country', e.target.value)}
+                error={!!errors?.country}
+                helperText={errors?.country}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
 
-          />
-        </Grid>
-        
-        <Grid item size={{xs:6}}>
-          <TextField
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#2e2e2e",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1976d2",
+            <Grid item size={{xs:6}}>
+              <TextField
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#2e2e2e",
+                    },
+                    "&.Mui-focused": {
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                    "& .MuiInputLabel-outlined": {
+                      color: "#2e2e2e",
+                      "&.Mui-focused": {
+                        color: "secondary.main",
+                      },
+                    },
                   },
-                },
-                "& .MuiInputLabel-outlined": {
-                  color: "#2e2e2e",
-                  "&.Mui-focused": {
-                    color: "secondary.main",
+                }}
+                fullWidth
+                label="State"
+                value={formData?.state || ''}
+                onChange={(e) => onChange('state', e.target.value)}
+                error={!!errors?.state}
+                helperText={errors?.state}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
+            
+            <Grid item size={{xs:6}}>
+              <TextField
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#2e2e2e",
+                    },
+                    "&.Mui-focused": {
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                    "& .MuiInputLabel-outlined": {
+                      color: "#2e2e2e",
+                      "&.Mui-focused": {
+                        color: "secondary.main",
+                      },
+                    },
                   },
-                },
-              },
-            }}
-            fullWidth
-            label="Country"
-            value={formData?.country || ''}
-            onChange={(e) => onChange('country', e.target.value)}
-            error={!!errors?.country}
-            helperText={errors?.country}
-            InputProps={{
-              readOnly: true,
-            }}
-          />
-        </Grid>
-
-        <Grid item size={{xs:6}}>
-          <TextField
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#2e2e2e",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1976d2",
-                  },
-                },
-                "& .MuiInputLabel-outlined": {
-                  color: "#2e2e2e",
-                  "&.Mui-focused": {
-                    color: "secondary.main",
-                  },
-                },
-              },
-            }}
-            fullWidth
-            label="State"
-            value={formData?.state || ''}
-            onChange={(e) => onChange('state', e.target.value)}
-            error={!!errors?.state}
-            helperText={errors?.state}
-            InputProps={{
-              readOnly: true,
-            }}
-          />
-        </Grid>
-        
-        <Grid item size={{xs:6}}>
-          <TextField
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#2e2e2e",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1976d2",
-                  },
-                },
-                "& .MuiInputLabel-outlined": {
-                  color: "#2e2e2e",
-                  "&.Mui-focused": {
-                    color: "secondary.main",
-                  },
-                },
-              },
-            }}
-            fullWidth
-            label="City"
-            value={formData?.city || ''}
-            onChange={(e) => onChange('city', e.target.value)}
-            error={!!errors?.city}
-            helperText={errors?.city}
-            InputProps={{
-              readOnly: true,
-            }}
-          />
-        </Grid>
-      </Grid>
+                }}
+                fullWidth
+                label="City"
+                value={formData?.city || ''}
+                onChange={(e) => onChange('city', e.target.value)}
+                error={!!errors?.city}
+                helperText={errors?.city}
+                InputProps={{
+                  readOnly: true,
+                }}
+              />
+            </Grid>
+          </Grid>
         </Grid>
         <Grid item size={{xs:6}}>
           <div
@@ -581,9 +669,6 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
           />
         </Grid>
       </Grid>
- 
-      {/* Rest of your form fields remain the same */}
-     
     </div>
   );
 }

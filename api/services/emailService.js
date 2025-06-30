@@ -1,5 +1,7 @@
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
+import dotenv from "dotenv";
+dotenv.config();
 
 // Configure your email transporter - CORRECTED METHOD NAME
 const transporter = nodemailer.createTransport({  // Changed from createTransporter
@@ -8,14 +10,11 @@ const transporter = nodemailer.createTransport({  // Changed from createTranspor
   port: 587,
   secure: false,
   auth: {
-    user: process.env.EMAIL_USER || 'rokadetushar122@gmail.com',
-    pass: process.env.EMAIL_PASSWORD || 'soee kclp vwns awgk' // Use app password for Gmail
+    user: process.env.EMAIL_USER ,
+    pass: process.env.EMAIL_PASSWORD // Use app password for Gmail
   }
 });
 
-
-console.log('EMAIL_USER:', process.env.EMAIL_USER);
-console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? 'Set' : 'Not set');
 
 // Generate 6-digit OTP
 export const generateOTP = () => {

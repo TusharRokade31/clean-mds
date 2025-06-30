@@ -22,9 +22,9 @@ const initialState = {
 // Async thunks
 export const initializeProperty = createAsyncThunk(
   'property/initializeProperty',
-  async (_, { rejectWithValue }) => {
+  async (forceNew, { rejectWithValue }) => {
     try {
-      const response = await propertyAPI.initializeProperty();
+      const response = await propertyAPI.initializeProperty(forceNew);
       return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to initialize property');

@@ -7,7 +7,7 @@ import ErrorResponse from '../utils/errorResponse.js';
 // @route   GET /api/users/me
 // @access  Private
 export const getMe = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
+  const user = await User.findById(req.user._id);
   
   res.status(200).json({
     success: true,
@@ -32,7 +32,7 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
   if (username) updateFields.username = username;
   
   const user = await User.findByIdAndUpdate(
-    req.user.id, 
+    req.user._id, 
     updateFields, 
     { new: true, runValidators: true }
   );
