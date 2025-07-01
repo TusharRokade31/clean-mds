@@ -1460,14 +1460,22 @@ export const deleteProperty = async (req, res) => {
       });
     }
     
-    // Check ownership
-    if (property.owner.toString() !== req.user._id && req.user.role !== 'admin') {
+    // Check if property is published and user is not an admin
+    if (property.status === 'published' && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Only admins can delete published properties'
+      });
+    }
+
+    // Check ownership if property is not published
+    if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to delete this property'
       });
     }
-    
+
     // Delete associated images
     if (property?.images?.cover) {
       fs.unlinkSync(property?.images?.cover);
@@ -1492,6 +1500,7 @@ export const deleteProperty = async (req, res) => {
     });
   }
 };
+
 
 // Get properties by state
 export const getPropertiesByState = async (req, res) => {

@@ -25,6 +25,9 @@ export default function Listing() {
     user: state.auth.user
   }))
 
+
+  console.log(properties)
+
   // Check if user is admin
   const isAdmin = user?.role === 'admin'
 
@@ -35,9 +38,9 @@ export default function Listing() {
 
   // Separate properties by status
   const publishedProperties = properties?.filter(p => p.status === 'published') || []
-  const draftProperties_filtered = draftProperties?.filter(p => p.status === 'draft') || []
-  const pendingProperties = draftProperties?.filter(p => p.status === 'pending') || []
-  const rejectedProperties = draftProperties?.filter(p => p.status === 'rejected') || []
+  const draftProperties_filtered = properties?.filter(p => p.status === 'draft') || []
+  const pendingProperties = properties?.filter(p => p.status === 'pending') || []
+  const rejectedProperties = properties?.filter(p => p.status === 'rejected') || []
 
   const handleCreateNew = () => {
     dispatch(resetCurrentProperty());
@@ -174,18 +177,20 @@ export default function Listing() {
                   </>
                 )}
                 
-                <button 
-                  className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Delete Property"
-                  onClick={() => handleDelete(property._id)}
-                  disabled={deleteLoading === property._id}
-                >
-                  {deleteLoading === property._id ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
-                  ) : (
-                    <Trash2 className="h-5 w-5" />
-                  )}
-                </button>
+               {(isAdmin || property.status !== 'published') && (
+  <button 
+    className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+    title="Delete Property"
+    onClick={() => handleDelete(property._id)}
+    disabled={deleteLoading === property._id}
+  >
+    {deleteLoading === property._id ? (
+      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
+    ) : (
+      <Trash2 className="h-5 w-5" />
+    )}
+  </button>
+)}
               </td>
             </tr>
           ))}
@@ -203,7 +208,7 @@ export default function Listing() {
   ]
 
   // Filter tabs based on user role
-  const availableTabs = isAdmin ? tabs : tabs.filter(tab => tab.key !== 'pending')
+  const availableTabs =  tabs
 
   const getCurrentProperties = () => {
     switch (activeTab) {
