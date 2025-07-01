@@ -34,6 +34,7 @@ import MediaForm from "@/component/MediaForm";
 import RoomMediaForm from "@/component/RoomMediaForm";
 import PoliciesFrom from "@/component/PoliciesFrom";
 import FinanceLegalForm from "@/component/FinanceLegalForm";
+import Link from "next/link";
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -816,9 +817,13 @@ const validateMandatoryAmenities = () => {
           </div>
         </DialogContent>
         <DialogActions>
+           <Link href="/host"><Button variant="outlined">
+            Back
+          </Button></Link>
           <Button onClick={handleCreateNew} variant="contained">
             Create New Listing
           </Button>
+         
         </DialogActions>
       </Dialog>
 
