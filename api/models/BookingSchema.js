@@ -55,7 +55,6 @@ const BookingSchema = new Schema({
   bookingId: {
     type: String,
     unique: true,
-    required: true
   },
   
   // Property and Room References

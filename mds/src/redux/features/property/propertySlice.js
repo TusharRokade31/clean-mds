@@ -57,18 +57,6 @@ export const getDraftProperties = createAsyncThunk(
 );
 
 
-export const getUserProperties = createAsyncThunk(
-  'property/getUserProperties',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await propertyAPI.getUserProperties();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user properties');
-    }
-  }
-);
-
 export const getProperty = createAsyncThunk(
   'property/getProperty',
   async (id, { rejectWithValue }) => {
@@ -121,7 +109,6 @@ export const verifyEmailOTP = createAsyncThunk(
 );
 
 
-
 export const updateBasicInfo = createAsyncThunk(
   'property/updateBasicInfo',
   async ({ id, data }, { rejectWithValue }) => {
@@ -148,7 +135,6 @@ export const updateLocation = createAsyncThunk(
 );
 
 
-
 export const updateAmenities = createAsyncThunk(
   'property/updateAmenities',
   async ({ id, data }, { rejectWithValue }) => {
@@ -160,8 +146,6 @@ export const updateAmenities = createAsyncThunk(
     }
   }
 );
-
-
 
 
 export const addRooms = createAsyncThunk(
@@ -188,7 +172,6 @@ export const deleteRoom = createAsyncThunk(
     }
   }
 );
-
 
 
 export const updateRoom = createAsyncThunk(
@@ -240,7 +223,6 @@ export const deleteMediaItem = createAsyncThunk(
     }
   }
 );
-
 
 // Room Media Thunks
 export const uploadRoomMedia = createAsyncThunk(
@@ -315,7 +297,6 @@ export const completeMediaStep = createAsyncThunk(
   }
 );
 
-
 export const completeRoomsStep = createAsyncThunk(
   'property/completeRoomsStep',
   async (propertyId, { rejectWithValue }) => {
@@ -327,8 +308,6 @@ export const completeRoomsStep = createAsyncThunk(
     }
   }
 );
-
-
 
 export const deleteProperty = createAsyncThunk(
   'property/deleteProperty',
@@ -342,7 +321,6 @@ export const deleteProperty = createAsyncThunk(
   }
 );
 
-
 export const finalizeProperty = createAsyncThunk(
   'property/finalizeProperty',
   async (id, { rejectWithValue }) => {
@@ -354,7 +332,6 @@ export const finalizeProperty = createAsyncThunk(
     }
   }
 );
-
 
 export const reviewProperty = createAsyncThunk(
   'property/reviewProperty',
@@ -468,7 +445,6 @@ export const deleteCustomPolicy = createAsyncThunk(
   }
 );
 
-
 // Privacy Policy Thunks
 export const getPrivacyPolicyTemplate = createAsyncThunk(
   'property/getPrivacyPolicyTemplate',
@@ -518,8 +494,6 @@ export const updatePrivacyPolicySection = createAsyncThunk(
   }
 );
 
-
-
 export const completePrivacyPolicyStep = createAsyncThunk(
   'property/completePrivacyPolicyStep', 
   async (propertyId, { rejectWithValue }) => {
@@ -531,7 +505,6 @@ export const completePrivacyPolicyStep = createAsyncThunk(
     }
   }
 );
-
 
 // Finance Legal Thunks
 export const getFinanceLegal = createAsyncThunk(
@@ -582,7 +555,6 @@ export const uploadRegistrationDocument = createAsyncThunk(
   }
 );
 
-
 // Add to your propertySlice.js
 export const completeFinanceLegalStep = createAsyncThunk(
   'property/completeFinanceLegalStep',
@@ -595,8 +567,6 @@ export const completeFinanceLegalStep = createAsyncThunk(
     }
   }
 );
-
-
 
 // Property slice
 const propertySlice = createSlice({
@@ -652,20 +622,6 @@ const propertySlice = createSlice({
       state.draftProperties = action.payload;
     });
     builder.addCase(getDraftProperties.rejected, (state, action) => {
-      state.isLoading = false;
-      state.error = action.payload;
-    });
-
-    // Get user properties
-    builder.addCase(getUserProperties.pending, (state) => {
-      state.isLoading = true;
-      state.error = null;
-    });
-    builder.addCase(getUserProperties.fulfilled, (state, action) => {
-      state.isLoading = false;
-      state.userProperties = action.payload;
-    });
-    builder.addCase(getUserProperties.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
@@ -1044,10 +1000,7 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
-
     });
-
-
      // Get featured properties
     builder.addCase(reviewProperty.pending, (state) => {
       state.isLoading = true;
@@ -1061,8 +1014,6 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
-
-    
 
     // Get properties by state
     builder.addCase(getPropertiesByState.pending, (state) => {
@@ -1125,9 +1076,6 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
-
-    
-
   },
 });
 
