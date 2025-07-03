@@ -23,10 +23,10 @@ export default function HotelDashboardLayout({ children }) {
         }`}
       >
         <div className="flex h-16 items-center justify-between px-4 lg:px-6">
-          <div className="flex items-center gap-2 font-bold text-xl">
+         <Link href='/host'> <div className="flex items-center gap-2 font-bold text-xl">
             <Building className="h-6 w-6" />
             <span>MDS</span>
-          </div>
+          </div></Link>
           <button className="rounded-md p-1 hover:bg-blue-800 lg:hidden" onClick={() => setSidebarOpen(false)}>
             <X className="h-6 w-6" />
           </button>

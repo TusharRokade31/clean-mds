@@ -764,6 +764,7 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
                             sx={{
                               display: "flex",
                               height: 8,
+                              
                               borderRadius: 1,
                               overflow: "hidden",
                               backgroundColor: "#f0f0f0",
