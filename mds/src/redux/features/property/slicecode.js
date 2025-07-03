@@ -1,84 +1,175 @@
-    
-// Privacy Policy Thunks
-export const getPrivacyPolicyTemplate = createAsyncThunk(
-  'property/getPrivacyPolicyTemplate',
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { propertyAPI } from './propertyAPI';
+
+// Initial state
+const initialState = {
+  properties: [],
+  draftProperties: [],
+  currentProperty: null,
+  currentPrivacyPolicy: null,
+  currentFinanceLegal: null,
+  privacyPolicyTemplate: null,
+  privacyPolicyHistory: [],
+  currentMedia: [],
+  featuredProperties: [],
+  stateProperties: {},
+  cityProperties: {},
+  userProperties: [],
+  isLoading: false,
+  error: null,
+};
+
+
+// Async thunks
+export const initializeProperty = createAsyncThunk(
+  'property/initializeProperty',
+  async (forceNew, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.initializeProperty(forceNew);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to initialize property');
+    }
+  }
+);
+export const getDraftProperties = createAsyncThunk(
+  'property/getDraftProperties',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await propertyAPI.getPrivacyPolicyTemplate();
+      const response = await propertyAPI.getDraftProperties();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to get privacy policy template');
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch properties');
     }
   }
 );
 
-export const getPrivacyPolicy = createAsyncThunk(
-  'property/getPrivacyPolicy',
-  async (propertyId, { rejectWithValue }) => {
+export const getUserProperties = createAsyncThunk(
+  'property/getUserProperties',
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await propertyAPI.getPrivacyPolicy(propertyId);
+      const response = await propertyAPI.getUserProperties();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to get privacy policy');
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user properties');
     }
   }
 );
 
-export const createOrUpdatePrivacyPolicy = createAsyncThunk(
-  'property/createOrUpdatePrivacyPolicy',
-  async ({ propertyId, data }, { rejectWithValue }) => {
+export const getProperty = createAsyncThunk(
+  'property/getProperty',
+  async (id, { rejectWithValue }) => {
     try {
-      const response = await propertyAPI.createOrUpdatePrivacyPolicy(propertyId, data);
+      const response = await propertyAPI.getProperty(id);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to save privacy policy');
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch property');
     }
   }
 );
 
-export const updatePrivacyPolicySection = createAsyncThunk(
-  'property/updatePrivacyPolicySection',
-  async ({ propertyId, section, data }, { rejectWithValue }) => {
+
+export const getAllProperties = createAsyncThunk(
+  'property/getAllProperties',
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await propertyAPI.updatePrivacyPolicySection(propertyId, section, data);
+      const response = await propertyAPI.getAllProperties();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update privacy policy section');
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch properties');
     }
   }
 );
-    
-    
-    
-    // Privacy Policy handlers
-    builder.addCase(getPrivacyPolicyTemplate.fulfilled, (state, action) => {
+
+
+// Property slice
+const propertySlice = createSlice({
+  name: 'property',
+  initialState,
+  reducers: {
+    clearPropertyError: (state) => {
+      state.error = null;
+    },
+    resetCurrentProperty: (state) => {
+      state.currentProperty = null;
+    },
+  },
+  extraReducers: (builder) => {
+    // Initialize property
+    builder.addCase(initializeProperty.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(initializeProperty.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.privacyPolicyTemplate = action.payload;
+      state.currentProperty = action.payload.property;
+      state.userProperties.push(action.payload.property);
     });
-    
-    builder.addCase(getPrivacyPolicy.fulfilled, (state, action) => {
+    builder.addCase(initializeProperty.rejected, (state, action) => {
       state.isLoading = false;
-      state.currentPrivacyPolicy = action.payload;
+      state.error = action.payload;
     });
-    
-    builder.addCase(createOrUpdatePrivacyPolicy.fulfilled, (state, action) => {
+
+    // Get all properties
+    builder.addCase(getAllProperties.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getAllProperties.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.currentPrivacyPolicy = action.payload;
+      state.properties = action.payload;
     });
-     
-    builder.addCase(updatePrivacyPolicySection.fulfilled, (state, action) => {
+    builder.addCase(getAllProperties.rejected, (state, action) => {
       state.isLoading = false;
-      state.currentPrivacyPolicy = action.payload;
+      state.error = action.payload;
     });
-    
-    // Handle pending and rejected states for all privacy policy actions
-    [getPrivacyPolicyTemplate, getPrivacyPolicy, createOrUpdatePrivacyPolicy, updatePrivacyPolicySection].forEach(thunk => {
-      builder.addCase(thunk.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      });
-      builder.addCase(thunk.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      });
+
+
+    // Get Draft properties
+    // Get all properties
+    builder.addCase(getDraftProperties.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
     });
+    builder.addCase(getDraftProperties.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.draftProperties = action.payload;
+    });
+    builder.addCase(getDraftProperties.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
+    // Get user properties
+    builder.addCase(getUserProperties.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getUserProperties.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.userProperties = action.payload;
+    });
+    builder.addCase(getUserProperties.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
+    // Get property by ID
+    builder.addCase(getProperty.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getProperty.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentProperty = action.payload;
+    });
+    builder.addCase(getProperty.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
+  },
+});
+
+export const { clearPropertyError, resetCurrentProperty } = propertySlice.actions;
+export default propertySlice.reducer;
