@@ -64,7 +64,7 @@ import {
 } from '../controllers/financeLegalController.js';
 
 
-import { protect } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/auth.js';
 import { check } from 'express-validator' ;
 import { upload, uploadMedia, validateImageSize } from '../middleware/uploadMiddleware.js';
 

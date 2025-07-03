@@ -27,7 +27,7 @@ const calculatePricing = (room, adults, children, totalDays, checkIn, checkOut) 
   const taxes = subtotal * 0.12;
   
   const totalAmount = subtotal + taxes;
-  
+    
   return {
     baseCharge: baseCharge * totalDays,
     extraAdultCharge: extraAdultCharge * totalDays,
