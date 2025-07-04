@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function AccountLayout({ children }) {
+export default function myBookingsLayout({ children }) {
   const pathname = usePathname();
 
   const isActive = (path) => pathname === path;
@@ -15,43 +15,30 @@ export default function AccountLayout({ children }) {
           <div className="relative">
             <motion.div
               whileTap={{ scale: 0.95 }}
-              className={`pb-4 ${isActive('/account') ? 'border-b-3 border-blue-500 -mb-[1px]' : ''}`}
+              className={`pb-4 ${isActive('/my-bookings/upcoming-bookings') ? 'border-b-3 border-blue-500 -mb-[1px]' : ''}`}
             >
               <Link
-                href="/account"
+                href="/my-bookings/upcoming-bookings"
                 className="py-2 block"
               >
-                Account
+                Upcoming Bookings
               </Link>
             </motion.div>
           </div>
 
-          {/* <div className="relative">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`pb-4 ${isActive('/account/savelists') ? 'border-b-3 border-blue-500 -mb-[1px]' : ''}`}
-            >
-              <Link
-                href="/account/savelists"
-                className="py-2 block"
-              >
-                Account Savelists
-              </Link>
-            </motion.div>
-          </div> */}
+         
 
           <div className="relative">
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`pb-4 ${isActive('/account/password') ? 'border-b-3 border-blue-500 -mb-[1px]' : ''}`}
+              className={`pb-4 ${isActive('/my-bookings/cancelled-bookings') ? 'border-b-3 border-blue-500 -mb-[1px]' : ''}`}
             >
               <Link
-                href="/account/password"
+                href="/my-bookings/cancelled-bookings"
                 className="py-2 block"
               >
-                Account Password
+                Cancelled Bookings
               </Link>
             </motion.div>
           </div>
@@ -60,13 +47,13 @@ export default function AccountLayout({ children }) {
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`pb-4 ${isActive('/account/billing') ? 'border-b-3 border-blue-500 -mb-[1px]' : ''}`}
+              className={`pb-4 ${isActive('/my-bookings/completed-bookings') ? 'border-b-3 border-blue-500 -mb-[1px]' : ''}`}
             >
               <Link
-                href="/account/billing"
+                href="/my-bookings/completed-bookings"
                 className="py-2 block"
               >
-                Payment Methods
+                Completed Bookings
               </Link>
             </motion.div>
           </div>
@@ -74,7 +61,7 @@ export default function AccountLayout({ children }) {
       </nav>
 
       <div className="w-full min-h-screen px-2 bg-gray-50 lg:px-36 sm:px-4 lg:container mx-auto py-4">
-        {children}
+        { children }
       </div>
     </div>
   );
