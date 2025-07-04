@@ -143,10 +143,10 @@ const BookingFlow = ({ selectedProperty, onClose }) => {
   };
     
   return (
-    <Box sx={{ width: '100%', maxWidth: 1200, p: 2 }}>
+    <Box sx={{ width: '100%', mx:"auto", maxWidth: 1200, p: 2 }}>
       <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
         <Typography variant="h4" gutterBottom textAlign="center" color="primary">
-          Book Your Stay
+          Booking Portal
         </Typography>
         
         <Typography variant="h6" gutterBottom textAlign="center" color="text.secondary">
