@@ -52,10 +52,10 @@ export default function HotelDashboardLayout({ children }) {
         className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-[#1035ac] text-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex h-16 items-center justify-between px-4 lg:px-6">
- <Link href='/host'> <div className="flex items-center gap-2 font-bold text-xl">
+        <Link href='/host'> <div className="flex items-center gap-2 font-bold text-xl">
             <Building className="h-6 w-6" />
             <span>MDS</span>
-          </div></Link>
+        </div></Link>
           <button className="rounded-md p-1 hover:bg-blue-800 lg:hidden" onClick={() => setSidebarOpen(false)}>
             <X className="h-6 w-6" />
           </button>

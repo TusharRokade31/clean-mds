@@ -172,7 +172,7 @@ const RoomSelection = ({ property, bookingData, onNext, onDataChange }) => {
               Select Your Dates & Guests
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={3}>
+              <Grid item size={{xs:12, md:3}}>
                 <DatePicker
                   label="Check-in Date"
                   value={checkIn}
@@ -188,7 +188,7 @@ const RoomSelection = ({ property, bookingData, onNext, onDataChange }) => {
                   )}
                 />
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item size={{xs:12, md:3}}>
                 <DatePicker
                   label="Check-out Date"
                   value={checkOut}
@@ -204,7 +204,7 @@ const RoomSelection = ({ property, bookingData, onNext, onDataChange }) => {
                   )}
                 />
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item size={{xs:12, md:3}}>
                 <FormControl fullWidth>
                   <InputLabel>Adults</InputLabel>
                   <Select
@@ -218,7 +218,7 @@ const RoomSelection = ({ property, bookingData, onNext, onDataChange }) => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item size={{xs:12, md:3}}>
                 <FormControl fullWidth>
                   <InputLabel>Children</InputLabel>
                   <Select
@@ -252,7 +252,7 @@ const RoomSelection = ({ property, bookingData, onNext, onDataChange }) => {
         </Typography>
         <Grid container spacing={3}>
           {property?.rooms?.map((room) => (
-            <Grid item xs={12} md={6} key={room._id}>
+            <Grid item size={{xs:12, md:6}} key={room._id}>
               <Card
                 sx={{
                   cursor: 'pointer',
@@ -269,7 +269,7 @@ const RoomSelection = ({ property, bookingData, onNext, onDataChange }) => {
                   <CardMedia
                     component="img"
                     height="200"
-                    image={room.media.images[0].url}
+                    image={`${process.env.NEXT_PUBLIC_IMAGE_URL}${room.media.images[0].url}`}
                     alt={room.roomName}
                   />
                 )}

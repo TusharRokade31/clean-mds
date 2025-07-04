@@ -286,7 +286,7 @@ const GuestDetails = ({ bookingData, onNext, onBack, onDataChange }) => {
                 <Typography variant="h6">
                   Additional Guests ({additionalGuests.length}/{additionalGuestsNeeded})
                 </Typography>
-                // components/BookingFlow/steps/GuestDetails.jsx (continuation)
+                
               <Button
                 startIcon={<Add />}
                 onClick={addAdditionalGuest}

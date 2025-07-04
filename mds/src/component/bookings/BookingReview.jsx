@@ -61,6 +61,7 @@ const BookingReview = ({ property, bookingData, onNext, onBack, onDataChange }) 
 
   const pricing = calculatePricing();
   const room = property.rooms.find(r => r._id === bookingData.roomId);
+  console.log(room)
 
   const handleConfirm = () => {
     onDataChange({ pricing });
@@ -97,7 +98,7 @@ const BookingReview = ({ property, bookingData, onNext, onBack, onDataChange }) 
               <Divider sx={{ my: 2 }} />
 
               <Typography variant="h6" gutterBottom>
-                {room?.name} - {room?.type}
+                {room?.roomName}
               </Typography>
               
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -106,7 +107,7 @@ const BookingReview = ({ property, bookingData, onNext, onBack, onDataChange }) 
 
               <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                 <Chip 
-                  label={`Max ${room?.occupancy.maximumOccupancy} Guests`} 
+                  label={`Max ${room?.occupancy?.maximumOccupancy} Guests`} 
                   size="small" 
                   variant="outlined" 
                 />
