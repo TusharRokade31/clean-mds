@@ -51,8 +51,6 @@ const MediaSchema = new Schema({
   }
 });
 
-
-
 // Room schema
 const RoomSchema = new Schema({
   numberRoom: { 

@@ -188,12 +188,6 @@ export const propertyAPI = {
     return response.data;
   },
   
-  // Get user's properties
-  getUserProperties: async () => {
-    const response = await axiosInstance.get('/properties/my-properties');
-    return response.data;
-  },
-
 
   // Custom Policy APIs
 addCustomPolicy : async (propertyId, data) => {
