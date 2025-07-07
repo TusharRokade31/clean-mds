@@ -386,7 +386,16 @@ export const bookingController = {
   updatePayment: async (req, res) => {
     try {
       const { id } = req.params;
-      const { amount, method, transactionId } = req.body;
+      let { amount, method, transactionId } = req.body;
+
+      // convert amount to number and validate
+      const amountNum = parseFloat(amount);
+      if (isNaN(amountNum) || amountNum <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid payment amount'
+        });
+      }
 
       const booking = await Booking.findById(id);
       if (!booking) {
@@ -396,8 +405,9 @@ export const bookingController = {
         });
       }
 
-      const newPaidAmount = booking.payment.paidAmount + amount;
-      const totalAmount = booking.pricing.totalAmount;
+      // use the parsed number
+      const newPaidAmount = booking.payment.paidAmount + amountNum;
+      const totalAmount   = booking.pricing.totalAmount;
 
       if (newPaidAmount > totalAmount) {
         return res.status(400).json({
@@ -407,16 +417,16 @@ export const bookingController = {
       }
 
       // Update payment details
-      booking.payment.paidAmount = newPaidAmount;
+      booking.payment.paidAmount    = newPaidAmount;
       booking.payment.pendingAmount = totalAmount - newPaidAmount;
-      booking.payment.method = method || booking.payment.method;
+      booking.payment.method        = method || booking.payment.method;
       booking.payment.transactionId = transactionId || booking.payment.transactionId;
-      booking.payment.paymentDate = new Date();
+      booking.payment.paymentDate   = new Date();
 
       // Update payment status
       if (newPaidAmount >= totalAmount) {
         booking.payment.status = 'completed';
-      } else if (newPaidAmount > 0) {
+      } else {
         booking.payment.status = 'partial';
       }
 

@@ -11,6 +11,7 @@ import BookingModal from "@/component/bookings/BookingModal";
 import RoomGrid from "@/component/bookings/RoomGrid";
 import BookingStats from "@/component/bookings/BookingStats";
 import BookingFlow from "@/component/bookings/BookingFlow";
+import Link from "next/link";
 
 export default function BookingsPage() {
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -82,12 +83,11 @@ export default function BookingsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
           <p className="text-gray-600">{selectedProperty.placeName}</p>
         </div>
-        <button
-          onClick={() => setShowBookingModal(true)}
-          className="bg-[#1035ac] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+       <Link href={'/host/allbookings'}><button
+          className="bg-[#1035ac]  cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
-          New Booking
-        </button>
+          View All Bookings
+        </button></Link>
       </div>
 
       {/* Stats */}

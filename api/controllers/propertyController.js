@@ -99,7 +99,6 @@ export const getProperty = async (req, res) => {
     });
   }
 };
-
  
 // Initialize a new property for multistep form
 export const initializeProperty = async (req, res) => {
@@ -649,7 +648,6 @@ export const deleteRoom = async (req, res) => {
   }
 };
 
-
 export const completeRoomsStep = async (req, res) => {
   try {
     const { propertyId } = req.params;
@@ -684,7 +682,6 @@ export const completeRoomsStep = async (req, res) => {
     return errorResponse(res, 500, 'Server error', error.message);
   }
 };
-
 
 // Upload Media (Images and Videos)
 export const uploadPropertyMedia = async (req, res) => {
