@@ -14,7 +14,7 @@ import {
   Backdrop,
   CircularProgress
 } from '@mui/material';
-import { createBooking, clearBookingError } from '../../redux/features/bookings/bookingSlice';
+import { createBooking, clearBookingError } from '@/redux/features/bookings/bookingSlice';
 import RoomSelection from './RoomSelection';
 import GuestDetails from './GuestDetails';
 import PaymentDetails from './PaymentDetails';
