@@ -1,64 +1,75 @@
 import React from 'react'
-import Image from 'next/image'
-import logo from "../../public/assets/mds.png";
-import rightImg from "../../public/assets/BecomeAnAuthorImg.png"
-import Link from 'next/link'
+import {
+  CheckBadgeIcon,
+  DocumentTextIcon,
+  ClockIcon,
+  CreditCardIcon,
+} from '@heroicons/react/24/outline'
 
+const features = [
+  {
+    title: 'Verified Properties',
+    description:
+      'All dharamshalas are personally verified for cleanliness, safety, and spiritual ambiance',
+    icon: CheckBadgeIcon,
+    iconBg: 'bg-green-100 text-green-600',
+  },
+  {
+    title: 'GST Bills',
+    description:
+      'Transparent pricing with proper GST invoices for all your bookings',
+    icon: DocumentTextIcon,
+    iconBg: 'bg-blue-100 text-blue-600',
+  },
+  {
+    title: '24x7 Support',
+    description:
+      'Round-the-clock customer support for any assistance during your spiritual journey',
+    icon: ClockIcon,
+    iconBg: 'bg-purple-100 text-purple-600',
+  },
+  {
+    title: 'UPI Payments',
+    description:
+      'Secure and convenient payments via UPI, cards, and digital wallets',
+    icon: CreditCardIcon,
+    iconBg: 'bg-yellow-100 text-yellow-600',
+  },
+]
 
+export default function SectionBecomeAnAuthor() {
+  return (
+    <section className="py-24 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <h2 className="text-4xl font-league-spartan font-bold text-center">
+          Why Choose My Divine Stays?
+        </h2>
+        <p className="mt-2 text-center text-gray-600 font-alice">
+          Trust indicators that make your spiritual journey safe and blessed
+        </p>
 
-const SectionBecomeAnAuthor = ({ }) => {
-	return (
-		<div
-			className={`nc-SectionBecomeAnAuthor bg-[#f3f4f6] px-4 max-w-8xl  `}
-		>
-			<div className='relative max-w-7xl py-14  mx-auto flex flex-col items-center lg:flex-row'>
-				<div className="mb-16 px-3 flex-shrink-0 lg:mb-0 lg:me-10 lg:w-5/5">
-					<Link
-						href="/"
-					>
-						{/* <img src={logo.src} className="w-40" /> */}
-					</Link>
-					<h2 className="mt-3 text-3xl font-semibold sm:mt-11 sm:text-4xl">
-						Why Choose My Divine Stay for Your Spiritual Journey?
-					</h2>
-					<span className="mt-6 block   ">
-						At My Divine Stay, we recognize the significance of a peaceful and fulfilling spiritual journey. Here's why we are the preferred choice for devotees:
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {features.map((feature) => (
+            <div
+              key={feature.title}
+              className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center"
+            >
+              <div
+                className={`inline-flex items-center justify-center w-12 h-12 rounded-full ${feature.iconBg}`}
+              >
+                <feature.icon className="w-6 h-6" aria-hidden="true" />
+              </div>
 
-					</span>
-					<div className='md:flex justify-between items-start'>
-						<ul className="mt-6 block me-12 space-y list-disc ">
-							<li className='text-lg font-bold'>Tailored for Spiritual Journeys</li>
-
-							<p>We offer a curated selection of stays designed to provide comfort and tranquility during your spiritual travels. Each stay is chosen to cater to the needs of pilgrims, ensuring an enriching experience.</p>
-
-							<li className='text-lg font-bold'>Trusted Partnerships</li>
-
-							<p>We work with established temples and spiritual centers, ensuring that every stay meets high standards of devotion and comfort, trusted by countless devotees.</p>
-						</ul>
-
-						<ul className="mt-6 block  list-disc ">
-							<li className='text-lg font-bold'>Seamless Booking Experience</li>
-
-							<p>Booking your stay is as simple as a click. Our easy-to-use platform ensures a smooth, secure, and hassle-free reservation process, so you can focus on your journey.</p>
-
-							<li className='text-lg font-bold'>24/7 Support</li>
-
-							<p>Whether you need assistance with bookings, directions, or other queries, our dedicated team is available around the clock to support you.</p>
-
-							<li className='text-lg font-bold'>Respect for Tradition</li>
-
-							<p>While we embrace modern technology to improve your booking experience, we remain deeply committed to preserving the traditional values and spirit of your spiritual journey.</p>
-
-						</ul>
-					</div>
-
-				</div>
-				{/* <div className="flex-grow">
-				<img className='w-full' alt="" src={rightImg.src} />
-			</div> */}
-			</div>
-		</div>
-	)
+              <h3 className="mt-4 text-lg font-semibold font-league-spartan text-gray-900">
+                {feature.title}
+              </h3>
+              <p className="mt-2 text-gray-600 font-alice text-sm">
+                {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
 }
-
-export default SectionBecomeAnAuthor
