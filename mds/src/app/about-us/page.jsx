@@ -1,8 +1,75 @@
 import Image from "next/image"
+import React from 'react'
+import {
+  PhoneIcon,
+  ChatBubbleLeftEllipsisIcon,
+  EnvelopeIcon,
+} from '@heroicons/react/24/outline'
 
-export default function AboutSection() {
+
+
+
+
+
+export default function GetInTouch() {
+
+  const contacts = [
+  {
+    title: '24/7 Phone Support',
+    description: 'Instant assistance anytime',
+    icon: PhoneIcon,
+  },
+  {
+    title: 'Live Chat',
+    description: 'Quick responses guaranteed',
+    icon: ChatBubbleLeftEllipsisIcon,
+  },
+  {
+    title: 'Email Support',
+    description: 'Detailed assistance via email',
+    icon: EnvelopeIcon,
+  },
+]
+
+function GetInTouch() {
   return (
+    <section className="py-16 mt-20 bg-[#1035ac]">
+      <div className="container mx-auto px-4 text-center">
+        <h2 className="text-3xl font-league-spartan font-bold text-white">
+          Get in Touch
+        </h2>
+        <p className="mt-2 text-lg font-alice text-gray-200">
+          We’re here to make your spiritual journey seamless. Reach out to us anytime!
+        </p>
+
+        <div className="mt-12 flex flex-col sm:flex-row justify-center gap-8">
+          {contacts.map((item) => (
+            <div
+              key={item.title}
+              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 flex-1 max-w-xs mx-auto hover:shadow-lg transition-shadow"
+            >
+              <div className="w-12 h-12 mx-auto rounded-lg bg-white/20 flex items-center justify-center">
+                <item.icon className="w-6 h-6 text-white" aria-hidden="true" />
+              </div>
+              <h3 className="mt-4 text-white font-league-spartan font-semibold">
+                {item.title}
+              </h3>
+              <p className="mt-1 text-gray-200 font-alice text-sm">
+                {item.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+  return (
+    <>
+     {GetInTouch()}
     <div className="min-h-screen  py-28 px-4 sm:px-6 lg:px-8">
+      
       <div className="max-w-7xl mx-auto space-y-24">
         {/* About Us Section */}
         <section className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -16,9 +83,6 @@ export default function AboutSection() {
 
             </p>
           </div>
-          
-
-          
 
           {/* <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             <div className="col-span-1 aspect-square">
@@ -155,6 +219,8 @@ export default function AboutSection() {
           </div>
         </section>
       </div>
+     
     </div>
+    </>
   )
 }

@@ -39,7 +39,7 @@ import {
   updateFinanceDetails,
   updateLegalDetails,
   uploadRegistrationDocument
-} from '../redux/features/property/propertySlice';
+} from '@/redux/features/property/propertySlice';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',

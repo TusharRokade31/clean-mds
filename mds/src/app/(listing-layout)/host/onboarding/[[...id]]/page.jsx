@@ -26,14 +26,14 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import BasicInfoForm from "@/component/BasicInfoForm";
-import LocationForm from "@/component/LocationForm";
-import AmenitiesForm from "@/component/AmenitiesForm";
-import RoomsForm from "@/component/RoomsForm";
-import MediaForm from "@/component/MediaForm";
-import RoomMediaForm from "@/component/RoomMediaForm";
-import PoliciesFrom from "@/component/PoliciesFrom";
-import FinanceLegalForm from "@/component/FinanceLegalForm";
+import BasicInfoForm from "@/component/propertylisting/BasicInfoForm";
+import LocationForm from "@/component/propertylisting/LocationForm";
+import AmenitiesForm from "@/component/propertylisting/AmenitiesForm";
+import RoomsForm from "@/component/propertylisting/RoomsForm";
+import MediaForm from "@/component/propertylisting/MediaForm";
+import RoomMediaForm from "@/component/propertylisting/RoomMediaForm";
+import PoliciesFrom from "@/component/propertylisting/PoliciesFrom";
+import FinanceLegalForm from "@/component/propertylisting/FinanceLegalForm";
 import Link from "next/link";
 
 function TabPanel({ children, value, index, ...other }) {
