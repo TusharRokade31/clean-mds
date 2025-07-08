@@ -19,7 +19,7 @@ export const getMe = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/users/update-profile
 // @access  Private
 export const updateProfile = asyncHandler(async (req, res, next) => {
-  const { name, email, gender, dateOfBirth, address, phoneNumber, username } = req.body;
+  const { name, email, gender, dateOfBirth, address, phoneNumber } = req.body;
   
   // Build update object
   const updateFields = {};
@@ -29,7 +29,7 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
   if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
   if (address) updateFields.address = address;
   if (phoneNumber) updateFields.phoneNumber = phoneNumber;
-  if (username) updateFields.username = username;
+  // if (username) updateFields.username = username;
   
   const user = await User.findByIdAndUpdate(
     req.user._id, 

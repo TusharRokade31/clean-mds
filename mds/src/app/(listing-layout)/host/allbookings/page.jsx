@@ -740,65 +740,71 @@ const sortedBookings = React.useMemo(() => {
       </Card>
 
       {/* Actions Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleActionsClose}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-      >
-        <MenuItem onClick={() => handleViewBooking(selectedBookingForMenu?._id)}>
-          <ListItemIcon>
-            <ViewIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>View Details</ListItemText>
-        </MenuItem>
-        
-        {selectedBookingForMenu?.status !== 'cancelled' && selectedBookingForMenu?.status !== 'checked-out' && (
-          <MenuItem onClick={() => handleEditBooking(selectedBookingForMenu)}>
-            <ListItemIcon>
-              <EditIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Edit Booking</ListItemText>
-          </MenuItem>
-        )}
-        
-        <MenuItem onClick={() => handleCancelBooking(selectedBookingForMenu)}>
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Delete Booking</ListItemText>
-        </MenuItem>
-        
-        <Divider />
-        
-        {selectedBookingForMenu?.status === 'confirmed' && (
-          <MenuItem onClick={() => handleCheckIn(selectedBookingForMenu._id)}>
-            <ListItemIcon>
-              <CheckInIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Check In</ListItemText>
-          </MenuItem>
-        )}
-        
-        {selectedBookingForMenu?.status === 'checked-in' && (
-          <MenuItem onClick={() => handleCheckOut(selectedBookingForMenu._id)}>
-            <ListItemIcon>
-              <CheckOutIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Check Out</ListItemText>
-          </MenuItem>
-        )}
-        
-        {selectedBookingForMenu?.status !== 'cancelled' && (
-          <MenuItem onClick={() => handleCancelBooking(selectedBookingForMenu)}>
-            <ListItemIcon>
-              <CancelIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Cancel Booking</ListItemText>
-          </MenuItem>
-        )}
-      </Menu>
+    <Menu
+    anchorEl={anchorEl}
+    open={Boolean(anchorEl)}
+    onClose={handleActionsClose}
+    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+    >
+    <MenuItem onClick={() => handleViewBooking(selectedBookingForMenu?._id)}>
+      <ListItemIcon>
+        <ViewIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>View Details</ListItemText>
+    </MenuItem>
+
+    {selectedBookingForMenu?.status === 'confirmed' && (
+      <MenuItem onClick={() => handleCheckIn(selectedBookingForMenu._id)}>
+        <ListItemIcon>
+          <CheckInIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>Check In</ListItemText>
+      </MenuItem>
+    )}
+
+    {selectedBookingForMenu?.status === 'checked-in' && (
+      <MenuItem onClick={() => handleCheckOut(selectedBookingForMenu._id)}>
+        <ListItemIcon>
+          <CheckOutIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>Check Out</ListItemText>
+      </MenuItem>
+    )}
+
+    {selectedBookingForMenu?.status !== 'cancelled' && selectedBookingForMenu?.status !== 'checked-out' && (
+      <MenuItem onClick={() => handleEditBooking(selectedBookingForMenu)}>
+        <ListItemIcon>
+          <EditIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>Edit Booking</ListItemText>
+      </MenuItem>
+    )}
+
+    <MenuItem onClick={() => handlePaymentUpdate(selectedBookingForMenu)}>
+      <ListItemIcon>
+        <EditIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>Update Payment</ListItemText>
+    </MenuItem>
+
+    {selectedBookingForMenu?.status !== 'cancelled' && (
+      <MenuItem onClick={() => handleCancelBooking(selectedBookingForMenu)}>
+        <ListItemIcon>
+          <CancelIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>Cancel Booking</ListItemText>
+      </MenuItem>
+    )}
+
+    <MenuItem onClick={() => handleCancelBooking(selectedBookingForMenu)}>
+      <ListItemIcon>
+        <DeleteIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>Delete Booking</ListItemText>
+    </MenuItem>
+    </Menu>
+
 
       {/* Keep all your existing dialogs here - View, Edit, Payment, Cancel */}
       {/* View Booking Dialog */}

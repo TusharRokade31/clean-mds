@@ -23,17 +23,17 @@ import BookingReview from './BookingReview';
 
 const steps = ['Select Room', 'Guest Details', 'Review Booking', 'Payment', 'Confirmation'];
 
-const BookingFlow = ({ selectedProperty, onClose }) => {
+const BookingFlow = ({ selectedProperty, selectedRoom, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useDispatch();
   
   const { isCreating, error, currentBooking } = useSelector(state => state.booking);
   
-  const [activeStep, setActiveStep] = useState(0);
+   const [activeStep, setActiveStep] = useState(selectedRoom ? 1 : 0); // Skip room selection if room already selected
   const [bookingData, setBookingData] = useState({
     propertyId: selectedProperty?._id,
-    roomId: null,
+    roomId: selectedRoom?._id || null,
     primaryGuest: {
       firstName: '',
       lastName: '',
