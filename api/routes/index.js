@@ -7,8 +7,6 @@ import authRoutes from './authRoutes.js';
 import bookingRoutes from './bookingRoutes.js';
 import roomRoutes from './roomRoutes.js';
 
-// Add the booking routes to your app
-
 
 const registerRoutes = (app) => {
   app.use('/api/auth', authRoutes);
