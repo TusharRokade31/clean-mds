@@ -5,6 +5,7 @@ import stayRoutes from './stayRoutes.js';
 import userRoutes from './userRoutes.js';
 import authRoutes from './authRoutes.js';
 import bookingRoutes from './bookingRoutes.js';
+import roomRoutes from './roomRoutes.js';
 
 // Add the booking routes to your app
 
@@ -17,6 +18,7 @@ const registerRoutes = (app) => {
   app.use('/api/states', stateRoutes);
   app.use('/api/stays', stayRoutes);
   app.use('/api/bookings', bookingRoutes);
+  app.use('/api', roomRoutes);
 };
 
 export default registerRoutes;

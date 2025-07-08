@@ -4,6 +4,7 @@ import authReducer from './features/auth/authSlice';
 import locationReducer from './features/location/locationSlice';
 import propertyReducer from './features/property/propertySlice';
 import bookingReducer from './features/bookings/bookingSlice';
+import roomReducer from './features/rooms/roomSlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     location: locationReducer,
     property: propertyReducer,
     booking: bookingReducer,
+    rooms: roomReducer,
     // Add other reducers here as needed
   },
   middleware: (getDefaultMiddleware) =>

@@ -8,9 +8,6 @@ import {
 
 
 
-
-
-
 export default function GetInTouch() {
 
   const contacts = [

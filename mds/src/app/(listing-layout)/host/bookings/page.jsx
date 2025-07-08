@@ -83,11 +83,18 @@ export default function BookingsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
           <p className="text-gray-600">{selectedProperty.placeName}</p>
         </div>
-       <Link href={'/host/allbookings'}><button
+       <div>
+        <Link href={'/host/allbookings'}><button
           className="bg-[#1035ac]  cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
           View All Bookings
         </button></Link>
+        <Link href={'/host/occupancy'}><button
+          className="bg-[#1035ac] ms-2  cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          View All Rooms
+        </button></Link>
+       </div>
       </div>
 
       {/* Stats */}
