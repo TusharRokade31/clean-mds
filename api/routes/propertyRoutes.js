@@ -36,8 +36,9 @@ import {
   sendEmailOTP,
   verifyEmailOTP,
   checkEmailVerificationStatus,
-  completeRoomsStep
-} from '../controllers/propertyController.js';
+  completeRoomsStep,
+  getSuggestions
+} from '../controllers/property/propertyController.js';
 
 
 import {
@@ -69,6 +70,11 @@ import { check } from 'express-validator' ;
 import { upload, uploadMedia, validateImageSize } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
+
+router.get('/suggestions', getSuggestions)
+
+//Search Property Based on Location, Date and Guest
+router.get('/search-listing', searchProperties)
 
 // Initialize a new property
 router.post('/', protect, initializeProperty);
@@ -314,7 +320,7 @@ router.get('/state/:state', getPropertiesByState);
 router.get('/city/:city', getPropertiesByCity);
 
 // Search properties with filters - public route
-router.get('/search', searchProperties);
+// router.get('/search', searchProperties);
 
 // Get featured properties - public route
 router.get('/featured', getFeaturedProperties);
@@ -379,4 +385,6 @@ router.post('/:propertyId/legal/complete-step', completeFinanceLegalStep);
 
 // Delete finance legal data
 router.delete('/:propertyId/finance-legal', protect, deleteFinanceLegal);
+
+
 export default router;
