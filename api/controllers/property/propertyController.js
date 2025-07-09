@@ -1754,3 +1754,56 @@ export const getSuggestions = async (req, res) =>{
     res.status(500).json({ error: "Server error" });
   }
 }
+
+export const getPropertiesByQuery = async (req, res) =>{
+  try{
+    const {location, checkin, checkout, persons, skip, limit} = req.query;
+    if (!location || !checkin || !checkout || !persons || !skip || !limit) {
+      return res.status(400).json({ error: "Missing required query parameters." });
+    }
+
+  
+
+      const searchQuery = [
+        {
+          $search: {
+            index: 'suggestions',
+            compound: {
+              should: [
+                 {
+                      autocomplete: {
+                        query: location,
+                        path: 'placeName'
+                      }
+                    },
+                 {
+                      autocomplete: {
+                        query: location,
+                        path: 'location.city'
+                      }
+                    },
+                    {
+                      autocomplete: {
+                        query: location,
+                        path: 'location.state'
+                      }
+                    }
+                  
+              ].filter(Boolean) // Remove null clauses
+            }
+          }
+        },
+        {$skip: (1 - parseInt(skip))* parseInt(limit) },
+        { $limit: parseInt(limit) } // Limit results for performance
+      ];
+    
+
+    const propertyList = await Property.aggregate(searchQuery);
+    console.log(propertyList)
+  
+    res.status(200).json(propertyList);
+  } catch (err) {
+    console.error("Search suggestion error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+}
