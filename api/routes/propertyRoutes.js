@@ -37,7 +37,8 @@ import {
   verifyEmailOTP,
   checkEmailVerificationStatus,
   completeRoomsStep,
-  getSuggestions
+  getSuggestions,
+  getPropertiesByQuery
 } from '../controllers/property/propertyController.js';
 
 
@@ -72,6 +73,8 @@ import { upload, uploadMedia, validateImageSize } from '../middleware/uploadMidd
 const router = express.Router();
 
 router.get('/suggestions', getSuggestions)
+
+router.get('/property-listing', getPropertiesByQuery)
 
 //Search Property Based on Location, Date and Guest
 router.get('/search-listing', searchProperties)
