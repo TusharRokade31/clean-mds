@@ -1735,6 +1735,11 @@ export const getSuggestions = async (req, res) =>{
           }
         },
         {
+          $match: {
+            status: 'published' // 👈 Only include published hotels
+          }
+        },
+        {
           $project: {
             _id: 0,
             placeName: 1,
