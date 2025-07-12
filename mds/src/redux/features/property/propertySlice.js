@@ -1,6 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { propertyAPI } from './propertyAPI';
 
+// Helper functions for localStorage
+const saveSearchQueryToLocal = (query) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('lastSearchQuery', JSON.stringify(query));
+  }
+};
+
+const getSearchQueryFromLocal = () => {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('lastSearchQuery');
+    return stored ? JSON.parse(stored) : null;
+  }
+  return null;
+};
+
 // Initial state
 const initialState = {
   properties: [],
@@ -15,9 +30,23 @@ const initialState = {
   stateProperties: {},
   cityProperties: {},
   userProperties: [],
+  suggestions: [],
+  suggestionsCache: {},
+  searchResults: [],
+  searchQuery: getSearchQueryFromLocal(), // Load from localStorage on init
+  searchPagination: {
+    currentPage: 0,
+    hasMore: true,
+    total: 0
+  },
+  isSuggestionsLoading: false,
+  suggestionsError: null,
   isLoading: false,
+  isSearchLoading: false,
   error: null,
+  searchError: null,
 };
+
 
 // Async thunks
 export const initializeProperty = createAsyncThunk(
@@ -65,6 +94,43 @@ export const getProperty = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch property');
+    }
+  }
+);
+
+
+export const fetchSuggestions = createAsyncThunk(
+  'property/fetchSuggestions',
+  async (query, { getState, rejectWithValue }) => {
+    try {
+      // Check cache first
+      const { property } = getState();
+      const cachedResult = property.suggestionsCache[query];
+      
+      if (cachedResult) {
+        return { suggestions: cachedResult, fromCache: true };
+      }
+
+      const suggestions = await propertyAPI.getSuggestions(query);
+      return { suggestions, query, fromCache: false };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch suggestions');
+    }
+  }
+);
+
+
+export const getPropertiesByQuery = createAsyncThunk(
+  'property/getPropertiesByQuery',
+  async (queryParams, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getPropertiesByQuery(queryParams);
+      return {
+        properties: response,
+        queryParams // Include query params for potential caching
+      };
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch properties by query');
     }
   }
 );
@@ -579,6 +645,48 @@ const propertySlice = createSlice({
     resetCurrentProperty: (state) => {
       state.currentProperty = null;
     },
+    clearSuggestions: (state) => {
+      state.suggestions = [];
+      state.suggestionsError = null;
+    },
+    clearSuggestionsCache: (state) => {
+      state.suggestionsCache = {};
+    },
+    // Add these new reducers
+    clearSearchResults: (state) => {
+      state.searchResults = [];
+      state.searchQuery = null;
+      state.searchError = null;
+      state.searchPagination = {
+        currentPage: 0,
+        hasMore: true,
+        total: 0
+      };
+    },
+    clearSearchError: (state) => {
+      state.searchError = null;
+    },
+    resetSearchPagination: (state) => {
+      state.searchPagination = {
+        currentPage: 0,
+        hasMore: true,
+        total: 0
+      };
+    },
+
+     // Add action to clear search query
+    clearSearchQuery: (state) => {
+      state.searchQuery = null;
+      state.searchResults = [];
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('lastSearchQuery');
+      }
+    },
+    // Add action to set search query manually
+    setSearchQuery: (state, action) => {
+      state.searchQuery = action.payload;
+      saveSearchQueryToLocal(action.payload);
+    }
   },
   extraReducers: (builder) => {
     // Initialize property
@@ -612,7 +720,6 @@ const propertySlice = createSlice({
 
 
     // Get Draft properties
-    // Get all properties
     builder.addCase(getDraftProperties.pending, (state) => {
       state.isLoading = true;
       state.error = null;
@@ -638,6 +745,65 @@ const propertySlice = createSlice({
     builder.addCase(getProperty.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
+    });
+
+     // Fetch suggestions
+    builder.addCase(fetchSuggestions.pending, (state) => {
+      state.isSuggestionsLoading = true;
+      state.suggestionsError = null;
+    });
+    builder.addCase(fetchSuggestions.fulfilled, (state, action) => {
+      state.isSuggestionsLoading = false;
+      state.suggestions = action.payload.suggestions;
+      
+      // Cache the result if it's not from cache
+      if (!action.payload.fromCache && action.payload.query) {
+        state.suggestionsCache[action.payload.query] = action.payload.suggestions;
+      }
+    });
+    builder.addCase(fetchSuggestions.rejected, (state, action) => {
+      state.isSuggestionsLoading = false;
+      state.suggestionsError = action.payload;
+    });
+
+
+      builder.addCase(getPropertiesByQuery.pending, (state, action) => {
+      state.isSearchLoading = true;
+      state.searchError = null;
+      
+      if (action.meta.arg.skip === 1 || action.meta.arg.skip === '1') {
+        state.searchResults = [];
+        state.searchPagination.currentPage = 0;
+        state.searchPagination.hasMore = true;
+      }
+    });
+    
+    builder.addCase(getPropertiesByQuery.fulfilled, (state, action) => {
+      state.isSearchLoading = false;
+      const { properties, queryParams } = action.payload;
+      console.log(queryParams, "queryParams in slice")
+      
+      // Store current search query in state and localStorage
+      state.searchQuery = queryParams;
+      saveSearchQueryToLocal(queryParams);
+      
+      if (queryParams.skip === 1 || queryParams.skip === '1') {
+        state.searchResults = properties;
+      } else {
+        state.searchResults = [...state.searchResults, ...properties];
+      }
+      
+      state.searchPagination.currentPage = Math.floor(queryParams.skip / queryParams.limit);
+      state.searchPagination.hasMore = properties.length === queryParams.limit;
+      
+      if (properties.length < queryParams.limit) {
+        state.searchPagination.hasMore = false;
+      }
+    });
+    
+    builder.addCase(getPropertiesByQuery.rejected, (state, action) => {
+      state.isSearchLoading = false;
+      state.searchError = action.payload;
     });
 
     builder.addCase(sendEmailOTP.pending, (state) => {
@@ -1079,5 +1245,5 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
   },
 });
 
-export const { clearPropertyError, resetCurrentProperty } = propertySlice.actions;
+export const { clearPropertyError, resetCurrentProperty , clearSuggestions, clearSuggestionsCache, clearSearchResults,clearSearchError, resetSearchPagination, clearSearchQuery, setSearchQuery } = propertySlice.actions;
 export default propertySlice.reducer;
