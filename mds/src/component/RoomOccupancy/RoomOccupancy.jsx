@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { Home } from '@mui/icons-material';
 import BookingFlow from '../bookings/BookingFlow';
-import { checkRoomAvailability, fetchRooms, updateRoomStatus } from '@/redux/features/rooms/roomSlice';
+import { checkRoomAvailability, fetchRooms, resetRoomFilters, updateRoomFilters, updateRoomStatus } from '@/redux/features/rooms/roomSlice';
 import RoomDetailsModal from './RoomDetailsModal';
 
 

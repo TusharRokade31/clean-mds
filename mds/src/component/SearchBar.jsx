@@ -1,49 +1,277 @@
 "use client"
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { FiMapPin, FiCalendar, FiUsers, FiSearch, FiX, FiChevronLeft, FiChevronRight, FiClock } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
+
+import { useDebounce } from '@/hooks/useDebounce';
+import { fetchSuggestions, clearSuggestions, getPropertiesByQuery } from '@/redux/features/property/propertySlice';
 
 export default function SearchBar() {
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { suggestions, isSuggestionsLoading } = useSelector(state => state.property);
+  
   const [showRecentSearches, setShowRecentSearches] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showGuests, setShowGuests] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [recentSearches, setRecentSearches] = useState([]);
   const [guests, setGuests] = useState({
     adults: 2,
     children: 1,
     infants: 1
   });
+  const [selectedDates, setSelectedDates] = useState({
+    checkin: '',
+    checkout: ''
+  });
   
-  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 4)); // May 2025
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const searchInputRef = useRef(null);
+  const suggestionsRef = useRef(null);
   
-  const recentSearches = [
-    'Hamptons, Suffolk County, NY',
-    'Las Vegas, NV, United States',
-    'Ueno, Taito, Tokyo',
-    'Ikebukuro, Toshima, Tokyo'
-  ];
+  // Debounce search query to avoid too many API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  
+  // Helper function to get today's date in local timezone
+  const getTodayDate = () => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  };
+
+  // Helper function to format date to YYYY-MM-DD string in local timezone
+  const formatDateToLocalString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Helper function to create date from YYYY-MM-DD string in local timezone
+  const createDateFromString = (dateString) => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  // Check if a date is in the past
+  const isPastDate = (date) => {
+    const today = getTodayDate();
+    return date < today;
+  };
+
+  // Load recent searches from cache on component mount
+  useEffect(() => {
+    loadRecentSearches();
+  }, []);
+
+  // Function to load recent searches from cache
+  const loadRecentSearches = () => {
+    try {
+      const localStorageSearches = localStorage.getItem('recentSearches');
+      if (localStorageSearches) {
+        const parsedSearches = JSON.parse(localStorageSearches);
+        setRecentSearches(parsedSearches);
+        return;
+      }
+
+      const sessionStorageSearches = sessionStorage.getItem('recentSearches');
+      if (sessionStorageSearches) {
+        const parsedSearches = JSON.parse(sessionStorageSearches);
+        setRecentSearches(parsedSearches);
+        return;
+      }
+    } catch (error) {
+      console.error('Error loading recent searches from cache:', error);
+      setRecentSearches([]);
+    }
+  };
+
+  // Function to save a search to cache
+  const saveSearchToCache = (searchData) => {
+    try {
+      const updatedSearches = [searchData, ...recentSearches.filter(search => search.location !== searchData.location)];
+      const limitedSearches = updatedSearches.slice(0, 10);
+      
+      localStorage.setItem('recentSearches', JSON.stringify(limitedSearches));
+      sessionStorage.setItem('recentSearches', JSON.stringify(limitedSearches));
+      
+      setRecentSearches(limitedSearches);
+    } catch (error) {
+      console.error('Error saving search to cache:', error);
+    }
+  };
+
+  // Fetch suggestions when debounced query changes
+  useEffect(() => {
+    if (debouncedSearchQuery.trim().length >= 2) {
+      dispatch(fetchSuggestions(debouncedSearchQuery.trim()));
+      setShowSuggestions(true);
+      setShowRecentSearches(false);
+    } else {
+      dispatch(clearSuggestions());
+      setShowSuggestions(false);
+    }
+  }, [debouncedSearchQuery, dispatch]);
+
+  // Handle click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target) &&
+          searchInputRef.current && !searchInputRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+        setShowRecentSearches(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLocationFocus = () => {
-    setShowRecentSearches(true);
     setShowCalendar(false);
     setShowGuests(false);
+    
+    if (searchQuery.trim().length >= 2) {
+      setShowSuggestions(true);
+      setShowRecentSearches(false);
+    } else {
+      setShowRecentSearches(true);
+      setShowSuggestions(false);
+    }
   };
 
   const handleDatesFocus = () => {
     setShowRecentSearches(false);
     setShowCalendar(true);
     setShowGuests(false);
+    setShowSuggestions(false);
   };
 
   const handleGuestsFocus = () => {
     setShowRecentSearches(false);
     setShowCalendar(false);
     setShowGuests(true);
+    setShowSuggestions(false);
   };
 
   const handleClose = () => {
     setShowRecentSearches(false);
     setShowCalendar(false);
     setShowGuests(false);
+    setShowSuggestions(false);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    const displayText = `${suggestion.placeName}, ${suggestion.location.city}, ${suggestion.location.state}`;
+    setSearchQuery(displayText);
+    setSelectedLocation(suggestion);
+    
+    setShowSuggestions(false);
+    setShowRecentSearches(false);
+  };
+
+  const handleRecentSearchClick = (searchData) => {
+    setSearchQuery(searchData.location);
+    setSelectedLocation(searchData.locationData);
+    setSelectedDates({
+      checkin: searchData.checkin,
+      checkout: searchData.checkout
+    });
+    setGuests({
+      adults: searchData.adults,
+      children: searchData.children,
+      infants: searchData.infants
+    });
+    setShowRecentSearches(false);
+  };
+
+  const handleSearchQueryChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setSelectedLocation(null);
+    
+    if (value.trim().length < 2) {
+      setShowSuggestions(false);
+      setShowRecentSearches(true);
+    }
+  };
+
+  const handleDateSelect = (date) => {
+    // Create date object from the selected date to avoid timezone issues
+    const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const dateString = formatDateToLocalString(selectedDate);
+    
+    // Don't allow selection of past dates
+    if (isPastDate(selectedDate)) {
+      return;
+    }
+    
+    if (!selectedDates.checkin || (selectedDates.checkin && selectedDates.checkout)) {
+      // Set check-in date
+      setSelectedDates({
+        checkin: dateString,
+        checkout: ''
+      });
+    } else if (selectedDates.checkin && !selectedDates.checkout) {
+      // Set check-out date
+      const checkinDate = createDateFromString(selectedDates.checkin);
+      if (selectedDate > checkinDate) {
+        setSelectedDates({
+          ...selectedDates,
+          checkout: dateString
+        });
+      } else {
+        // If selected date is before check-in, reset and set as new check-in
+        setSelectedDates({
+          checkin: dateString,
+          checkout: ''
+        });
+      }
+    }
+  };
+
+  // Handle search button click
+  const handleSearch = () => {
+    if (!selectedLocation) {
+      alert('Please select a location from the suggestions');
+      return;
+    }
+
+    if (!selectedDates.checkin || !selectedDates.checkout) {
+      alert('Please select check-in and check-out dates');
+      return;
+    }
+
+    const searchData = {
+      location: searchQuery,
+      locationData: selectedLocation,
+      checkin: selectedDates.checkin,
+      checkout: selectedDates.checkout,
+      adults: guests.adults,
+      children: guests.children,
+      infants: guests.infants,
+      persons: (guests.adults + guests.children + guests.infants).toString()
+    };
+
+    // Save to cache
+    saveSearchToCache(searchData);
+
+    // Dispatch search query with location data
+    dispatch(getPropertiesByQuery({
+      location: selectedLocation.placeName,
+      checkin: selectedDates.checkin,
+      checkout: selectedDates.checkout,
+      persons: searchData.persons,
+      skip: 1,
+      limit: 10,
+      locationData: selectedLocation
+    }));
+
+    // Navigate to hotel listing page
+    router.push('/hotel-listing');
   };
 
   const nextMonth = () => {
@@ -51,12 +279,22 @@ export default function SearchBar() {
   };
 
   const prevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+    const today = getTodayDate();
+    const prevMonthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1);
+    
+    // Don't allow going to previous months if it would show only past dates
+    if (prevMonthDate.getFullYear() < today.getFullYear() || 
+        (prevMonthDate.getFullYear() === today.getFullYear() && prevMonthDate.getMonth() < today.getMonth())) {
+      return;
+    }
+    
+    setCurrentMonth(prevMonthDate);
   };
 
   const renderCalendar = () => {
     const currentDate = new Date(currentMonth);
     const nextMonthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1);
+    const today = getTodayDate();
     
     const renderMonthCalendar = (date) => {
       const month = date.getMonth();
@@ -64,7 +302,6 @@ export default function SearchBar() {
       const firstDay = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       
-      // Get last few days of previous month
       const daysFromPrevMonth = firstDay;
       const prevMonthDays = new Date(year, month, 0).getDate();
       
@@ -72,26 +309,35 @@ export default function SearchBar() {
       
       // Previous month days
       for (let i = 0; i < daysFromPrevMonth; i++) {
+        const dayDate = new Date(year, month - 1, prevMonthDays - daysFromPrevMonth + i + 1);
         days.push({
           day: prevMonthDays - daysFromPrevMonth + i + 1,
-          isCurrentMonth: false
+          isCurrentMonth: false,
+          date: dayDate,
+          isPast: isPastDate(dayDate)
         });
       }
       
       // Current month days
       for (let i = 1; i <= daysInMonth; i++) {
+        const dayDate = new Date(year, month, i);
         days.push({
           day: i,
-          isCurrentMonth: true
+          isCurrentMonth: true,
+          date: dayDate,
+          isPast: isPastDate(dayDate)
         });
       }
       
-      // Next month days to complete the calendar
+      // Next month days
       const remainingDays = 42 - days.length;
       for (let i = 1; i <= remainingDays; i++) {
+        const dayDate = new Date(year, month + 1, i);
         days.push({
           day: i,
-          isCurrentMonth: false
+          isCurrentMonth: false,
+          date: dayDate,
+          isPast: isPastDate(dayDate)
         });
       }
       
@@ -106,9 +352,13 @@ export default function SearchBar() {
     const nextMonthData = renderMonthCalendar(nextMonthDate);
     
     return (
-      <div className="absolute top-22  max-w-5xl left-20 right-0 bg-white rounded-2xl shadow-lg p-6 z-10">
+      <div className="absolute top-22 max-w-5xl left-20 right-0 bg-white rounded-2xl shadow-lg p-6 z-10">
         <div className="flex justify-between items-center mb-4">
-          <button onClick={prevMonth} className="p-2 rounded-full hover:bg-gray-100">
+          <button 
+            onClick={prevMonth} 
+            className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear()}
+          >
             <FiChevronLeft className="text-gray-600" />
           </button>
           <div className="flex-1 flex justify-center text-xl font-semibold">
@@ -123,44 +373,58 @@ export default function SearchBar() {
         </div>
         
         <div className="flex gap-8">
-          {/* May 2025 Calendar */}
-          <div className="flex-1">
-            <div className="grid grid-cols-7 mb-2">
-              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                <div key={day} className="text-center text-lg text-gray-500">{day}</div>
-              ))}
+          {[currentMonthData, nextMonthData].map((monthData, monthIndex) => (
+            <div key={monthIndex} className="flex-1">
+              <div className="grid grid-cols-7 mb-2">
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                  <div key={day} className="text-center text-lg text-gray-500">{day}</div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {monthData.days.map((day, index) => {
+                  const dateStr = formatDateToLocalString(day.date);
+                  const isCheckin = selectedDates.checkin === dateStr;
+                  const isCheckout = selectedDates.checkout === dateStr;
+                  const isInRange = selectedDates.checkin && selectedDates.checkout && 
+                    day.date > createDateFromString(selectedDates.checkin) && 
+                    day.date < createDateFromString(selectedDates.checkout);
+                  const isToday = formatDateToLocalString(day.date) === formatDateToLocalString(today);
+                  
+                  return (
+                    <div 
+                      key={`${monthIndex}-${index}`} 
+                      className={`h-9 w-9 flex items-center justify-center rounded-full cursor-pointer
+                        ${day.isCurrentMonth && !day.isPast ? 'hover:bg-gray-100' : ''}
+                        ${day.isPast ? 'text-gray-300 cursor-not-allowed' : ''}
+                        ${!day.isCurrentMonth && !day.isPast ? 'text-gray-400 hover:bg-gray-100' : ''}
+                        ${!day.isCurrentMonth && day.isPast ? 'text-gray-200 cursor-not-allowed' : ''}
+                        ${isCheckin || isCheckout ? 'bg-indigo-600 text-white' : ''}
+                        ${isInRange ? 'bg-indigo-100' : ''}
+                        ${isToday && !isCheckin && !isCheckout ? 'bg-gray-200 font-bold' : ''}
+                      `}
+                      onClick={() => !day.isPast && handleDateSelect(day.date)}
+                    >
+                      {day.day}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="grid grid-cols-7 gap-1">
-              {currentMonthData.days.map((day, index) => (
-                <div 
-                  key={`current-${index}`} 
-                  className={`h-9 w-9 flex items-center justify-center rounded-full 
-                    ${day.isCurrentMonth ? 'hover:bg-gray-100 cursor-pointer' : 'text-gray-300'}`}
-                >
-                  {day.day}
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* June 2025 Calendar */}
-          <div className="flex-1">
-            <div className="grid grid-cols-7 mb-2">
-              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                <div key={day} className="text-center text-lg text-gray-500">{day}</div>
-              ))}
-            </div>
-            <div className="grid grid-cols-7 gap-1">
-              {nextMonthData.days.map((day, index) => (
-                <div 
-                  key={`next-${index}`} 
-                  className={`h-9 w-9 flex items-center justify-center rounded-full 
-                    ${day.isCurrentMonth ? 'hover:bg-gray-100 cursor-pointer' : 'text-gray-300'}`}
-                >
-                  {day.day}
-                </div>
-              ))}
-            </div>
+          ))}
+        </div>
+        
+        <div className="mt-4 flex justify-center">
+          <div className="bg-gray-50 rounded-lg p-2 text-sm">
+            {selectedDates.checkin && selectedDates.checkout ? (
+              <span>
+                Check-in: {createDateFromString(selectedDates.checkin).toLocaleDateString()} - 
+                Check-out: {createDateFromString(selectedDates.checkout).toLocaleDateString()}
+              </span>
+            ) : selectedDates.checkin ? (
+              <span>Check-in: {createDateFromString(selectedDates.checkin).toLocaleDateString()} (Select check-out date)</span>
+            ) : (
+              <span>Select your dates</span>
+            )}
           </div>
         </div>
       </div>
@@ -192,15 +456,16 @@ export default function SearchBar() {
             <div className="flex flex-col">
               <label className="text-lg font-semibold">Location</label>
               <input 
+                ref={searchInputRef}
                 type="text" 
                 placeholder="Where are you going?" 
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchQueryChange}
+                onFocus={handleLocationFocus}
                 className="border-none outline-none text-gray-700 placeholder-gray-400 w-full"
               />
             </div>
           </div>
-          
           {/* Dates Input */}
           <div 
             className="flex items-center px-4 py-2 flex-1 cursor-pointer"
@@ -209,7 +474,12 @@ export default function SearchBar() {
             <FiCalendar className="text-gray-500 text-xl mr-3" />
             <div className="flex flex-col">
               <label className="text-lg font-semibold">Add dates</label>
-              <span className="text-gray-500">Check In - Check Out</span>
+              <span className="text-gray-500">
+                {selectedDates.checkin && selectedDates.checkout 
+                  ? `${createDateFromString(selectedDates.checkin).toLocaleDateString()} - ${createDateFromString(selectedDates.checkout).toLocaleDateString()}`
+                  : 'Check In - Check Out'
+                }
+              </span>
             </div>
           </div>
           
@@ -221,18 +491,23 @@ export default function SearchBar() {
             <FiUsers className="text-gray-500 text-xl mr-3" />
             <div className="flex flex-col">
               <label className="text-lg font-semibold">{totalGuests} Guests</label>
-              <span className="text-gray-500">Guests</span>
+              <span className="text-gray-500">
+                {guests.adults} Adults, {guests.children} Children
+              </span>
             </div>
           </div>
         </div>
         
         {/* Search Button */}
-        <button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-3.5 ml-2">
+        <button 
+          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-3.5 ml-2"
+          onClick={handleSearch}
+        >
           <FiSearch className="text-xl" />
         </button>
         
-        {/* Close Button (conditional) */}
-        {(showRecentSearches || showCalendar || showGuests) && (
+        {/* Close Button */}
+        {(showRecentSearches || showCalendar || showGuests || showSuggestions) && (
           <button 
             className="absolute top-4 right-16 text-gray-500 hover:text-gray-700" 
             onClick={handleClose}
@@ -243,21 +518,69 @@ export default function SearchBar() {
       </div>
       
       {/* Recent Searches Dropdown */}
-      {showRecentSearches && (
+      {showRecentSearches && !showSuggestions && (
         <div className="absolute top-22 left-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-10">
           <h3 className="text-lg font-semibold mb-4">Recent searches</h3>
-          <ul className="space-y-4">
-            {recentSearches.map((search, index) => (
-              <li 
-                key={index} 
-                className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                onClick={() => setSearchQuery(search)}
-              >
-                <FiClock className="text-gray-400 mr-3" />
-                {search}
-              </li>
-            ))}
-          </ul>
+          {recentSearches.length > 0 ? (
+            <ul className="space-y-4">
+              {recentSearches.map((search, index) => (
+                <li 
+                  key={index} 
+                  className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
+                  onClick={() => handleRecentSearchClick(search)}
+                >
+                  <FiClock className="text-gray-400 mr-3" />
+                  <div>
+                    <div className="font-medium">{search.location}</div>
+                    <div className="text-sm text-gray-500">
+                      {search.checkin} - {search.checkout} • {search.persons} guests
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-gray-500 text-center py-4">
+              No recent searches
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Suggestions Dropdown */}
+      {showSuggestions && (
+        <div 
+          ref={suggestionsRef}
+          className="absolute top-22 left-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-10"
+        >
+          <h3 className="text-lg font-semibold mb-4">Suggestions</h3>
+          {isSuggestionsLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+            </div>
+          ) : suggestions.length > 0 ? (
+            <ul className="space-y-2">
+              {suggestions.map((suggestion, index) => (
+                <li 
+                  key={index} 
+                  className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  <FiMapPin className="text-gray-400 mr-3" />
+                  <div>
+                    <div className="font-medium">{suggestion.placeName}</div>
+                    <div className="text-sm text-gray-500">
+                      {suggestion.location.city}, {suggestion.location.state}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-gray-500 text-center py-4">
+              No suggestions found
+            </div>
+          )}
         </div>
       )}
       
@@ -267,7 +590,6 @@ export default function SearchBar() {
       {/* Guests Dropdown */}
       {showGuests && (
         <div className="absolute top-22 right-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-10">
-          {/* Adults */}
           <div className="flex items-center justify-between py-4">
             <div>
               <h4 className="font-semibold">Adults</h4>
@@ -277,7 +599,7 @@ export default function SearchBar() {
               <button 
                 onClick={() => adjustGuests('adults', 'decrease')}
                 className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-gray-500"
-                disabled={guests.adults <= 0}
+                disabled={guests.adults <= 1}
               >
                 -
               </button>
@@ -291,7 +613,6 @@ export default function SearchBar() {
             </div>
           </div>
           
-          {/* Children */}
           <div className="flex items-center justify-between py-4 border-t border-gray-100">
             <div>
               <h4 className="font-semibold">Children</h4>
@@ -315,7 +636,6 @@ export default function SearchBar() {
             </div>
           </div>
           
-          {/* Infants */}
           <div className="flex items-center justify-between py-4 border-t border-gray-100">
             <div>
               <h4 className="font-semibold">Infants</h4>
@@ -340,8 +660,6 @@ export default function SearchBar() {
           </div>
         </div>
       )}
-      
-     
     </div>
   );
 }

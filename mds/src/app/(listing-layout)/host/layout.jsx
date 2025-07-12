@@ -86,7 +86,7 @@ export default function HotelDashboardLayout({ children }) {
                 ) : properties.length === 0 ? (
                   <div className="px-3 py-2 text-xs text-blue-200">No properties found</div>
                 ) : (
-                  properties.map((property) => (
+                  properties.filter(property =>  property.status === 'published').map((property) => (
                     <button
                       key={property._id}
                       onClick={() => handlePropertySelect(property)}
