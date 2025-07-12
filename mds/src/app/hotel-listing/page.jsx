@@ -38,12 +38,12 @@ export default function PropertyBookingApp() {
         <div className="flex flex-col px-4 lg:flex-row lg:items-center lg:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold mb-2">
-              Sacred Stays in {searchQuery.location}
+              Sacred Stays in {searchQuery?.location}
             </h1>
             <p className="text-gray-600">
               {isSearchLoading ? 
                 "Loading properties..." : 
-                `Showing ${searchResults.length} properties for ${searchQuery.persons} guests • ${searchQuery.checkin} to ${searchQuery.checkout}`
+                `Showing ${searchResults.length} properties for ${searchQuery?.persons} guests • ${searchQuery?.checkin} to ${searchQuery?.checkout}`
               }
             </p>
             {searchError && (
