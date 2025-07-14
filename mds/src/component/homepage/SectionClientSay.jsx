@@ -2,8 +2,8 @@
 
 
 import React, {useState } from 'react'
-import quotationImg from '../../public/assets/quotation.png'
-import quotationImg2 from '../../public/assets/quotation2.png'
+import quotationImg from '../../../public/assets/quotation.png'
+import quotationImg2 from '../../../public/assets/quotation2.png'
 import Image from 'next/image'
 import { useSwipeable } from 'react-swipeable'
 

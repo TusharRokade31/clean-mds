@@ -1,12 +1,12 @@
 import Image from "next/image";
-import HomeBanner from "../component/HomeBanner";
-import TrendingDestinations from "../component/TrendingDestinations";
-import FeaturedStays from "../component/FeaturedStays";
-import SpiritualDestinations from "../component/SpiritualDestinations";
-import SectionHowItWork from "../component/HowitWork";
-import SectionBecomeAnAuthor from "../component/SectionBecomeAnAuthor";
-import SectionClientSay from "../component/SectionClientSay";
-import StaysType from "../component/StaysType";
+import HomeBanner from "../component/homepage/HomeBanner";
+import TrendingDestinations from "../component/homepage/TrendingDestinations";
+import FeaturedStays from "../component/homepage/FeaturedStays";
+import SpiritualDestinations from "../component/homepage/SpiritualDestinations";
+import SectionHowItWork from "../component/homepage/HowitWork";
+import SectionBecomeAnAuthor from "../component/homepage/SectionBecomeAnAuthor";
+import SectionClientSay from "../component/homepage/SectionClientSay";
+import StaysType from "../component/homepage/StaysType";
 
 export default function Home() {
   return (
