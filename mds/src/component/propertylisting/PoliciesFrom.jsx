@@ -47,7 +47,7 @@ import {
   updateCustomPolicy,
   deleteCustomPolicy,
   completePrivacyPolicyStep,
-} from "@/redux/features/property/propertySlice";
+} from "@/redux/features/privacyPolicy/privacyPolicySlice";
 
 // Styled components for custom styling
 const StyledTabs = styled(Tabs)(({ theme }) => ({
@@ -82,7 +82,7 @@ function TabPanel({ children, value, index, ...other }) {
 const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
   const dispatch = useDispatch();
   const { currentPrivacyPolicy, privacyPolicyTemplate, isLoading, error } =
-    useSelector((state) => state.property);
+    useSelector((state) => state.privacyPolicy);
 
   const [formData, setFormData] = useState({
     checkInCheckOut: {
