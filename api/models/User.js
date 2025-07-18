@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import config from '../config/config.js';
 
+
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -38,6 +39,15 @@ const UserSchema = new mongoose.Schema({
     type: Date
   },
   address: {
+    type: String
+  },
+  maritalStatus: {
+    type: String
+  },
+  state: {
+    type: String
+  },
+  city: {
     type: String
   },
   phoneNumber: {

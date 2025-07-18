@@ -105,7 +105,7 @@ export function PropertyList({
       {/* Property Cards */}
       <div className="space-y-6">
         {sortedProperties.map((property) => (
-          <PropertyCard key={property.id} {...mapPropertyData(property)} />
+          <PropertyCard key={property._id} {...mapPropertyData(property)} />
         ))}
       </div>
 

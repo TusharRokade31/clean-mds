@@ -21,6 +21,7 @@ const initialState = {
   properties: [],
   draftProperties: [],
   currentProperty: null,
+  ViewProperty: {},
   currentFinanceLegal: null,
   currentMedia: [],
   featuredProperties: [],
@@ -94,6 +95,20 @@ export const getProperty = createAsyncThunk(
     }
   }
 );
+
+
+export const getViewProperty = createAsyncThunk(
+  'property/getViewProperty',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getViewProperty(id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch property');
+    }
+  }
+);
+
 
 
 export const fetchSuggestions = createAsyncThunk(
@@ -642,7 +657,20 @@ const propertySlice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     });
-
+        // Get property by ID
+    builder.addCase(getViewProperty.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getViewProperty.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.ViewProperty = action.payload;
+    });
+    builder.addCase(getViewProperty.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+    
      // Fetch suggestions
     builder.addCase(fetchSuggestions.pending, (state) => {
       state.isSuggestionsLoading = true;
