@@ -70,12 +70,15 @@ import {
 import { protect } from '../middleware/auth.js';
 import { check } from 'express-validator' ;
 import { upload, uploadMedia, validateImageSize } from '../middleware/uploadMiddleware.js';
+import { validatePropertyQuery } from '../middleware/validatePropertyQuery.js';
+import { setDefaultLocation } from '../middleware/defaultLocation.js';
+
 
 const router = express.Router();
 
 router.get('/suggestions', getSuggestions)
 
-router.get('/property-listing', getPropertiesByQuery)
+router.get('/property-listing',setDefaultLocation, validatePropertyQuery, getPropertiesByQuery)
 
 //Search Property Based on Location, Date and Guest
 router.get('/search-listing', searchProperties)
