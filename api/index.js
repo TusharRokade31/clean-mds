@@ -6,6 +6,8 @@ import mongoose from "mongoose";
 import cors from "cors";
 import errorHandler from './middleware/error.js';
 import registerRoutes from './routes/index.js';
+import {httpLogger} from './middleware/httpLogger.js'
+import {asyncContextMiddleware} from "./middleware/asyncLocalStorage.js";
 
 
 import { fileURLToPath } from "url";
@@ -29,9 +31,12 @@ mongoose
     console.error("MongoDB connection error:", err);
   });
 
-// Middleware
+
 app.use(express.static(__dirname));
 app.use(express.json());
+
+app.use(asyncContextMiddleware);
+app.use(httpLogger)
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
