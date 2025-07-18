@@ -61,8 +61,33 @@ export const getDraftProperties = async (req, res) => {
     });
   }
 };
-// Get all properties (for admin or host) //moved to hostController
+
 // Get single property
+export const getViewProperty = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        error: 'Property not found'
+      });
+    }
+
+    
+    res.status(200).json({
+      success: true,
+      data: property
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+
 export const getProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
@@ -93,6 +118,10 @@ export const getProperty = async (req, res) => {
     });
   }
 };
+
+
+
+
 
  
 // Initialize a new property for multistep form //moved to propertyManageController

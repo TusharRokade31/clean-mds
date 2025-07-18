@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Calendar, MapPin, Users, Search, X } from "lucide-react";
 import { useDebounce } from '@/hooks/useDebounce';
-import { fetchSuggestions, clearSuggestions, getPropertiesByQuery } from "@/redux/features/property/propertySlice";
+import { fetchSuggestions, clearSuggestions, getPropertiesByQuery, setSearchQuery } from "@/redux/features/property/propertySlice";
 
 export function SearchBar() {
   const dispatch = useDispatch();
@@ -21,6 +21,7 @@ export function SearchBar() {
 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [locationQuery, setLocationQuery] = useState("");
   
   const suggestionsRef = useRef(null);
@@ -31,18 +32,19 @@ export function SearchBar() {
   const debouncedLocationQuery = useDebounce(locationQuery, 500);
 
   // Update local state when Redux searchQuery changes
-  useEffect(() => {
-    if (searchQuery) {  
-      setSearchParams({
-        location: searchQuery.location || "",
-        checkin: searchQuery.checkin || "",
-        checkout: searchQuery.checkout || "",
-        persons: searchQuery.persons || "",
-      });
-      setLocationQuery(searchQuery.location || "");
-      setSelectedLocation(searchQuery.locationData || null);
-    }
-  }, [searchQuery]);
+useEffect(() => {
+  if (searchQuery && !isInitialized) {
+    setSearchParams({
+      location: searchQuery.location || "",
+      checkin: searchQuery.checkin || "",
+      checkout: searchQuery.checkout || "",
+      persons: searchQuery.persons || "",
+    });
+    setLocationQuery(searchQuery.location || "");
+    setSelectedLocation(searchQuery.locationData || null);
+    setIsInitialized(true);
+  }
+}, [searchQuery, isInitialized]);
 
 
   // Fetch suggestions when debounced location query changes
@@ -90,25 +92,32 @@ export function SearchBar() {
     setShowSuggestions(false);
   };
 
-  const handleSearch = () => {
-    if (!locationQuery.trim()) {
-      alert("Please enter a location");
-      return;
-    }
-    
-    dispatch(
-      getPropertiesByQuery({
-        location: selectedLocation ? selectedLocation.placeName : locationQuery,
-        checkin: searchParams.checkin,
-        checkout: searchParams.checkout,
-        persons: searchParams.persons,
-        skip: 1,
-        limit: 10,
-        // Include additional location data for more precise search
-        locationData: selectedLocation
-      })
-    );
+ const handleSearch = () => {
+  if (!locationQuery.trim()) {
+    alert("Please enter a location");
+    return;
+  }
+  
+  const currentSearchParams = {
+    location: searchParams.location,
+    checkin: searchParams.checkin,
+    checkout: searchParams.checkout,
+    persons: searchParams.persons,
+    locationData: selectedLocation
   };
+  
+  // Update Redux state first
+  dispatch(setSearchQuery(currentSearchParams));
+  
+  // Then perform search
+  dispatch(
+    getPropertiesByQuery({
+      ...currentSearchParams,
+      skip: 1,
+      limit: 10
+    })
+  );
+};
 
   const inputBase =
     "w-full bg-white border border-gray-200 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-gray-50 disabled:cursor-not-allowed";

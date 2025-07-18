@@ -1,8 +1,10 @@
 import { Button } from "@mui/material"
 import { Star, Wifi, Car, Utensils, Shield, Droplets, Badge } from "lucide-react"
+import Link from "next/link"
 import { useState } from "react"
 
 export function PropertyCard({
+  id,
   name,
   location,
   rating,
@@ -168,7 +170,7 @@ export function PropertyCard({
               <div className="text-2xl font-bold text-blue-600 mb-1">₹{price.toLocaleString()}</div>
               <div className="text-sm text-gray-500 mb-1">per night</div>
               <div className="text-xs text-gray-400 mb-4">+ ₹96 taxes</div>
-              <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">View Details</Button>
+              <Link href={`/hotel-details/${id}`}><Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">View Details</Button></Link>
             </div>
           </div>
         </div>

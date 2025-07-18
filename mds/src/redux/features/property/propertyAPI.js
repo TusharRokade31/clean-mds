@@ -139,6 +139,13 @@ export const propertyAPI = {
     return response.data;
   },
 
+  // Get single view property
+  getViewProperty: async (id) => {
+    const response = await axiosInstance.get(`/properties/view/${id}`);
+    return response.data;
+  },
+
+
    getSuggestions: async (query) => {
     const response = await axiosInstance.get(`/properties/suggestions?q=${encodeURIComponent(query)}`);
     return response.data;
