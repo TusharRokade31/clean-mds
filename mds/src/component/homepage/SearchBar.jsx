@@ -4,8 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FiMapPin, FiCalendar, FiUsers, FiSearch, FiX, FiChevronLeft, FiChevronRight, FiClock } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 
-import { useDebounce } from '@/hooks/useDebounce';
+
 import { fetchSuggestions, clearSuggestions, getPropertiesByQuery } from '@/redux/features/property/propertySlice';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function SearchBar() {
   const dispatch = useDispatch();
