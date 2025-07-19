@@ -16,27 +16,6 @@ export default function LocationSection({ location }) {
     setNearbyPlaces(places)
   }
 
-  const PlaceItem = ({ place, showRating = false }) => (
-    <div className="flex items-center justify-between py-2">
-      <div className="flex-1">
-        <p className="font-medium text-sm">{place.name}</p>
-        <div className="flex items-center gap-2">
-          <p className="text-xs text-gray-500">{place.type}</p>
-          {showRating && place.rating && (
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs text-gray-600">{place.rating}</span>
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center gap-1 ml-4">
-        <Navigation className="h-3 w-3 text-blue-500" />
-        <span className="text-sm text-blue-500">{place.distance}</span>
-      </div>
-    </div>
-  )
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -57,15 +36,28 @@ export default function LocationSection({ location }) {
               />
 
               {/* Address Details */}
-              <div className="space-y-2">
+              <div className=" mt-5 space-y-2">
                 <h3 className="font-semibold">{location?.houseName}</h3>
                 <p className="text-gray-600">
-                  {location?.street}, {location?.city}, {location?.state} {location?.postalCode}
+                  {location?.street}, {location?.city}, {location?.state}, {location?.country} {location?.postalCode}
                 </p>
-                <p className="text-gray-600">{location?.country}</p>
+                <p className="text-gray-600"></p>
               </div>
             </CardContent>
+        <CardContent>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-700">
+              Guests rave about the property's prime location near Varca beach, emphasizing its beautiful surroundings
+              and ease of access to both the beach and local attractions. Many appreciate the serene and peaceful
+              environment, making it ideal for relaxation. The accessibility to restaurants and shops is highlighted,
+              enhancing the overall experience. Overall, the location significantly contributes to guest satisfaction,
+              with numerous reviewers expressing an eagerness to return.
+            </p>
+          </div>
+        </CardContent>
+
           </Card>
+          
         </div>
 
         {/* Nearby Places */}
@@ -96,22 +88,7 @@ export default function LocationSection({ location }) {
       </div>
 
       {/* What Guests Said */}
-      <Card>
-        <CardHeader>
-          <h2>What guests said</h2>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-700">
-              Guests rave about the property's prime location near Varca beach, emphasizing its beautiful surroundings
-              and ease of access to both the beach and local attractions. Many appreciate the serene and peaceful
-              environment, making it ideal for relaxation. The accessibility to restaurants and shops is highlighted,
-              enhancing the overall experience. Overall, the location significantly contributes to guest satisfaction,
-              with numerous reviewers expressing an eagerness to return.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    
     </div>
   )
 }

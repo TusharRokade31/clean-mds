@@ -17,7 +17,6 @@ export default function GoogleMapWithPlaces({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isMapLoaded, setIsMapLoaded] = useState(false)
-  const [nearbyPlaces, setNearbyPlaces] = useState({ restaurants: [], attractions: [], transport: [] })
   const [selectedPlace, setSelectedPlace] = useState(null)
   const loaderRef = useRef(null)
 
@@ -107,22 +106,6 @@ export default function GoogleMapWithPlaces({
     return distance.toFixed(1) + ' km'
   }
 
-  // Get additional place details
-  const getPlaceDetails = (placeId) => {
-    return new Promise((resolve) => {
-      const service = new window.google.maps.places.PlacesService(mapInstanceRef.current)
-      service.getDetails({
-        placeId: placeId,
-        fields: ['name', 'rating', 'formatted_phone_number', 'website', 'opening_hours', 'photos', 'formatted_address']
-      }, (place, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-          resolve(place)
-        } else {
-          resolve(null)
-        }
-      })
-    })
-  }
 
   // Search for nearby places using Places API
   const searchNearbyPlaces = async (map, location) => {
@@ -264,7 +247,7 @@ export default function GoogleMapWithPlaces({
         results[key].sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
       })
 
-      setNearbyPlaces(results)
+      
       onNearbyPlacesFound?.(results)
     } catch (error) {
       console.error('Error fetching nearby places:', error)
@@ -397,14 +380,14 @@ export default function GoogleMapWithPlaces({
 
   return (
     <div className="flex h-full w-full relative">
-      <div ref={mapRef} style={{ minHeight: '400px' }} className="w-full h-full rounded-lg" />
+      <div ref={mapRef} style={{ minHeight: '500px' }} className="w-full h-full rounded-lg" />
       
       {/* Location Details Panel */}
       {selectedPlace && (
         <div className="absolute top-4 right-4 w-80 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-10">
           <button
             onClick={() => setSelectedPlace(null)}
-            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+            className="absolute top-1 right-1 text-gray-400 hover:text-gray-600"
           >
             ×
           </button>
