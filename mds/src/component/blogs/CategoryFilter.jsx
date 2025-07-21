@@ -1,9 +1,6 @@
 "use client"
 
 import { Button } from "@mui/material"
-
-
-
 export default function CategoryFilter({
   categories,
   selectedCategory,
@@ -41,14 +38,14 @@ export default function CategoryFilter({
       <h3 className="text-lg font-semibold text-gray-800 mb-4">Browse by Category</h3>
       <div className="flex flex-wrap gap-3">
         {categories.map((category) => (
-          <Button
+          <button
             key={category}
-            variant={selectedCategory === category ? "default" : "outline"}
+            // variant={selectedCategory === category ? "default" : "outline"}
             onClick={() => handleCategoryChange(category)}
             className={`flex items-center gap-2 ${
               selectedCategory === category
-                ? "bg-[#1035ac] hover:bg-[#0d2a8f] text-white"
-                : "border-gray-200 hover:border-[#1035ac] hover:text-[#1035ac]"
+                ? "bg-[#1035ac] hover:bg-[#0d2a8f] rounded-lg py-3 px-5 text-white"
+                : "border-gray-200 bg-[#3741511c] py-3 px-5 rounded-lg hover:border-[#1035ac] hover:text-[#1035ac]"
             }`}
           >
             <span>{getCategoryIcon(category)}</span>
@@ -60,7 +57,7 @@ export default function CategoryFilter({
             >
               {getCategoryCount(category)}
             </span>
-          </Button>
+          </button>
         ))}
       </div>
     </div>

@@ -45,16 +45,16 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
             {page === "..." ? (
               <span className="px-3 py-2 text-gray-500">...</span>
             ) : (
-              <Button
+              <button
                 variant={currentPage === page ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(page)}
                 className={`w-10 h-10 ${
-                  currentPage === page ? "bg-[#1035ac] hover:bg-[#0d2a8f] text-white" : "hover:bg-gray-50"
+                  currentPage === page ? "bg-[#1035ac] hover:bg-[#0d2a8f] text-white" : "hover:bg-gray-50 bg-[#3741511c] "
                 }`}
               >
                 {page}
-              </Button>
+              </button>
             )}
           </div>
         ))}
