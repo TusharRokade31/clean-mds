@@ -1,9 +1,12 @@
+import { useHTMLContent } from "@/hooks/useHTMLContent"
 import { Button } from "@mui/material"
 import { Badge } from "@mui/material"
 import { Clock, ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 
 export default function FeaturedArticle({ article }) {
+  const truncatedContent = useHTMLContent(article.content, { maxLength: 150 })
   return (
     <section className=" ">
       <div className="container mx-auto rounded-3xl">
@@ -28,7 +31,7 @@ export default function FeaturedArticle({ article }) {
 
               <h2 className="text-3xl md:text-4xl font-bold leading-tight">{article.title}</h2>
 
-              <p className=" text-lg leading-relaxed">{article.content}</p>
+              <div className=" text-lg leading-relaxed">{truncatedContent}</div>
 
               <div className="flex items-center justify-between pt-4">
                 <div className="flex items-center gap-3">
@@ -41,10 +44,11 @@ export default function FeaturedArticle({ article }) {
                   </div>
                 </div>
 
+               <Link href={`/blogs/${article.slug}`}>
                 <Button className="bg-[#1035ac] hover:bg-[#0d2a8f]  group">
                   Read More
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
+                </Button></Link>
               </div>
             </div>
           </div>

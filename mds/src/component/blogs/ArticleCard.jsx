@@ -1,3 +1,4 @@
+import { useHTMLContent } from "@/hooks/useHTMLContent"
 import { Clock, ArrowRight } from "lucide-react"
 
 export default function ArticleCard({ article }) {
@@ -30,6 +31,9 @@ export default function ArticleCard({ article }) {
   // Calculate read time if not provided
   const readTime = article.readTime || Math.ceil(article.content?.length / 200) || 5
 
+
+  const truncatedContent = useHTMLContent(article.content, { maxLength: 150 })
+
   return (
     <div className="overflow-hidden hover:shadow-lg hover:-translate-2 border border-[#1034ac23] transition-shadow duration-300">
       <div className={`h-32 bg-gradient-to-br ${getCategoryColor(article.category)} flex items-center justify-center`}>
@@ -51,9 +55,9 @@ export default function ArticleCard({ article }) {
       </div>
 
       <div className="px-3 pb-3">
-        <p className="text-gray-600 text-sm line-clamp-3 mb-4">
-          {article.content?.substring(0, 150)}...
-        </p>
+        <div className="text-gray-600 text-sm line-clamp-3 mb-4">
+          {truncatedContent}
+        </div>
         <div className="flex justify-between items-center">
           <div className="flex flex-wrap gap-1">
             {(article.tags || []).slice(0, 2).map((tag) => (
@@ -67,7 +71,7 @@ export default function ArticleCard({ article }) {
               variant="outline"
               size="sm"
               className="w-full flex items-center group hover:text-[#1035ac]"
-              onClick={() => window.location.href = `/blog/${article.slug}`}
+              onClick={() => window.location.href = `/blogs/${article.slug}`}
             >
               Read More
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
