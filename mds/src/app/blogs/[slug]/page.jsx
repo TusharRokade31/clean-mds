@@ -6,12 +6,13 @@ import { fetchBlogBySlug } from '@/redux/features/blog/blogSlice'
 import { Clock, Eye, ArrowLeft } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useHTMLContent } from '@/hooks/useHTMLContent'
+import '../blog-content.css' // Import your custom CSS
 
 export default function BlogDetail() {
   const dispatch = useDispatch()
   const params = useParams()
   const { currentBlog, isLoading, error } = useSelector(state => state.blog)
-  const truncatedContent = useHTMLContent(currentBlog?.content, { maxLength: 150 })
+  const truncatedContent = useHTMLContent(currentBlog?.content)
 
   useEffect(() => {
     if (params.slug) {
@@ -79,7 +80,7 @@ export default function BlogDetail() {
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">
+        <h1 className="text-3xl md:text-5xl font-bold mb-4">
           {currentBlog.title}
         </h1>
 
@@ -104,9 +105,9 @@ export default function BlogDetail() {
         )}
 
         {/* Blog Content */}
-        <div className="prose prose-lg max-w-none text-gray-800">
-          {truncatedContent}
-        </div>
+        <div className="blog-content max-w-none text-gray-800">
+  {truncatedContent}
+</div>
       </div>
     </div>
   )
