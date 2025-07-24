@@ -51,7 +51,7 @@ export default function Home() {
   const allTags = [...new Set(blogs.flatMap(blog => blog.tags || []))]
 
   // Get featured article
-  const featuredArticle = blogs[blogs.length - 1]
+  const featuredArticle = blogs[0]
 
   // Handle filter changes (category, tags)
   const handleFilterChange = useCallback((newFilters) => {

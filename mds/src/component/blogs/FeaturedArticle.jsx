@@ -6,7 +6,7 @@ import Link from "next/link"
 
 
 export default function FeaturedArticle({ article }) {
-  const truncatedContent = useHTMLContent(article.content, { maxLength: 150 })
+  const truncatedContent = useHTMLContent(article.content, { maxLength: 250 })
   return (
     <section className=" ">
       <div className="container mx-auto rounded-3xl">
@@ -25,7 +25,7 @@ export default function FeaturedArticle({ article }) {
                 <span>•</span>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  <span>{article.readTime} read</span>
+                  <span>{article.readTime} min read</span>
                 </div>
               </div>
 
