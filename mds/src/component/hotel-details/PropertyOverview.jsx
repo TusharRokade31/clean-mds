@@ -78,7 +78,7 @@ const getFilteredImages = () => {
   const getDisplayImages = () => {
     if (!data.media?.images || !Array.isArray(data.media.images)) return []
     const sorted = [...data.media.images].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
-    return sorted.slice(0, 3)
+    return sorted.slice(0, 5)
   }
 
   const handleImageClick = (index) => {
@@ -101,7 +101,7 @@ const getFilteredImages = () => {
         <Paper sx={{ p: 0 }}>
           <Grid container spacing={1}>
             {/* Main Image */}
-            <Grid item size={{xs:12, md:8}}>
+            <Grid item size={{xs:12, md:12}}>
               <Box
                 sx={{
                   aspectRatio: "16/9",
@@ -157,11 +157,13 @@ const getFilteredImages = () => {
               </Box>
             </Grid>
             
+            
+            
             {/* Thumbnail Images Grid */}
-            <Grid item size={{xs:12, md:4}}>
+            <Grid item size={{xs:12, md:12}}>
               <Grid container spacing={1} sx={{ height: "100%" }}>
                 {displayImages.slice(1, 5).map((image, index) => (
-                  <Grid item size={{xs:6, md:12}} key={image._id || index}>
+                  <Grid item size={{xs:6, md:3}} key={image._id || index}>
                     <Box
                       sx={{
                         aspectRatio: "1/1",

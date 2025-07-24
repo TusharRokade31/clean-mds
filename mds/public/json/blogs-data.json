@@ -1,0 +1,95 @@
+{
+  "articles": [
+    {
+      "id": 1,
+      "title": "Discovering Ancient Temples in Southeast Asia",
+      "category": "Spiritual Places",
+      "tags": ["temples", "southeast asia", "ancient"],
+      "date": "2024-01-15",
+      "readTime": "7 min",
+      "content": "Explore the breathtaking beauty and spiritual significance of ancient temples scattered across Southeast Asia. From Angkor Wat to Borobudur, embark on a journey of discovery.",
+      "isFeatured": true
+    },
+    {
+      "id": 2,
+      "title": "Essential Travel Tips for Solo Female Pilgrims",
+      "category": "Travel Tips",
+      "tags": ["solo travel", "female travel", "safety"],
+      "date": "2024-02-01",
+      "readTime": "5 min",
+      "content": "Empowering advice and practical tips for women embarking on solo spiritual journeys. Learn how to stay safe, connected, and inspired on your travels.",
+      "isFeatured": false
+    },
+    {
+      "id": 3,
+      "title": "A Transformative Journey on the Camino de Santiago",
+      "category": "Partner Stories",
+      "tags": ["camino de santiago", "pilgrimage", "spain"],
+      "date": "2024-02-15",
+      "readTime": "9 min",
+      "content": "Follow the footsteps of pilgrims past on the iconic Camino de Santiago. A personal account of self-discovery, resilience, and the power of human connection.",
+      "isFeatured": false
+    },
+    {
+      "id": 4,
+      "title": "Finding Inner Peace in the Himalayas",
+      "category": "Spiritual Places",
+      "tags": ["himalayas", "meditation", "peace"],
+      "date": "2024-03-01",
+      "readTime": "6 min",
+      "content": "Journey to the majestic Himalayas and discover ancient monasteries, serene landscapes, and profound meditation practices that can help you find inner peace.",
+      "isFeatured": false
+    },
+    {
+      "id": 5,
+      "title": "Budget-Friendly Pilgrimage: Traveling on a Shoestring",
+      "category": "Travel Tips",
+      "tags": ["budget travel", "pilgrimage", "affordable"],
+      "date": "2024-03-15",
+      "readTime": "4 min",
+      "content": "Discover how to embark on a meaningful pilgrimage without breaking the bank. Practical tips for finding affordable accommodation, transportation, and food.",
+      "isFeatured": false
+    },
+    {
+      "id": 6,
+      "title": "Volunteering in Sacred Sites: A Meaningful Way to Travel",
+      "category": "Partner Stories",
+      "tags": ["volunteering", "sacred sites", "community"],
+      "date": "2024-04-01",
+      "readTime": "8 min",
+      "content": "Give back to the communities you visit by volunteering at sacred sites around the world. A rewarding experience that deepens your connection to the local culture and environment.",
+      "isFeatured": false
+    },
+    {
+      "id": 7,
+      "title": "The Mystical Beauty of Kyoto's Zen Gardens",
+      "category": "Spiritual Places",
+      "tags": ["kyoto", "zen gardens", "japan"],
+      "date": "2024-04-15",
+      "readTime": "7 min",
+      "content": "Immerse yourself in the tranquil atmosphere of Kyoto's Zen gardens. Discover the art of contemplation and find serenity in these meticulously designed landscapes.",
+      "isFeatured": false
+    },
+    {
+      "id": 8,
+      "title": "Packing Essentials for a Spiritual Retreat",
+      "category": "Travel Tips",
+      "tags": ["packing", "retreat", "essentials"],
+      "date": "2024-05-01",
+      "readTime": "5 min",
+      "content": "Prepare for your spiritual retreat with our comprehensive packing guide. From comfortable clothing to meditation aids, ensure you have everything you need for a transformative experience.",
+      "isFeatured": false
+    },
+    {
+      "id": 9,
+      "title": "Finding Love and Connection on a Group Pilgrimage",
+      "category": "Partner Stories",
+      "tags": ["group travel", "pilgrimage", "connection"],
+      "date": "2024-05-15",
+      "readTime": "9 min",
+      "content": "Share your spiritual journey with like-minded individuals on a group pilgrimage. A heartwarming story of friendship, love, and shared experiences.",
+      "isFeatured": false
+    }
+  ],
+  "categories": ["All Articles", "Spiritual Places", "Travel Tips", "Partner Stories"]
+}
