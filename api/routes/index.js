@@ -17,7 +17,7 @@ const registerRoutes = (app) => {
   app.use('/api/states', stateRoutes);
   app.use('/api/stays', stayRoutes);
   app.use('/api/bookings', bookingRoutes);
-  app.use('/api/blog', blogRoutes);
+  app.use('/api/blogs', blogRoutes);
   app.use('/api', roomRoutes)
 };
 

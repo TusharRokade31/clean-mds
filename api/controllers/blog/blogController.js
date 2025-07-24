@@ -1,19 +1,31 @@
 // Controller (controllers/blogController.js)
 import {Blog} from '../../models/Blog.js';
 import asyncHandler from '../../middleware/async.js';
+import Category from '../../models/Category.js';
+import CategoryVersion from '../../models/CategoryVersion.js';
 
 
 // Create new blog post
 export const createBlog = asyncHandler(async (req, res) => {
-  const { title, content, image, tags, status } = req.body;
   
+  const { title, content, image, tags, categories, status } = req.body;
+
+  // Validate category IDs and ensure not deleted
+  const validCategories = await Category.find({ name: { $in: categories }, isDeleted: false });
+
+  if (!validCategories.length) {
+    throw createError(400, 'Invalid category');
+  }
+
   const blog = await Blog.create({
     title,
     content,
-    author: req.user._id, // Assuming user ID from auth middleware
+    author: req.user._id,
     image,
     tags,
+    category: validCategories[0].id,
     status,
+    slug: title,
     readTime: estimateReadTime(content)
   });
 
@@ -112,6 +124,12 @@ export const updateBlog = asyncHandler(async (req, res) => {
     data: updatedBlog
   });
 });
+
+//Get Blog By Category
+
+export const getBlogsByCategory = asyncHandler(async (req, res) =>{
+  
+})
 
 
 // Delete blog

@@ -26,6 +26,11 @@ const blogSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  category:{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Category',
+  required: true
+},
   status: {
     type: String,
     enum: ['draft', 'published'],
@@ -37,6 +42,7 @@ const blogSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
+  
   readTime: {
     type: Number, // Estimated reading time in minutes
     default: 0
