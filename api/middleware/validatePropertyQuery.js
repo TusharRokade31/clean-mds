@@ -1,70 +1,37 @@
 // controllers/propertyController.js
-import Property from '../models/Property.js';
+import { query } from 'express-validator';
 
-export const getProperties = async (req, res) => {
-  try {
-    const {
-      city,
-      checkin,
-      checkout,
-      minPrice,
-      maxPrice,
-      sortBy = 'createdAt',
-      order = 'desc',
-      page = 1,
-      limit = 10,
-      searchText,
-    } = req.query;
+export const validatePropertyQuery = [
+  query('location')
+    .optional()
+    .isString()
+    .trim()
+    .escape()
+    .notEmpty()
+    .withMessage('Location must be non-empty string'),
 
-    const query = {};
+    query('checkin')
+      .optional()
+      .isISO8601()
+      .withMessage('Check-in must be a valid date'),
+    
+    query('checkout')
+      .optional()
+      .isISO8601()
+      .withMessage('Check-out must be a valid date'),
+    
+    query('persons')
+      .optional()
+      .isInt({ min: 1, max: 20 })
+      .withMessage('Persons must be a number between 1 and 20'),
 
-    // City filter
-    if (city) {
-      query['address.city'] = { $regex: city, $options: 'i' };
-    }
+    query('skip')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Skip must be a non-negative integer'),
 
-    // Price filter
-    if (minPrice !== undefined && maxPrice !== undefined) {
-      query.price = { $gte: minPrice, $lte: maxPrice };
-    }
-
-    // Availability filter (example)
-    if (checkin && checkout) {
-      query.unavailableDates = {
-        $not: {
-          $elemMatch: {
-            $gte: new Date(checkin),
-            $lte: new Date(checkout),
-          },
-        },
-      };
-    }
-
-    // Text search
-    if (searchText) {
-      query.$text = { $search: searchText };
-    }
-
-    const skip = (page - 1) * limit;
-    const sort = { [sortBy]: order === 'asc' ? 1 : -1 };
-
-    const properties = await Property.find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
-
-    const total = await Property.countDocuments(query);
-
-    res.status(200).json({
-      data: properties,
-      meta: {
-        total,
-        page,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Server error' });
-  }
-};
+     query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100')
+  ]

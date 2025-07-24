@@ -12,6 +12,7 @@ import {errorResponse} from '../globalError/errorController.js'
 
 
 
+
 // Get all properties (for admin or host) //moved to hostController
 export const getAllProperties = async (req, res) => {
   try {
@@ -1790,13 +1791,12 @@ export const getSuggestions = async (req, res) =>{
 }
 
 export const getPropertiesByQuery = async (req, res) =>{
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   try{
-    const {location, checkin, checkout, persons, skip, limit} = req.query;
-    if (!location || !checkin || !checkout || !persons || !skip || !limit) {
-      return res.status(400).json({ error: "Missing required query parameters." });
-    }
-
-  
+    const {location, checkin, checkout, persons, skip, limit} = req.query; 
 
       const searchQuery = [
         {
@@ -1825,6 +1825,11 @@ export const getPropertiesByQuery = async (req, res) =>{
                   
               ].filter(Boolean) // Remove null clauses
             }
+          }
+        },
+        {
+          $match: {
+            status: 'published' // 👈 Only include published hotels
           }
         },
         {$skip: (1 - parseInt(skip))* parseInt(limit) },

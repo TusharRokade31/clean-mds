@@ -17,7 +17,7 @@ const navigation = {
 	],
 	company: [
 		{ name: 'About', href: '#' },
-		{ name: 'Blog', href: '#' },
+		{ name: 'Blogs', href: '/blogs' },
 		{ name: 'Jobs', href: '#' },
 		{ name: 'Press', href: '#' },
 	],

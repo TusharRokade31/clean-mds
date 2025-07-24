@@ -6,6 +6,7 @@ import propertyReducer from './features/property/propertySlice';
 import privacyPolicyReducer from './features/privacyPolicy/privacyPolicySlice';
 import bookingReducer from './features/bookings/bookingSlice';
 import roomReducer from './features/rooms/roomSlice';
+import blogReducer from './features/blog/blogSlice';
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     privacyPolicy: privacyPolicyReducer,
     booking: bookingReducer,
     rooms: roomReducer,
+    blog: blogReducer,
     // Add other reducers here as needed
   },
   middleware: (getDefaultMiddleware) =>
