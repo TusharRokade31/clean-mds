@@ -2,14 +2,14 @@
 import express from 'express';
 import multer from 'multer';
 import { createBlog, getAllBlogs, getBlogBySlug, getBlogsByTag, updateBlog, deleteBlog, getBlogsByCategory } from '../controllers/blog/blogController.js';
-import {createCategory, getAllCategories, updateCategory, deleteCategory} from '../controllers/blog/categoryController.js'
+import { createCategory, getAllCategories, updateCategory, deleteCategory } from '../controllers/blog/categoryController.js'
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 const upload = multer();
 // Public routes
 router.get('/', getAllBlogs);
-router.get('/slug/:slug', getBlogBySlug);
+router.get('/:slug', getBlogBySlug);
 router.get('/tag/:tag', getBlogsByTag);
 router.get('/category/:categorySlug', getBlogsByCategory);
 router.get('/categories', getAllCategories);

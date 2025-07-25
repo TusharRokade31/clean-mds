@@ -2,12 +2,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { blogAPI } from './blogAPI';
 
-
 // Initial state
 const initialState = {
   blogs: [],
   currentBlog: null,
   blogsByTag: [],
+  blogsByCategory: [],
+  categories: [],
+  categoryVersions: [],
   pagination: {
     page: 1,
     limit: 10,
@@ -17,18 +19,27 @@ const initialState = {
   filters: {
     page: 1,
     limit: 10,
+    category: '',
     status: '',
     tag: '',
     search: '',
   },
+  currentCategory: '',
+  currentTag: '',
   isLoading: false,
   isCreating: false,
   isUpdating: false,
   isDeleting: false,
+  isCategoriesLoading: false,
+  isCategoryCreating: false,
+  isCategoryUpdating: false,
+  isCategoryDeleting: false,
   error: null,
+  categoriesError: null,
+  categoryError: null,
 };
 
-// Async thunks
+// Existing async thunks...
 export const fetchAllBlogs = createAsyncThunk(
   'blog/fetchAllBlogs',
   async (params, { rejectWithValue }) => {
@@ -37,6 +48,18 @@ export const fetchAllBlogs = createAsyncThunk(
       return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch blogs');
+    }
+  }
+);
+
+export const fetchAllCategories = createAsyncThunk(
+  'blog/fetchAllCategories',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await blogAPI.getAllCategories();
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch categories');
     }
   }
 );
@@ -61,6 +84,18 @@ export const fetchBlogsByTag = createAsyncThunk(
       return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch blogs by tag');
+    }
+  }
+);
+
+export const fetchBlogsByCategory = createAsyncThunk(
+  'blog/fetchBlogsByCategory',
+  async (categorySlug, { rejectWithValue }) => {
+    try {
+      const response = await blogAPI.getBlogsByCategory(categorySlug);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch blogs by category');
     }
   }
 );
@@ -101,12 +136,67 @@ export const deleteBlog = createAsyncThunk(
   }
 );
 
+// Category async thunks
+export const createCategory = createAsyncThunk(
+  'blog/createCategory',
+  async (categoryData, { rejectWithValue }) => {
+    try {
+      const response = await blogAPI.createCategory(categoryData);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to create category');
+    }
+  }
+);
+
+export const updateCategory = createAsyncThunk(
+  'blog/updateCategory',
+  async ({ id, categoryData }, { rejectWithValue }) => {
+    try {
+      const response = await blogAPI.updateCategory(id, categoryData);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update category');
+    }
+  }
+);
+
+export const deleteCategory = createAsyncThunk(
+  'blog/deleteCategory',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await blogAPI.deleteCategory(id);
+      return { id, ...response };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete category');
+    }
+  }
+);
+
+export const fetchCategoryVersions = createAsyncThunk(
+  'blog/fetchCategoryVersions',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await blogAPI.getCategoryVersions(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch category versions');
+    }
+  }
+);
+
 const blogSlice = createSlice({
   name: 'blog',
   initialState,
   reducers: {
     clearBlogError: (state) => {
       state.error = null;
+    },
+    clearCategoriesError: (state) => {
+      state.categoriesError = null;
+    },
+    clearCategoryError: (state) => {
+      state.categoryError = null;
     },
     setCurrentBlog: (state, action) => {
       state.currentBlog = action.payload;
@@ -121,13 +211,29 @@ const blogSlice = createSlice({
       state.filters = {
         page: 1,
         limit: 10,
+        category: '',
         status: '',
         tag: '',
         search: '',
       };
+      state.currentCategory = '';
+      state.currentTag = '';
     },
     clearBlogsByTag: (state) => {
       state.blogsByTag = [];
+    },
+    clearBlogsByCategory: (state) => {
+      state.blogsByCategory = [];
+    },
+    setCurrentCategory: (state, action) => {
+      state.currentCategory = action.payload;
+    },
+    setCurrentTag: (state, action) => {
+      state.currentTag = action.payload;
+    },
+    clearCategoryAndTag: (state) => {
+      state.currentCategory = '';
+      state.currentTag = '';
     },
   },
   extraReducers: (builder) => {
@@ -145,6 +251,21 @@ const blogSlice = createSlice({
       .addCase(fetchAllBlogs.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+
+    // Fetch all categories
+    builder
+      .addCase(fetchAllCategories.pending, (state) => {
+        state.isCategoriesLoading = true;
+        state.categoriesError = null;
+      })
+      .addCase(fetchAllCategories.fulfilled, (state, action) => {
+        state.isCategoriesLoading = false;
+        state.categories = action.payload.data || action.payload;
+      })
+      .addCase(fetchAllCategories.rejected, (state, action) => {
+        state.isCategoriesLoading = false;
+        state.categoriesError = action.payload;
       })
 
     // Fetch blog by slug
@@ -171,8 +292,25 @@ const blogSlice = createSlice({
       .addCase(fetchBlogsByTag.fulfilled, (state, action) => {
         state.isLoading = false;
         state.blogsByTag = action.payload.data;
+        state.currentTag = action.meta.arg;
       })
       .addCase(fetchBlogsByTag.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+    // Fetch blogs by Category
+    builder
+      .addCase(fetchBlogsByCategory.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchBlogsByCategory.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.blogsByCategory = action.payload.data;
+        state.currentCategory = action.payload.category?.name || '';
+      })
+      .addCase(fetchBlogsByCategory.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
@@ -229,17 +367,86 @@ const blogSlice = createSlice({
       .addCase(deleteBlog.rejected, (state, action) => {
         state.isDeleting = false;
         state.error = action.payload;
+      })
+
+    // Create category
+    builder
+      .addCase(createCategory.pending, (state) => {
+        state.isCategoryCreating = true;
+        state.categoryError = null;
+      })
+      .addCase(createCategory.fulfilled, (state, action) => {
+        state.isCategoryCreating = false;
+        state.categories.push(action.payload.data);
+      })
+      .addCase(createCategory.rejected, (state, action) => {
+        state.isCategoryCreating = false;
+        state.categoryError = action.payload;
+      })
+
+    // Update category
+    builder
+      .addCase(updateCategory.pending, (state) => {
+        state.isCategoryUpdating = true;
+        state.categoryError = null;
+      })
+      .addCase(updateCategory.fulfilled, (state, action) => {
+        state.isCategoryUpdating = false;
+        const index = state.categories.findIndex(cat => cat._id === action.payload.data._id);
+        if (index !== -1) {
+          state.categories[index] = action.payload.data;
+        }
+      })
+      .addCase(updateCategory.rejected, (state, action) => {
+        state.isCategoryUpdating = false;
+        state.categoryError = action.payload;
+      })
+
+    // Delete category
+    builder
+      .addCase(deleteCategory.pending, (state) => {
+        state.isCategoryDeleting = true;
+        state.categoryError = null;
+      })
+      .addCase(deleteCategory.fulfilled, (state, action) => {
+        state.isCategoryDeleting = false;
+        state.categories = state.categories.filter(cat => cat._id !== action.payload.id);
+      })
+      .addCase(deleteCategory.rejected, (state, action) => {
+        state.isCategoryDeleting = false;
+        state.categoryError = action.payload;
+      })
+
+    // Fetch category versions
+    builder
+      .addCase(fetchCategoryVersions.pending, (state) => {
+        state.isLoading = true;
+        state.categoryError = null;
+      })
+      .addCase(fetchCategoryVersions.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.categoryVersions = action.payload.data;
+      })
+      .addCase(fetchCategoryVersions.rejected, (state, action) => {
+        state.isLoading = false;
+        state.categoryError = action.payload;
       });
   },
 });
 
 export const {
   clearBlogError,
+  clearCategoriesError,
+  clearCategoryError,
   setCurrentBlog,
   clearCurrentBlog,
   updateFilters,
   resetFilters,
   clearBlogsByTag,
+  clearBlogsByCategory,
+  setCurrentCategory,
+  setCurrentTag,
+  clearCategoryAndTag,
 } = blogSlice.actions;
 
 export default blogSlice.reducer;

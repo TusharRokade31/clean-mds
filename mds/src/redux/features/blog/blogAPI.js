@@ -20,6 +20,18 @@ export const blogAPI = {
     return response.data;
   },
 
+  // Get blogs by category
+  getBlogsByCategory: async (categorySlug) => {
+    const response = await axiosInstance.get(`/blogs/category/${categorySlug}`);
+    return response.data;
+  },
+
+  // Get all categories
+  getAllCategories: async () => {
+    const response = await axiosInstance.get('/blogs/categories');
+    return response.data;
+  },
+
   // Create new blog (protected route)
   createBlog: async (blogData) => {
     const response = await axiosInstance.post('/blogs/', blogData);
@@ -35,6 +47,27 @@ export const blogAPI = {
   // Delete blog (protected route)
   deleteBlog: async (id) => {
     const response = await axiosInstance.delete(`/blogs/${id}`);
+    return response.data;
+  },
+
+  // Category management APIs
+  createCategory: async (categoryData) => {
+    const response = await axiosInstance.post('/blogs/category', categoryData);
+    return response.data;
+  },
+
+  updateCategory: async (id, categoryData) => {
+    const response = await axiosInstance.put(`/blogs/category/${id}`, categoryData);
+    return response.data;
+  },
+
+  deleteCategory: async (id) => {
+    const response = await axiosInstance.delete(`/blogs/category/${id}`);
+    return response.data;
+  },
+
+  getCategoryVersions: async (id) => {
+    const response = await axiosInstance.get(`/blogs/category/${id}/versions`);
     return response.data;
   },
 };
