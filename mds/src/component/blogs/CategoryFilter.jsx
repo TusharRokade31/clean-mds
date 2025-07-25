@@ -1,18 +1,13 @@
 "use client"
 
-import { Button } from "@mui/material"
 export default function CategoryFilter({
   categories,
   selectedCategory,
-  setSelectedCategory,
-  articles,
-  onChange,
+  onCategoryChange,
+  totalResults = 0,
+  isLoading = false,
+  error = null,
 }) {
-  const getCategoryCount = (category) => {
-    if (category === "All Articles") return articles.length
-    return articles.filter((article) => article.category === category).length
-  }
-
   const getCategoryIcon = (category) => {
     switch (category) {
       case "All Articles":
@@ -28,38 +23,69 @@ export default function CategoryFilter({
     }
   }
 
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category)
-    onChange()
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Browse by Category</h3>
+        <div className="text-red-500 text-center py-4">
+          <p>Error loading categories: {error}</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">Browse by Category</h3>
-      <div className="flex flex-wrap gap-3">
-        {categories.map((category) => (
-          <button
-            key={category}
-            // variant={selectedCategory === category ? "default" : "outline"}
-            onClick={() => handleCategoryChange(category)}
-            className={`flex items-center gap-2 ${
-              selectedCategory === category
-                ? "bg-[#1035ac] hover:bg-[#0d2a8f] rounded-lg py-3 px-5 text-white"
-                : "border-gray-200 bg-[#3741511c] py-3 px-5 rounded-lg hover:border-[#1035ac] hover:text-[#1035ac]"
-            }`}
-          >
-            <span>{getCategoryIcon(category)}</span>
-            <span>{category}</span>
-            <span
-              className={`text-xs px-2 py-1 rounded-full ${
-                selectedCategory === category ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+      
+      {isLoading ? (
+        <div className="flex flex-wrap gap-3">
+          {[...Array(4)].map((_, index) => (
+            <div key={index+1} className="animate-pulse">
+              <div className="h-12 w-32 bg-gray-200 rounded-lg"></div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+           <button
+              onClick={() => onCategoryChange("All Articles")}
+              className={`flex items-center gap-2 transition-colors ${
+                selectedCategory === "All Articles"
+                  ? "bg-[#1035ac] hover:bg-[#0d2a8f] rounded-lg py-3 px-5 text-white"
+                  : "border-gray-200 bg-[#3741511c] py-3 px-5 rounded-lg hover:border-[#1035ac] hover:text-[#1035ac]"
               }`}
             >
-              {getCategoryCount(category)}
-            </span>
-          </button>
-        ))}
-      </div>
+              <span>{getCategoryIcon("All Articles")}</span>
+              <span>{"All Articles"}</span>
+              {selectedCategory === "All Articles" && (
+                <span className="text-xs px-2 py-1 rounded-full bg-white/20 text-white">
+                  {totalResults}
+                </span>
+              )}
+            </button>
+          {categories?.map((category) => (
+            <button
+              key={category?._id}
+              onClick={() => onCategoryChange(category?.name)}
+              className={`flex items-center gap-2 transition-colors ${
+                selectedCategory === category?.name
+                  ? "bg-[#1035ac] hover:bg-[#0d2a8f] rounded-lg py-3 px-5 text-white"
+                  : "border-gray-200 bg-[#3741511c] py-3 px-5 rounded-lg hover:border-[#1035ac] hover:text-[#1035ac]"
+              }`}
+            >
+              <span>{getCategoryIcon(category?.name)}</span>
+              <span>{category?.name}</span>
+              {selectedCategory === category?.name && (
+                <span className="text-xs px-2 py-1 rounded-full bg-white/20 text-white">
+                  {totalResults}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

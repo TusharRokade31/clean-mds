@@ -20,7 +20,8 @@ export default function FeaturedArticle({ article }) {
             <div className="space-y-4 py-4">
               <div className="flex items-center gap-2 ">
                 <Badge variant="outline" className="border-blue-300 ">
-                  {article.category}
+                  {/* {article.category} */}
+                  
                 </Badge>
                 <span>•</span>
                 <div className="flex items-center gap-1">
