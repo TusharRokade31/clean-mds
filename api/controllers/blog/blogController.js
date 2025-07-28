@@ -67,6 +67,43 @@ export const getAllPublicBlogs = asyncHandler(async (req, res) => {
   });
 });
 
+// Get all blogs (with pagination and filtering)
+export const getAllBlogs = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10, status, tag, isDeleted } = req.query;
+  const { role } = req.user;
+
+  if(role !== 'admin'){
+      throw new ErrorResponse('Not Authorize User to use this', 403)
+  }
+  
+  const query = {};
+  
+  if (status) query.status = status;
+  if (tag) query.tags = tag;
+  query.isDeleted = isDeleted ? true : false;
+
+  const blogs = await Blog
+    .find(query)
+    .populate('author', 'name email')
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(Number(limit));
+
+  const total = await Blog.countDocuments(query);
+
+
+  res.json({
+    success: true,
+    data: blogs,
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  });
+});
+
 // Get single blog by slug
 export const getBlogBySlug = asyncHandler(async (req, res) => {
   const blog = await Blog
@@ -110,7 +147,7 @@ export const updateBlog = asyncHandler(async (req, res) => {
   }
 
   // Check if user is authorized
-  if (blog.author.toString() !== req.user._id.toString()) {
+  if (req.user.role !== 'admin' || blog.author.toString() !== req.user._id.toString()) {
     throw ErrorResponse('Not authorized to update this blog', 403);
   }
 
