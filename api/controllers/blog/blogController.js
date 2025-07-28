@@ -3,6 +3,7 @@ import {Blog} from '../../models/Blog.js';
 import asyncHandler from '../../middleware/async.js';
 import Category from '../../models/Category.js';
 import CategoryVersion from '../../models/CategoryVersion.js';
+import ErrorResponse from '../../utils/errorResponse.js';
 
 
 // Create new blog post
@@ -14,7 +15,7 @@ export const createBlog = asyncHandler(async (req, res) => {
   const validCategories = await Category.find({ name: { $in: categories }, isDeleted: false });
 
   if (!validCategories.length) {
-    throw createError(400, 'Invalid category');
+    throw ErrorResponse(400, 'Invalid category');
   }
 
   const blog = await Blog.create({
@@ -73,7 +74,7 @@ export const getBlogBySlug = asyncHandler(async (req, res) => {
     .populate('author', 'name email');
   
   if (!blog) {
-    throw createError(404, 'Blog not found');
+    throw new ErrorResponse('Blog not found', 404);
   }
 
   // Increment views
@@ -105,12 +106,12 @@ export const updateBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(req.params.id);
 
   if (!blog) {
-    throw createError(404, 'Blog not found');
+    throw new ErrorResponse('Blog not found', 404);
   }
 
   // Check if user is authorized
   if (blog.author.toString() !== req.user._id.toString()) {
-    throw createError(403, 'Not authorized to update this blog');
+    throw ErrorResponse('Not authorized to update this blog', 403);
   }
 
  const updatedBlog = await Blog.findByIdAndUpdate(
@@ -137,15 +138,17 @@ export const deleteBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(req.params.id);
 
   if (!blog) {
-    throw createError(404, 'Blog not found');
+    throw new ErrorResponse('Blog not found', 404);
   }
 
   // Check if user is authorized
   if (blog.author.toString() !== req.user._id.toString()) {
-    throw createError(403, 'Not authorized to delete this blog');
+    throw new ErrorResponse('Not authorized to delete this blog', 403);
   }
+ 
+  blog.isDeleted = true;
 
-  await blog.remove();
+  await blog.save();
 
   res.json({
     success: true,
