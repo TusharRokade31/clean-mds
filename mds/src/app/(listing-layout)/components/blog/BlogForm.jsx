@@ -1,9 +1,10 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-// import { useNavigate, useParams } from 'react-router-dom';
 import { createBlog, updateBlog, fetchBlogBySlug, fetchAllCategories } from '@/redux/features/blog/blogSlice';
 import { useParams, useRouter } from 'next/navigation';
+import RichTextEditor from '@/component/blogs/RichTextEditor';
+
 
 const BlogForm = ({ isEdit = false }) => {
   const dispatch = useDispatch();
@@ -28,6 +29,11 @@ const BlogForm = ({ isEdit = false }) => {
   });
 
   const [tagInput, setTagInput] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     dispatch(fetchAllCategories());
@@ -38,23 +44,32 @@ const BlogForm = ({ isEdit = false }) => {
   }, [dispatch, isEdit, slug]);
 
   useEffect(() => {
-    if (isEdit && currentBlog) {
+    if (isEdit && currentBlog && categories.length > 0) {
+      const selectedCategory = categories.find(cat => cat._id === currentBlog.category?.id || cat._id === currentBlog.category);
+      
       setFormData({
         title: currentBlog.title || '',
         content: currentBlog.content || '',
         image: currentBlog.image || '',
         tags: currentBlog.tags || [],
-        categories: currentBlog.category ? [currentBlog.category.name] : [],
+        categories: selectedCategory ? [selectedCategory.name] : [],
         status: currentBlog.status || 'draft'
       });
     }
-  }, [isEdit, currentBlog]);
+  }, [isEdit, currentBlog, categories]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleContentChange = (content) => {
+    setFormData(prev => ({
+      ...prev,
+      content: content || ''
     }));
   };
 
@@ -104,6 +119,10 @@ const BlogForm = ({ isEdit = false }) => {
 
   const isLoading = isCreating || isUpdating;
 
+  if (!mounted) {
+    return <div className="max-w-4xl mx-auto p-6">Loading...</div>;
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white shadow-lg rounded-lg">
@@ -136,23 +155,21 @@ const BlogForm = ({ isEdit = false }) => {
             />
           </div>
 
-          {/* Content */}
+          {/* Content - Rich Text Editor */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Content *
             </label>
-            <textarea
-              name="content"
+            <RichTextEditor
               value={formData.content}
-              onChange={handleInputChange}
-              required
-              rows={12}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Write your blog content..."
+              onChange={handleContentChange}
+              height={500}
+              placeholder="Start writing your blog content..."
+              disabled={isLoading}
             />
           </div>
 
-          {/* Image URL */}
+          {/* Featured Image */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Featured Image URL
@@ -226,55 +243,56 @@ const BlogForm = ({ isEdit = false }) => {
                 type="button"
                 onClick={addTag}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >Add Tag
-             </button>
-           </div>
-         </div>
+              >
+                Add Tag
+              </button>
+            </div>
+          </div>
 
-         {/* Status */}
-         <div>
-           <label className="block text-sm font-medium text-gray-700 mb-2">
-             Status
-           </label>
-           <select
-             name="status"
-             value={formData.status}
-             onChange={handleInputChange}
-             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-           >
-             <option value="draft">Draft</option>
-             <option value="published">Published</option>
-           </select>
-         </div>
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status
+            </label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
 
-         {/* Form Actions */}
-         <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-           <button
-             type="button"
-             onClick={() => navigate.push('/host/bloglist')}
-             className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-           >
-             Cancel
-           </button>
-           <button
-             type="submit"
-             disabled={isLoading}
-             className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-           >
-             {isLoading ? (
-               <div className="flex items-center">
-                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                 {isEdit ? 'Updating...' : 'Creating...'}
-               </div>
-             ) : (
-               isEdit ? 'Update Blog' : 'Create Blog'
-             )}
-           </button>
-         </div>
-       </form>
-     </div>
-   </div>
- );
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={() => navigate.push('/host/bloglist')}
+              className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  {isEdit ? 'Updating...' : 'Creating...'}
+                </div>
+              ) : (
+                isEdit ? 'Update Blog' : 'Create Blog'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 };
 
 export default BlogForm;

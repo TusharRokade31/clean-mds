@@ -65,6 +65,8 @@ export default function HotelDashboardLayout({ children }) {
           <NavItem icon={<Home className="h-5 w-5" />} label="Properties" />
           <NavItem icon={<Calendar className="h-5 w-5" />} label="onboarding" />
           <NavItem icon={<Calendar className="h-5 w-5" />} label="add-blog" />
+          <NavItem icon={<Calendar className="h-5 w-5" />} label="bloglist" />
+          <NavItem icon={<Calendar className="h-5 w-5" />} label="categories" />
           
           {/* Booking Dropdown */}
           <div className="relative">
