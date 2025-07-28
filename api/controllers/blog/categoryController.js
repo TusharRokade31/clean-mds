@@ -2,6 +2,7 @@
 import Category from '../../models/Category.js';
 import CategoryVersion from '../../models/CategoryVersion.js';
 import asyncHandler from '../../middleware/async.js';
+import ErrorResponse from '../../utils/errorResponse.js';
 
 
 // Create category
@@ -38,7 +39,7 @@ export const updateCategory = asyncHandler(async (req, res) => {
   const category = await Category.findById(req.params.id);
 
   if (!category || category.isDeleted) {
-    throw createError(404, 'Category not found or deleted');
+    throw ErrorResponse(404, 'Category not found or deleted');
   }
 
   // Increment version
@@ -98,7 +99,7 @@ export const deleteCategory = asyncHandler(async (req, res) => {
 export const getCategoryVersions = asyncHandler(async (req, res) => {
   const category = await Category.findById(req.params.id);
   if (!category || category.isDeleted) {
-    throw createError(404, 'Category not found or deleted');
+    throw ErrorResponse(404, 'Category not found or deleted');
   }
 
   const versions = await CategoryVersion.find({ categoryId: req.params.id })

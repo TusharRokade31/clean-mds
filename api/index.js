@@ -4,7 +4,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import cors from "cors";
-import errorHandler from './middleware/error.js';
+import errorHandler from './middleware/errorHandler.js';
 import registerRoutes from './routes/index.js';
 import {httpLogger} from './middleware/httpLogger.js'
 import {asyncContextMiddleware} from "./middleware/asyncLocalStorage.js";
@@ -57,6 +57,7 @@ registerRoutes(app)
 
 // Error handling middleware - should be last
 app.use(errorHandler);
+
 
 // Start server
 const server = app.listen(port, () => {
