@@ -3,6 +3,7 @@ import Category from '../../models/Category.js';
 import CategoryVersion from '../../models/CategoryVersion.js';
 import asyncHandler from '../../middleware/async.js';
 import ErrorResponse from '../../utils/errorResponse.js';
+import { Blog } from '../../models/Blog.js';
 
 
 // Create category
