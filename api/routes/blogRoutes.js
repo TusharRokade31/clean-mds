@@ -1,14 +1,14 @@
 // bookingRoutes.js
 import express from 'express';
 import multer from 'multer';
-import { createBlog, getAllBlogs, getBlogBySlug, getBlogsByTag, updateBlog, deleteBlog, getBlogsByCategory } from '../controllers/blog/blogController.js';
+import { createBlog, getAllPublicBlogs, getBlogBySlug, getBlogsByTag, updateBlog, deleteBlog, getBlogsByCategory } from '../controllers/blog/blogController.js';
 import { createCategory, getAllCategories, updateCategory, deleteCategory } from '../controllers/blog/categoryController.js'
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 const upload = multer();
 // Public routes
-router.get('/', getAllBlogs);
+router.get('/', getAllPublicBlogs);
 router.get('/categories', getAllCategories);
 router.get('/:slug', getBlogBySlug);
 router.get('/tag/:tag', getBlogsByTag);
