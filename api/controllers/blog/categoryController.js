@@ -3,7 +3,7 @@ import Category from '../../models/Category.js';
 import CategoryVersion from '../../models/CategoryVersion.js';
 import asyncHandler from '../../middleware/async.js';
 import ErrorResponse from '../../utils/errorResponse.js';
-import { Blog } from '../../models/Blog.js';
+import {Blog} from '../../models/Blog.js'
 
 
 // Create category
@@ -92,7 +92,7 @@ export const deleteCategory = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    message: 'Category soft deleted successfully'
+    message: 'Category deleted successfully'
   });
 });
 
