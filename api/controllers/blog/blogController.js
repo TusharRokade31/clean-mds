@@ -74,7 +74,7 @@ export const getBlogBySlug = asyncHandler(async (req, res) => {
     .populate('author', 'name email');
   
   if (!blog) {
-    throw ErrorResponse(404, 'Blog not found');
+    throw new ErrorResponse('Blog not found', 404);
   }
 
   // Increment views
@@ -106,12 +106,12 @@ export const updateBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(req.params.id);
 
   if (!blog) {
-    throw ErrorResponse(404, 'Blog not found');
+    throw new ErrorResponse('Blog not found', 404);
   }
 
   // Check if user is authorized
   if (blog.author.toString() !== req.user._id.toString()) {
-    throw ErrorResponse(403, 'Not authorized to update this blog');
+    throw ErrorResponse('Not authorized to update this blog', 403);
   }
 
  const updatedBlog = await Blog.findByIdAndUpdate(
@@ -138,15 +138,17 @@ export const deleteBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(req.params.id);
 
   if (!blog) {
-    throw ErrorResponse(404, 'Blog not found');
+    throw new ErrorResponse('Blog not found', 404);
   }
 
   // Check if user is authorized
   if (blog.author.toString() !== req.user._id.toString()) {
-    throw ErrorResponse(403, 'Not authorized to delete this blog');
+    throw new ErrorResponse('Not authorized to delete this blog', 403);
   }
+ 
+  blog.isDeleted = true;
 
-  await blog.remove();
+  await blog.save();
 
   res.json({
     success: true,
