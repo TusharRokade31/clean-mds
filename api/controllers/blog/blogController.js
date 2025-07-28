@@ -38,15 +38,15 @@ export const createBlog = asyncHandler(async (req, res) => {
 
 
 // Get all blogs (with pagination and filtering)
-export const getAllBlogs = asyncHandler(async (req, res) => {
+export const getAllPublicBlogs = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, status, tag } = req.query;
   
   const query = {};
-  if (status) query.status = status;
+  
   if (tag) query.tags = tag;
 
   const blogs = await Blog
-    .find(query)
+    .find({ status: 'published', isDeleted: false })
     .populate('author', 'name email')
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
