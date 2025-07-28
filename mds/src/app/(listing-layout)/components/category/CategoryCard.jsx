@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'next/link';
+
 import { 
   PencilIcon, 
   TrashIcon,
@@ -7,8 +7,10 @@ import {
   DocumentTextIcon,
   ClockIcon
 } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
 const CategoryCard = ({ category, onEdit, onDelete, isDeleting }) => {
+  console.log(category)
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -22,10 +24,10 @@ const CategoryCard = ({ category, onEdit, onDelete, isDeleting }) => {
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {category.name}
+            {category?.name}
           </h3>
           <p className="text-sm text-gray-500 mb-2">
-            Slug: {category.slug}
+            Slug: {category?.slug}
           </p>
         </div>
         
@@ -51,25 +53,25 @@ const CategoryCard = ({ category, onEdit, onDelete, isDeleting }) => {
       <div className="space-y-3">
         <div className="flex items-center text-sm text-gray-600">
           <ClockIcon className="w-4 h-4 mr-2" />
-          Version: {category.currentVersion}
+          Version: {category?.currentVersion}
         </div>
 
         <div className="flex items-center text-sm text-gray-600">
           <CalendarIcon className="w-4 h-4 mr-2" />
-          Created: {formatDate(category.createdAt)}
+          Created: {formatDate(category?.createdAt)}
         </div>
 
-        {category.updatedAt !== category.createdAt && (
+        {category?.updatedAt !== category?.createdAt && (
           <div className="flex items-center text-sm text-gray-600">
             <CalendarIcon className="w-4 h-4 mr-2" />
-            Updated: {formatDate(category.updatedAt)}
+            Updated: {formatDate(category?.updatedAt)}
           </div>
         )}
       </div>
 
       <div className="mt-4 pt-4 border-t border-gray-200">
         <Link
-          to={`/dashboard/blogs?category=${category.slug}`}
+          href={`/dashboard/blogs?category=${category?.slug}`}
           className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
         >
           <DocumentTextIcon className="w-4 h-4 mr-1" />
