@@ -84,7 +84,7 @@ const BlogCard = ({ blog, onDelete, isDeleting }) => {
 
         <div className="flex items-center justify-between">
           <Link
-            href={`/host/edit-blog/${blog._id}`}
+            href={`/host/edit-blog/${blog.slug}`}
             className="flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-500"
           >
             <PencilIcon className="w-4 h-4 mr-1" />
