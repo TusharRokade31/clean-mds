@@ -9,10 +9,11 @@ const router = express.Router();
 const upload = multer();
 // Public routes
 router.get('/', getAllBlogs);
+router.get('/categories', getAllCategories);
 router.get('/:slug', getBlogBySlug);
 router.get('/tag/:tag', getBlogsByTag);
 router.get('/category/:categorySlug', getBlogsByCategory);
-router.get('/categories', getAllCategories);
+
 
 
 // Protected routes (require authentication)
