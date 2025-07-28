@@ -96,7 +96,7 @@ const BlogForm = ({ isEdit = false }) => {
         await dispatch(createBlog(formData)).unwrap();
       }
       
-      navigate('/dashboard/blogs');
+      navigate.push('/host/bloglist');
     } catch (error) {
       console.error('Failed to save blog:', error);
     }
@@ -251,7 +251,7 @@ const BlogForm = ({ isEdit = false }) => {
          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
            <button
              type="button"
-             onClick={() => navigate('/dashboard/blogs')}
+             onClick={() => navigate.push('/host/bloglist')}
              className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
            >
              Cancel
