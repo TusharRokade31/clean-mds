@@ -21,13 +21,6 @@ export const useHTMLContent = (htmlString, options = {}) => {
     }
 
     // Parse HTML to React elements
-    return parse(processedHTML, {
-      replace: (domNode) => {
-        // You can customize how specific tags are rendered here
-        if (domNode.name === 'script') {
-          return null // Remove script tags for security
-        }
-      }
-    })
+    return parse(processedHTML)
   }, [htmlString, maxLength, sanitize])
 }

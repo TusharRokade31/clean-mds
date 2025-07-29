@@ -79,7 +79,7 @@ export const getAllBlogs = asyncHandler(async (req, res) => {
   
   if (status) query.status = status;
   if (tag) query.tags = tag;
-  if (category) query.tags = category;
+  if (category) query.category = category;
   query.isDeleted = isDeleted ? true : false;
 
 

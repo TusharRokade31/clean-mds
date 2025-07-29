@@ -3,7 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { createBlog, updateBlog, fetchBlogBySlug, fetchAllCategories } from '@/redux/features/blog/blogSlice';
 import { useParams, useRouter } from 'next/navigation';
-import RichTextEditor from '@/component/blogs/RichTextEditor';
+import dynamic from 'next/dynamic';
+const RichTextEditor = dynamic(() => import('../../../../component/blogs/RichTextEditor'), {
+  ssr: false,  // Disable SSR for this component
+});
 
 const BlogForm = ({ isEdit = false }) => {
   const dispatch = useDispatch();
