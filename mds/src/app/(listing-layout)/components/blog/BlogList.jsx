@@ -42,10 +42,7 @@ const BlogList = () => {
     });
   };
 
-  console.log(deleteConfirm)
-
   const handleDeleteConfirm = async () => {
-    console.log(deleteConfirm, "handleDeleteConfirm Clicked")
     await dispatch(deleteBlog(deleteConfirm.blogId));
     setDeleteConfirm({ show: false, blogId: null, blogTitle: '' });
     // Refresh the list

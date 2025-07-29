@@ -1,7 +1,8 @@
 "use client"
 
+import { useSelector } from "react-redux"
+
 export default function CategoryFilter({
-  categories,
   selectedCategory,
   onCategoryChange,
   totalResults = 0,
@@ -22,6 +23,10 @@ export default function CategoryFilter({
         return "📄"
     }
   }
+
+
+const { categories} = useSelector(state => state.blog)
+
 
 
   if (error) {
@@ -66,11 +71,12 @@ export default function CategoryFilter({
               )}
             </button>
           {categories?.map((category) => (
+            
             <button
               key={category?._id}
-              onClick={() => onCategoryChange(category?.name)}
+              onClick={() => onCategoryChange(category?._id)}
               className={`flex items-center gap-2 transition-colors ${
-                selectedCategory === category?.name
+                selectedCategory === category?._id
                   ? "bg-[#1035ac] hover:bg-[#0d2a8f] rounded-lg py-3 px-5 text-white"
                   : "border-gray-200 bg-[#3741511c] py-3 px-5 rounded-lg hover:border-[#1035ac] hover:text-[#1035ac]"
               }`}
