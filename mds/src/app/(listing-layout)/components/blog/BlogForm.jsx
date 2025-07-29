@@ -5,7 +5,6 @@ import { createBlog, updateBlog, fetchBlogBySlug, fetchAllCategories } from '@/r
 import { useParams, useRouter } from 'next/navigation';
 import RichTextEditor from '@/component/blogs/RichTextEditor';
 
-
 const BlogForm = ({ isEdit = false }) => {
   const dispatch = useDispatch();
   const navigate = useRouter();
@@ -24,7 +23,7 @@ const BlogForm = ({ isEdit = false }) => {
     content: '',
     image: '',
     tags: [],
-    categories: [],
+    category: '', // Changed from categories array to single category ID
     status: 'draft'
   });
 
@@ -45,14 +44,22 @@ const BlogForm = ({ isEdit = false }) => {
 
   useEffect(() => {
     if (isEdit && currentBlog && categories.length > 0) {
-      const selectedCategory = categories.find(cat => cat._id === currentBlog.category?.id || cat._id === currentBlog.category);
+      // Handle category ID properly - check if it's an object or just an ID
+      let categoryId = '';
+      if (currentBlog.category) {
+        if (typeof currentBlog.category === 'object') {
+          categoryId = currentBlog.category._id || currentBlog.category.id;
+        } else {
+          categoryId = currentBlog.category;
+        }
+      }
       
       setFormData({
         title: currentBlog.title || '',
         content: currentBlog.content || '',
         image: currentBlog.image || '',
         tags: currentBlog.tags || [],
-        categories: selectedCategory ? [selectedCategory.name] : [],
+        category: categoryId, // Store category ID
         status: currentBlog.status || 'draft'
       });
     }
@@ -190,18 +197,15 @@ const BlogForm = ({ isEdit = false }) => {
               Category *
             </label>
             <select
-              name="categories"
-              value={formData.categories[0] || ''}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                categories: e.target.value ? [e.target.value] : [] 
-              }))}
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select a category</option>
               {categories.map((category) => (
-                <option key={category._id} value={category.name}>
+                <option key={category._id} value={category._id}>
                   {category.name}
                 </option>
               ))}

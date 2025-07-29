@@ -1,5 +1,6 @@
 import { useHTMLContent } from "@/hooks/useHTMLContent"
 import { Clock, ArrowRight } from "lucide-react"
+import staticImg from "../../../public/featured-places/Ambaji.png"
 
 export default function ArticleCard({ article }) {
   const getCategoryColor = (category) => {
@@ -38,7 +39,8 @@ export default function ArticleCard({ article }) {
     <div className="overflow-hidden hover:shadow-lg hover:-translate-2 border border-[#1034ac23] transition-shadow duration-300">
       <div className={`h-32 bg-gradient-to-br ${getCategoryColor(article.category)} flex items-center justify-center`}>
         {article.image ? (
-          <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
+          // <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
+          <img src={`${staticImg.src}`} alt={article.title} className="w-full h-full object-cover" />
         ) : (
           <div className="text-4xl">{getCategoryIcon(article.category)}</div>
         )}
