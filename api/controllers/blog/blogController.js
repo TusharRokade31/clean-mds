@@ -2,7 +2,6 @@
 import {Blog} from '../../models/Blog.js';
 import asyncHandler from '../../middleware/async.js';
 import Category from '../../models/Category.js';
-import CategoryVersion from '../../models/CategoryVersion.js';
 import ErrorResponse from '../../utils/errorResponse.js';
 
 
@@ -39,14 +38,14 @@ export const createBlog = asyncHandler(async (req, res) => {
 
 // Get all blogs (with pagination and filtering)
 export const getAllPublicBlogs = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, status, tag } = req.query;
+  const { page = 1, limit = 10, tag, category } = req.query;
   
-  const query = {};
-  
+  const query = {status: 'published', isDeleted: false};
   if (tag) query.tags = tag;
+  if (category) query.category = category;
 
   const blogs = await Blog
-    .find({ status: 'published', isDeleted: false })
+    .find(query)
     .populate('author', 'name email')
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
@@ -69,7 +68,7 @@ export const getAllPublicBlogs = asyncHandler(async (req, res) => {
 
 // Get all blogs (with pagination and filtering)
 export const getAllBlogs = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, status, tag, isDeleted } = req.query;
+  const { page = 1, limit = 10, status, tag, category, isDeleted } = req.query;
   const { role } = req.user;
 
   if(role !== 'admin'){
@@ -80,7 +79,9 @@ export const getAllBlogs = asyncHandler(async (req, res) => {
   
   if (status) query.status = status;
   if (tag) query.tags = tag;
+  if (category) query.tags = category;
   query.isDeleted = isDeleted ? true : false;
+
 
   const blogs = await Blog
     .find(query)
@@ -125,18 +126,6 @@ export const getBlogBySlug = asyncHandler(async (req, res) => {
 });
 
 
-// Get blogs by tag
-export const getBlogsByTag = asyncHandler(async (req, res) => {
-  const blogs = await Blog
-    .find({ tags: req.params.tag })
-    .populate('author', 'name email')
-    .sort({ createdAt: -1 });
-
-  res.json({
-    success: true,
-    data: blogs
-  });
-});
 
 // Update blog
 export const updateBlog = asyncHandler(async (req, res) => {
@@ -147,8 +136,8 @@ export const updateBlog = asyncHandler(async (req, res) => {
   }
 
   // Check if user is authorized
-  if (req.user.role !== 'admin' || blog.author.toString() !== req.user._id.toString()) {
-    throw ErrorResponse('Not authorized to update this blog', 403);
+  if (req.user.role !== 'admin') {
+    throw new ErrorResponse('Not authorized to update this blog', 403);
   }
 
  const updatedBlog = await Blog.findByIdAndUpdate(
@@ -163,11 +152,7 @@ export const updateBlog = asyncHandler(async (req, res) => {
   });
 });
 
-//Get Blog By Category
 
-export const getBlogsByCategory = asyncHandler(async (req, res) =>{
-  
-})
 
 
 // Delete blog
