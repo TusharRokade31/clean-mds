@@ -26,13 +26,13 @@ const BlogCard = ({ blog, onDelete, isDeleting }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      {blog.image && (
+      {/* {blog.image && (
         <img
           src={blog.image}
           alt={blog.title}
           className="w-full h-48 object-cover"
         />
-      )}
+      )} */}
       
       <div className="p-6">
         <div className="flex items-center justify-between mb-2">
