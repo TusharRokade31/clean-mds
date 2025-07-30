@@ -8,22 +8,22 @@ const router = express.Router();
 
 // Validation middleware
 const validatePropertyId = [
-  param('propertyId').isMongoId().withMessage('Invalid property ID')
+  param('propertyId').isMongoId().withMessage('Invalid property ID'),
 ];
 
 const validateRoomId = [
-  param('roomId').isMongoId().withMessage('Invalid room ID')
+  param('roomId').isMongoId().withMessage('Invalid room ID'),
 ];
 
 const validateRoomStatus = [
   body('status')
     .isIn(['available', 'booked', 'maintenance'])
-    .withMessage('Status must be available, booked, or maintenance')
+    .withMessage('Status must be available, booked, or maintenance'),
 ];
 
 const validateDateRange = [
   query('startDate').isISO8601().withMessage('Invalid start date format'),
-  query('endDate').isISO8601().withMessage('Invalid end date format')
+  query('endDate').isISO8601().withMessage('Invalid end date format'),
 ];
 
 // Routes
@@ -31,14 +31,14 @@ router.get(
   '/properties/:propertyId/rooms',
   protect,
   validatePropertyId,
-  roomController.getAllRooms
+  roomController.getAllRooms,
 );
 
 router.get(
   '/rooms/:roomId',
   protect,
   validateRoomId,
-  roomController.getRoomById
+  roomController.getRoomById,
 );
 
 router.put(
@@ -46,7 +46,7 @@ router.put(
   protect,
   validateRoomId,
   validateRoomStatus,
-  roomController.updateRoomStatus
+  roomController.updateRoomStatus,
 );
 
 router.get(
@@ -54,7 +54,7 @@ router.get(
   protect,
   validateRoomId,
   validateDateRange,
-  roomController.getRoomAvailability
+  roomController.getRoomAvailability,
 );
 
 export default router;

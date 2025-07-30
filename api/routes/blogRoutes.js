@@ -2,7 +2,7 @@
 import express from 'express';
 import multer from 'multer';
 import { createBlog, getAllPublicBlogs, getAllBlogs, getBlogBySlug, updateBlog, deleteBlog } from '../controllers/blog/blogController.js';
-import { createCategory, getAllCategories, updateCategory, deleteCategory } from '../controllers/blog/categoryController.js'
+import { createCategory, getAllCategories, updateCategory, deleteCategory } from '../controllers/blog/categoryController.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();

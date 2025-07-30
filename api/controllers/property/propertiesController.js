@@ -15,12 +15,12 @@ export const getDraftProperties = async (req, res) => {
     res.status(200).json({
       success: true,
       count: draftProperties.length,
-      data: draftProperties
+      data: draftProperties,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };

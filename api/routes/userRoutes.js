@@ -13,7 +13,7 @@ router.get('/me', getMe);
 
 router.put('/update-profile', [
   body('name').optional().notEmpty().withMessage('Name cannot be empty'),
-  body('email').optional().isEmail().withMessage('Please include a valid email')
+  body('email').optional().isEmail().withMessage('Please include a valid email'),
 ], validate, updateProfile);
 
 export default router;

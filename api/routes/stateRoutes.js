@@ -12,7 +12,7 @@ import {
   createCity,
   updateCity,
   deleteCity,
-  getCityProperties
+  getCityProperties,
 } from '../controllers/stateController.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { upload } from '../middleware/uploadMiddleware.js';

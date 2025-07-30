@@ -16,7 +16,7 @@ export const roomController = {
       if (!property) {
         return res.status(404).json({
           success: false,
-          message: 'Property not found'
+          message: 'Property not found',
         });
       }
 
@@ -33,7 +33,7 @@ export const roomController = {
 
       if (bedSize && bedSize !== 'All') {
         rooms = rooms.filter(room => 
-          room.beds.some(bed => bed.bedType === bedSize)
+          room.beds.some(bed => bed.bedType === bedSize),
         );
       }
 
@@ -47,15 +47,15 @@ export const roomController = {
         paginatedRooms.map(async (room) => {
           const currentBooking = await Booking.findOne({
             room: room._id,
-            status: 'checked-in'
+            status: 'checked-in',
           }).populate('primaryGuest');
 
           return {
             ...room.toObject(),
             currentBooking: currentBooking || null,
-            status: currentBooking ? 'booked' : 'available'
+            status: currentBooking ? 'booked' : 'available',
           };
-        })
+        }),
       );
 
       res.status(200).json({
@@ -67,9 +67,9 @@ export const roomController = {
             totalPages: Math.ceil(rooms.length / limit),
             totalRooms: rooms.length,
             hasNext: endIndex < rooms.length,
-            hasPrev: startIndex > 0
-          }
-        }
+            hasPrev: startIndex > 0,
+          },
+        },
       });
 
     } catch (error) {
@@ -77,7 +77,7 @@ export const roomController = {
       res.status(500).json({
         success: false,
         message: 'Internal server error',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -89,13 +89,13 @@ export const roomController = {
 
       // Find property that contains this room
       const property = await Property.findOne({
-        'rooms._id': roomId
+        'rooms._id': roomId,
       }).select('rooms');
 
       if (!property) {
         return res.status(404).json({
           success: false,
-          message: 'Room not found'
+          message: 'Room not found',
         });
       }
 
@@ -104,25 +104,25 @@ export const roomController = {
       if (!room) {
         return res.status(404).json({
           success: false,
-          message: 'Room not found'
+          message: 'Room not found',
         });
       }
 
       // Get current booking for this room
       const currentBooking = await Booking.findOne({
         room: roomId,
-        status: { $in: ['confirmed', 'checked-in'] }
+        status: { $in: ['confirmed', 'checked-in'] },
       }).populate('primaryGuest');
 
       const roomWithBooking = {
         ...room.toObject(),
         currentBooking: currentBooking || null,
-        status: currentBooking ? 'booked' : 'available'
+        status: currentBooking ? 'booked' : 'available',
       };
 
       res.status(200).json({
         success: true,
-        data: roomWithBooking
+        data: roomWithBooking,
       });
 
     } catch (error) {
@@ -130,7 +130,7 @@ export const roomController = {
       res.status(500).json({
         success: false,
         message: 'Internal server error',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -143,7 +143,7 @@ export const roomController = {
         return res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
+          errors: errors.array(),
         });
       }
 
@@ -152,13 +152,13 @@ export const roomController = {
 
       // Find property that contains this room
       const property = await Property.findOne({
-        'rooms._id': roomId
+        'rooms._id': roomId,
       });
 
       if (!property) {
         return res.status(404).json({
           success: false,
-          message: 'Room not found'
+          message: 'Room not found',
         });
       }
 
@@ -167,7 +167,7 @@ export const roomController = {
       if (!room) {
         return res.status(404).json({
           success: false,
-          message: 'Room not found'
+          message: 'Room not found',
         });
       }
 
@@ -178,13 +178,13 @@ export const roomController = {
       if (status === 'maintenance') {
         const activeBooking = await Booking.findOne({
           room: roomId,
-          status: { $in: ['confirmed', 'checked-in'] }
+          status: { $in: ['confirmed', 'checked-in'] },
         });
 
         if (activeBooking) {
           return res.status(400).json({
             success: false,
-            message: 'Cannot mark room as maintenance while guest is checked in'
+            message: 'Cannot mark room as maintenance while guest is checked in',
           });
         }
       }
@@ -194,19 +194,19 @@ export const roomController = {
       // Get updated room with current booking
       const currentBooking = await Booking.findOne({
         room: roomId,
-        status: { $in: ['confirmed', 'checked-in'] }
+        status: { $in: ['confirmed', 'checked-in'] },
       }).populate('primaryGuest');
 
       const updatedRoom = {
         ...room.toObject(),
         currentBooking: currentBooking || null,
-        status: currentBooking ? 'booked' : status
+        status: currentBooking ? 'booked' : status,
       };
 
       res.status(200).json({
         success: true,
         data: updatedRoom,
-        message: 'Room status updated successfully'
+        message: 'Room status updated successfully',
       });
 
     } catch (error) {
@@ -214,7 +214,7 @@ export const roomController = {
       res.status(500).json({
         success: false,
         message: 'Internal server error',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -228,7 +228,7 @@ export const roomController = {
       if (!startDate || !endDate) {
         return res.status(400).json({
           success: false,
-          message: 'Start date and end date are required'
+          message: 'Start date and end date are required',
         });
       }
 
@@ -242,9 +242,9 @@ export const roomController = {
         $or: [
           {
             checkIn: { $lt: checkOut },
-            checkOut: { $gt: checkIn }
-          }
-        ]
+            checkOut: { $gt: checkIn },
+          },
+        ],
       });
 
       const isAvailable = conflictingBookings.length === 0;
@@ -256,9 +256,9 @@ export const roomController = {
           conflictingBookings: conflictingBookings.length,
           requestedDates: {
             checkIn: checkIn.toISOString(),
-            checkOut: checkOut.toISOString()
-          }
-        }
+            checkOut: checkOut.toISOString(),
+          },
+        },
       });
 
     } catch (error) {
@@ -266,8 +266,8 @@ export const roomController = {
       res.status(500).json({
         success: false,
         message: 'Internal server error',
-        error: error.message
+        error: error.message,
       });
     }
-  }
+  },
 };

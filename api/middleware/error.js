@@ -9,13 +9,13 @@ const errorHandler = (err, req, res, next) => {
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
-    const message = `Resource not found`;
+    const message = 'Resource not found';
     error = new ErrorResponse(message, 404);
-    console.error("Original error:", {
+    console.error('Original error:', {
       name: err.name,
       message: err.message,
       code: err.code,
-      stack: err.stack
+      stack: err.stack,
     });
   }
 
@@ -33,7 +33,7 @@ const errorHandler = (err, req, res, next) => {
 
   res.status(error.statusCode || 500).json({
     success: false,
-    error: error.message || 'Server Error'
+    error: error.message || 'Server Error',
   });
 };
 

@@ -1,5 +1,5 @@
-import Property from "../../models/Property";
-import OTP from "../../models/OTP";
+import Property from '../../models/Property';
+import OTP from '../../models/OTP';
 
 export const sendEmailOTP = async (req, res) => {
   try {
@@ -13,7 +13,7 @@ export const sendEmailOTP = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -29,9 +29,9 @@ export const sendEmailOTP = async (req, res) => {
       { 
         otp,
         verified: false,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
 
     // Send OTP email
@@ -43,7 +43,7 @@ export const sendEmailOTP = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'OTP sent successfully to your email'
+      message: 'OTP sent successfully to your email',
     });
 
   } catch (error) {
@@ -67,7 +67,7 @@ export const verifyEmailOTP = async (req, res) => {
       email, 
       propertyId, 
       userId: req.user._id,
-      verified: false
+      verified: false,
     });
 
     if (!otpRecord) {
@@ -92,7 +92,7 @@ export const verifyEmailOTP = async (req, res) => {
     // UPDATE: Mark email as verified in the property
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
 
     if (property) {
@@ -103,7 +103,7 @@ export const verifyEmailOTP = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Email verified successfully',
-      property // Return updated property
+      property, // Return updated property
     });
 
   } catch (error) {
@@ -118,7 +118,7 @@ export const checkEmailVerificationStatus = async (req, res) => {
     
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -128,7 +128,7 @@ export const checkEmailVerificationStatus = async (req, res) => {
     return res.status(200).json({
       success: true,
       emailVerified: property.emailVerified || false,
-      email: property.email
+      email: property.email,
     });
   } catch (error) {
     return errorResponse(res, 500, 'Server error', error.message);
@@ -151,7 +151,7 @@ export const saveAmenities = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -169,7 +169,7 @@ export const saveAmenities = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Amenities saved successfully',
-      property
+      property,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {

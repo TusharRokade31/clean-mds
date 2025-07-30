@@ -24,7 +24,7 @@ export const getAllStates = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     count: states.length,
-    data: states
+    data: states,
   });
 });
 
@@ -41,7 +41,7 @@ export const getState = asyncHandler(async (req, res, next) => {
   
   res.status(200).json({
     success: true,
-    data: state
+    data: state,
   });
 });
 
@@ -57,12 +57,12 @@ export const createState = asyncHandler(async (req, res, next) => {
   
   const state = await State.create({
     ...req.body,
-    image: imagePath
+    image: imagePath,
   });
   
   res.status(201).json({
     success: true,
-    data: state
+    data: state,
   });
 });
 
@@ -87,12 +87,12 @@ export const updateState = asyncHandler(async (req, res, next) => {
   
   state = await State.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
-    runValidators: true
+    runValidators: true,
   });
   
   res.status(200).json({
     success: true,
-    data: state
+    data: state,
   });
 });
 
@@ -109,7 +109,7 @@ export const deleteState = asyncHandler(async (req, res, next) => {
   // Check if state has cities
   const cityCount = await City.countDocuments({ state: req.params.id });
   if (cityCount > 0) {
-    return next(new ErrorResponse(`Cannot delete state with associated cities. Please delete cities first.`, 400));
+    return next(new ErrorResponse('Cannot delete state with associated cities. Please delete cities first.', 400));
   }
   
   // Delete image if exists
@@ -121,7 +121,7 @@ export const deleteState = asyncHandler(async (req, res, next) => {
   
   res.status(200).json({
     success: true,
-    data: {}
+    data: {},
   });
 });
 
@@ -138,13 +138,13 @@ export const getStateProperties = asyncHandler(async (req, res, next) => {
   // Find properties where state matches
   const properties = await Property.find({
     'location.state': state.name,
-    'status': 'published'
+    'status': 'published',
   }).populate('host', 'name email');
   
   res.status(200).json({
     success: true,
     count: properties.length,
-    data: properties
+    data: properties,
   });
 });
 
@@ -172,10 +172,10 @@ export const getAllCities = asyncHandler(async (req, res, next) => {
     res.status(200).json({
       success: true,
       count: cities.length,
-      data: cities
+      data: cities,
     });
   } catch (err) {
-    console.error("Error in getAllCities:", err);
+    console.error('Error in getAllCities:', err);
     next(err);
   }
 });
@@ -192,7 +192,7 @@ export const getCity = asyncHandler(async (req, res, next) => {
   
   res.status(200).json({
     success: true,
-    data: city
+    data: city,
   });
 });
 
@@ -215,12 +215,12 @@ export const createCity = asyncHandler(async (req, res, next) => {
   
   const city = await City.create({
     ...req.body,
-    image: imagePath
+    image: imagePath,
   });
   
   res.status(201).json({
     success: true,
-    data: city
+    data: city,
   });
 });
 
@@ -253,12 +253,12 @@ export const updateCity = asyncHandler(async (req, res, next) => {
   
   city = await City.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
-    runValidators: true
+    runValidators: true,
   }).populate('state', 'name code');
   
   res.status(200).json({
     success: true,
-    data: city
+    data: city,
   });
 });
 
@@ -281,7 +281,7 @@ export const deleteCity = asyncHandler(async (req, res, next) => {
   
   res.status(200).json({
     success: true,
-    data: {}
+    data: {},
   });
 });
 
@@ -298,12 +298,12 @@ export const getCityProperties = asyncHandler(async (req, res, next) => {
   // Find properties where city matches
   const properties = await Property.find({
     'location.city': city.name,
-    'status': 'published'
+    'status': 'published',
   }).populate('host', 'name email');
   
   res.status(200).json({
     success: true,
     count: properties.length,
-    data: properties
+    data: properties,
   });
 });

@@ -4,33 +4,33 @@ const otpSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    lowercase: true
+    lowercase: true,
   },
   otp: {
     type: String,
-    required: true
+    required: true,
   },
   propertyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Property',
-    required: true
+    required: true,
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   expiresAt: {
     type: Date,
     default: Date.now,
-    expires: 300 // 5 minutes
+    expires: 300, // 5 minutes
   },
   verified: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 // Index for faster queries

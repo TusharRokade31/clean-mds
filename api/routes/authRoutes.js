@@ -14,20 +14,20 @@ router.post(
     body('email').isEmail().withMessage('Please include a valid email'),
     body('password')
       .isLength({ min: 8 })
-      .withMessage('Password must be at least 8 characters long')
+      .withMessage('Password must be at least 8 characters long'),
   ],
   validate,
-  signup
+  signup,
 );
 
 router.post(
   '/login',
   [
     body('email').isEmail().withMessage('Please include a valid email'),
-    body('password').exists().withMessage('Password is required')
+    body('password').exists().withMessage('Password is required'),
   ],
   validate,
-  login
+  login,
 );
 
 router.post('/google', googleLogin);
@@ -44,10 +44,10 @@ router.post(
     body('email').isEmail().withMessage('Please include a valid email'),
     body('password')
       .isLength({ min: 8 })
-      .withMessage('Password must be at least 8 characters long')
+      .withMessage('Password must be at least 8 characters long'),
   ],
   validate,
-  createAdmin
+  createAdmin,
 );
 
 

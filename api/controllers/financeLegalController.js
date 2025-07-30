@@ -13,12 +13,12 @@ export const getFinanceLegal = async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        message: 'Property not found'
+        message: 'Property not found',
       });
     }
 
     let financeLegal = await FinanceLegal.findOne({ 
-      property: propertyId 
+      property: propertyId, 
     }).populate('property', 'placeName propertyType location');
 
     // Create default structure if doesn't exist
@@ -31,15 +31,15 @@ export const getFinanceLegal = async (req, res) => {
             accountNumber: '',
             reenterAccountNumber: '',
             ifscCode: '',
-            bankName: ''
+            bankName: '',
           },
           taxDetails: {
             hasGSTIN: false,
             gstin: '',
             pan: '',
             hasTAN: false,
-            tan: ''
-          }
+            tan: '',
+          },
         },
         legal: {
           ownershipDetails: {
@@ -48,12 +48,12 @@ export const getFinanceLegal = async (req, res) => {
             registrationDocument: {
               filename: '',
               originalName: '',
-              url: ''
-            }
-          }
+              url: '',
+            },
+          },
         },
         financeCompleted: false,
-        legalCompleted: false
+        legalCompleted: false,
       };
       
       // Create without validation for initial setup
@@ -67,7 +67,7 @@ export const getFinanceLegal = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: financeLegal
+      data: financeLegal,
     });
 
   } catch (error) {
@@ -75,7 +75,7 @@ export const getFinanceLegal = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -88,7 +88,7 @@ export const updateFinanceDetails = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Validation errors',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -97,13 +97,13 @@ export const updateFinanceDetails = async (req, res) => {
 
     let financeLegal = await FinanceLegal.findOne({ 
       property: propertyId,
-      owner: req.user._id 
+      owner: req.user._id, 
     });
 
     if (!financeLegal) {
       return res.status(404).json({
         success: false,
-        message: 'Finance legal data not found'
+        message: 'Finance legal data not found',
       });
     }
 
@@ -132,7 +132,7 @@ export const updateFinanceDetails = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Finance details updated successfully',
-      data: financeLegal
+      data: financeLegal,
     });
 
   } catch (error) {
@@ -140,7 +140,7 @@ export const updateFinanceDetails = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -153,7 +153,7 @@ export const updateLegalDetails = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Validation errors',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -162,13 +162,13 @@ export const updateLegalDetails = async (req, res) => {
 
     let financeLegal = await FinanceLegal.findOne({ 
       property: propertyId,
-      owner: req.user._id 
+      owner: req.user._id, 
     });
 
     if (!financeLegal) {
       return res.status(404).json({
         success: false,
-        message: 'Finance legal data not found'
+        message: 'Finance legal data not found',
       });
     }
 
@@ -176,7 +176,7 @@ export const updateLegalDetails = async (req, res) => {
     if (ownershipDetails) {
       financeLegal.legal.ownershipDetails = { 
         ...financeLegal.legal.ownershipDetails.toObject(), 
-        ...ownershipDetails 
+        ...ownershipDetails, 
       };
     }
 
@@ -184,7 +184,7 @@ export const updateLegalDetails = async (req, res) => {
     const legalComplete = Boolean(
       financeLegal.legal.ownershipDetails.ownershipType &&
       financeLegal.legal.ownershipDetails.propertyAddress &&
-      financeLegal.legal.ownershipDetails.registrationDocument?.url
+      financeLegal.legal.ownershipDetails.registrationDocument?.url,
     );
 
     financeLegal.legalCompleted = legalComplete;
@@ -194,7 +194,7 @@ export const updateLegalDetails = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Legal details updated successfully',
-      data: financeLegal
+      data: financeLegal,
     });
 
   } catch (error) {
@@ -202,7 +202,7 @@ export const updateLegalDetails = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -215,19 +215,19 @@ export const uploadRegistrationDocument = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'No file uploaded'
+        message: 'No file uploaded',
       });
     }
 
     let financeLegal = await FinanceLegal.findOne({ 
       property: propertyId,
-      owner: req.user._id 
+      owner: req.user._id, 
     });
 
     if (!financeLegal) {
       return res.status(404).json({
         success: false,
-        message: 'Finance legal data not found'
+        message: 'Finance legal data not found',
       });
     }
 
@@ -236,7 +236,7 @@ export const uploadRegistrationDocument = async (req, res) => {
       filename: req.file.filename,
       originalName: req.file.originalname,
       url: req.file.path.replace(/\\/g, '/'), // Normalize path separators
-      uploadedAt: new Date()
+      uploadedAt: new Date(),
     };
 
     financeLegal.legal.ownershipDetails.registrationDocument = documentData;
@@ -245,7 +245,7 @@ export const uploadRegistrationDocument = async (req, res) => {
     const legalComplete = Boolean(
       financeLegal.legal.ownershipDetails.ownershipType &&
       financeLegal.legal.ownershipDetails.propertyAddress &&
-      financeLegal.legal.ownershipDetails.registrationDocument.url
+      financeLegal.legal.ownershipDetails.registrationDocument.url,
     );
 
     financeLegal.legalCompleted = legalComplete;
@@ -255,7 +255,7 @@ export const uploadRegistrationDocument = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Registration document uploaded successfully',
-      data: financeLegal
+      data: financeLegal,
     });
 
   } catch (error) {
@@ -263,7 +263,7 @@ export const uploadRegistrationDocument = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -278,19 +278,19 @@ export const completeFinanceLegalStep = async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        message: 'Property not found'
+        message: 'Property not found',
       });
     }
 
     // Get finance legal data
     let financeLegal = await FinanceLegal.findOne({ 
-      property: propertyId 
+      property: propertyId, 
     });
 
     if (!financeLegal) {
       return res.status(404).json({
         success: false,
-        message: 'Finance legal data not found'
+        message: 'Finance legal data not found',
       });
     }
 
@@ -350,7 +350,7 @@ export const completeFinanceLegalStep = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Finance legal data is incomplete',
-        errors: validationErrors
+        errors: validationErrors,
       });
     }
 
@@ -386,8 +386,8 @@ export const completeFinanceLegalStep = async (req, res) => {
         propertyId: property._id,
         step7Completed: true,
         formCompleted: property.formProgress.formCompleted,
-        financeLegal: financeLegal
-      }
+        financeLegal: financeLegal,
+      },
     });
 
   } catch (error) {
@@ -395,7 +395,7 @@ export const completeFinanceLegalStep = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -407,19 +407,19 @@ export const deleteFinanceLegal = async (req, res) => {
 
     const result = await FinanceLegal.findOneAndDelete({ 
       property: propertyId,
-      owner: req.user._id 
+      owner: req.user._id, 
     });
 
     if (!result) {
       return res.status(404).json({
         success: false,
-        message: 'Finance legal data not found'
+        message: 'Finance legal data not found',
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Finance legal data deleted successfully'
+      message: 'Finance legal data deleted successfully',
     });
 
   } catch (error) {
@@ -427,7 +427,7 @@ export const deleteFinanceLegal = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };

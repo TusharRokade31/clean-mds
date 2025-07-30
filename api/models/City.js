@@ -6,33 +6,33 @@ const CitySchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Please add a city name'],
-    trim: true
+    trim: true,
   },
   state: {
     type: mongoose.Schema.Types.ObjectId,
     ref: State,
-    required: [true, 'Please add a state']
+    required: [true, 'Please add a state'],
   },
   description: {
     type: String,
-    required: false
+    required: false,
   },
   image: {
     type: String,
-    required: false
+    required: false,
   },
   featured: {
     type: Boolean,
-    default: false
+    default: false,
   },
   active: {
     type: Boolean,
-    default: true
+    default: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Make sure city names are unique within a state

@@ -1,4 +1,4 @@
-import Property from "../../models/Property";
+import Property from '../../models/Property';
 
 // Get featured properties
 export const getFeaturedProperties = async (req, res) => {
@@ -11,12 +11,12 @@ export const getFeaturedProperties = async (req, res) => {
     res.status(200).json({
       success: true,
       count: properties.length,
-      data: properties
+      data: properties,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -29,21 +29,21 @@ export const getStateWisePropertyStats = async (req, res) => {
       { $group: {
           _id: '$location.state',
           count: { $sum: 1 },
-          avgPrice: { $avg: '$pricing.weekdayPrice' }
-        }
+          avgPrice: { $avg: '$pricing.weekdayPrice' },
+        },
       },
-      { $sort: { count: -1 } }
+      { $sort: { count: -1 } },
     ]);
     
     res.status(200).json({
       success: true,
       count: stateStats.length,
-      data: stateStats
+      data: stateStats,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -55,18 +55,18 @@ export const getPropertiesByState = async (req, res) => {
     
     const properties = await Property.find({
       'location.state': state,
-      'status': 'published'
+      'status': 'published',
     });
     
     res.status(200).json({
       success: true,
       count: properties.length,
-      data: properties
+      data: properties,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -78,18 +78,18 @@ export const getPropertiesByCity = async (req, res) => {
     
     const properties = await Property.find({
       'location.city': city,
-      'status': 'published'
+      'status': 'published',
     });
     
     res.status(200).json({
       success: true,
       count: properties.length,
-      data: properties
+      data: properties,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -103,7 +103,7 @@ export const checkPropertyAvailability = async (req, res) => {
     if (!checkIn || !checkOut) {
       return res.status(400).json({
         success: false,
-        error: 'Please provide check-in and check-out dates'
+        error: 'Please provide check-in and check-out dates',
       });
     }
     
@@ -115,7 +115,7 @@ export const checkPropertyAvailability = async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        error: 'Property not found'
+        error: 'Property not found',
       });
     }
     
@@ -134,14 +134,14 @@ export const checkPropertyAvailability = async (req, res) => {
         property: {
           id: property._id,
           name: property.placeName,
-          pricing: property.pricing
-        }
-      }
+          pricing: property.pricing,
+        },
+      },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };
