@@ -36,7 +36,7 @@ const calculatePricing = (room, adults, children, totalDays, checkIn, checkOut) 
     subtotal,
     taxes,
     discount: 0,
-    totalAmount
+    totalAmount,
   };
 };
 
@@ -48,9 +48,9 @@ const checkRoomAvailability = async (roomId, checkIn, checkOut, excludeBookingId
     $or: [
       {
         checkIn: { $lt: checkOut },
-        checkOut: { $gt: checkIn }
-      }
-    ]
+        checkOut: { $gt: checkIn },
+      },
+    ],
   };
   
   if (excludeBookingId) {
@@ -76,7 +76,7 @@ export const bookingController = {
         paymentMethod,
         paidAmount = 0,
         specialRequests,
-        source = 'walk-in'
+        source = 'walk-in',
       } = req.body;
 
       // Validate dates
@@ -87,14 +87,14 @@ export const bookingController = {
       if (checkInDate < today) {
         return res.status(400).json({
           success: false,
-          message: 'Check-in date cannot be in the past'
+          message: 'Check-in date cannot be in the past',
         });
       }
       
       if (checkOutDate <= checkInDate) {
         return res.status(400).json({
           success: false,
-          message: 'Check-out date must be after check-in date'
+          message: 'Check-out date must be after check-in date',
         });
       }
 
@@ -103,7 +103,7 @@ export const bookingController = {
       if (!property) {
         return res.status(404).json({
           success: false,
-          message: 'Property not found'
+          message: 'Property not found',
         });
       }
 
@@ -111,7 +111,7 @@ export const bookingController = {
       if (!room) {
         return res.status(404).json({
           success: false,
-          message: 'Room not found'
+          message: 'Room not found',
         });
       }
 
@@ -120,7 +120,7 @@ export const bookingController = {
       if (!isAvailable) {
         return res.status(400).json({
           success: false,
-          message: 'Room is not available for the selected dates'
+          message: 'Room is not available for the selected dates',
         });
       }
 
@@ -129,21 +129,21 @@ export const bookingController = {
       if (totalGuests > room.occupancy.maximumOccupancy) {
         return res.status(400).json({
           success: false,
-          message: `Room can accommodate maximum ${room.occupancy.maximumOccupancy} guests`
+          message: `Room can accommodate maximum ${room.occupancy.maximumOccupancy} guests`,
         });
       }
 
       if (guestCount.adults > room.occupancy.maximumAdults) {
         return res.status(400).json({
           success: false,
-          message: `Room can accommodate maximum ${room.occupancy.maximumAdults} adults`
+          message: `Room can accommodate maximum ${room.occupancy.maximumAdults} adults`,
         });
       }
 
       if (guestCount.children > room.occupancy.maximumChildren) {
         return res.status(400).json({
           success: false,
-          message: `Room can accommodate maximum ${room.occupancy.maximumChildren} children`
+          message: `Room can accommodate maximum ${room.occupancy.maximumChildren} children`,
         });
       }
 
@@ -164,11 +164,11 @@ export const bookingController = {
         payment: {
           method: paymentMethod,
           paidAmount: paidAmount || 0,
-          status: paidAmount >= pricing.totalAmount ? 'completed' : paidAmount > 0 ? 'partial' : 'pending'
+          status: paidAmount >= pricing.totalAmount ? 'completed' : paidAmount > 0 ? 'partial' : 'pending',
         },
         specialRequests,
         source,
-        createdBy: req.user?._id
+        createdBy: req.user?._id,
       });
 
       await booking.save();
@@ -179,7 +179,7 @@ export const bookingController = {
       res.status(201).json({
         success: true,
         message: 'Booking created successfully',
-        data: booking
+        data: booking,
       });
 
     } catch (error) {
@@ -187,7 +187,7 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error creating booking',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -204,7 +204,7 @@ export const bookingController = {
         checkOut,
         guestName,
         bookingId,
-        paymentStatus
+        paymentStatus,
       } = req.query;
 
       // Build filter query
@@ -231,7 +231,7 @@ export const bookingController = {
         filter.$or = [
           { 'primaryGuest.firstName': new RegExp(guestName, 'i') },
           { 'primaryGuest.lastName': new RegExp(guestName, 'i') },
-          { 'primaryGuest.email': new RegExp(guestName, 'i') }
+          { 'primaryGuest.email': new RegExp(guestName, 'i') },
         ];
       }
 
@@ -255,9 +255,9 @@ export const bookingController = {
             totalPages: Math.ceil(total / limit),
             totalBookings: total,
             hasNextPage: page < Math.ceil(total / limit),
-            hasPrevPage: page > 1
-          }
-        }
+            hasPrevPage: page > 1,
+          },
+        },
       });
 
     } catch (error) {
@@ -265,7 +265,7 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error fetching bookings',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -282,7 +282,7 @@ export const bookingController = {
       if (!booking) {
         return res.status(404).json({
           success: false,
-          message: 'Booking not found'
+          message: 'Booking not found',
         });
       }
 
@@ -294,8 +294,8 @@ export const bookingController = {
         success: true,
         data: {
           ...booking.toObject(),
-          roomDetails: room
-        }
+          roomDetails: room,
+        },
       });
 
     } catch (error) {
@@ -303,7 +303,7 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error fetching booking',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -318,7 +318,7 @@ export const bookingController = {
       if (!booking) {
         return res.status(404).json({
           success: false,
-          message: 'Booking not found'
+          message: 'Booking not found',
         });
       }
 
@@ -326,7 +326,7 @@ export const bookingController = {
       if (['checked-out', 'cancelled'].includes(booking.status)) {
         return res.status(400).json({
           success: false,
-          message: 'Cannot update completed or cancelled booking'
+          message: 'Cannot update completed or cancelled booking',
         });
       }
 
@@ -339,7 +339,7 @@ export const bookingController = {
         if (!isAvailable) {
           return res.status(400).json({
             success: false,
-            message: 'Room is not available for the selected dates'
+            message: 'Room is not available for the selected dates',
           });
         }
 
@@ -363,13 +363,13 @@ export const bookingController = {
       const updatedBooking = await Booking.findByIdAndUpdate(
         id,
         { $set: updates },
-        { new: true, runValidators: true }
+        { new: true, runValidators: true },
       ).populate('property', 'placeName location');
 
       res.json({
         success: true,
         message: 'Booking updated successfully',
-        data: updatedBooking
+        data: updatedBooking,
       });
 
     } catch (error) {
@@ -377,7 +377,7 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error updating booking',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -393,7 +393,7 @@ export const bookingController = {
       if (isNaN(amountNum) || amountNum <= 0) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid payment amount'
+          message: 'Invalid payment amount',
         });
       }
 
@@ -401,7 +401,7 @@ export const bookingController = {
       if (!booking) {
         return res.status(404).json({
           success: false,
-          message: 'Booking not found'
+          message: 'Booking not found',
         });
       }
 
@@ -412,7 +412,7 @@ export const bookingController = {
       if (newPaidAmount > totalAmount) {
         return res.status(400).json({
           success: false,
-          message: 'Payment amount exceeds total booking amount'
+          message: 'Payment amount exceeds total booking amount',
         });
       }
 
@@ -435,7 +435,7 @@ export const bookingController = {
       res.json({
         success: true,
         message: 'Payment updated successfully',
-        data: booking
+        data: booking,
       });
 
     } catch (error) {
@@ -443,7 +443,7 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error updating payment',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -457,14 +457,14 @@ export const bookingController = {
       if (!booking) {
         return res.status(404).json({
           success: false,
-          message: 'Booking not found'
+          message: 'Booking not found',
         });
       }
 
       if (booking.status !== 'confirmed') {
         return res.status(400).json({
           success: false,
-          message: 'Only confirmed bookings can be checked in'
+          message: 'Only confirmed bookings can be checked in',
         });
       }
 
@@ -474,7 +474,7 @@ export const bookingController = {
       res.json({
         success: true,
         message: 'Guest checked in successfully',
-        data: booking
+        data: booking,
       });
 
     } catch (error) {
@@ -482,7 +482,7 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error during check-in',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -496,14 +496,14 @@ export const bookingController = {
       if (!booking) {
         return res.status(404).json({
           success: false,
-          message: 'Booking not found'
+          message: 'Booking not found',
         });
       }
 
       if (booking.status !== 'checked-in') {
         return res.status(400).json({
           success: false,
-          message: 'Only checked-in guests can be checked out'
+          message: 'Only checked-in guests can be checked out',
         });
       }
 
@@ -513,7 +513,7 @@ export const bookingController = {
       res.json({
         success: true,
         message: 'Guest checked out successfully',
-        data: booking
+        data: booking,
       });
 
     } catch (error) {
@@ -521,7 +521,7 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error during check-out',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -536,14 +536,14 @@ export const bookingController = {
       if (!booking) {
         return res.status(404).json({
           success: false,
-          message: 'Booking not found'
+          message: 'Booking not found',
         });
       }
 
       if (['checked-out', 'cancelled'].includes(booking.status)) {
         return res.status(400).json({
           success: false,
-          message: 'Cannot cancel completed or already cancelled booking'
+          message: 'Cannot cancel completed or already cancelled booking',
         });
       }
 
@@ -552,7 +552,7 @@ export const bookingController = {
         cancelledAt: new Date(),
         cancelledBy: req.user?._id,
         reason,
-        refundAmount
+        refundAmount,
       };
 
       // Update payment status if refund is given
@@ -565,7 +565,7 @@ export const bookingController = {
       res.json({
         success: true,
         message: 'Booking cancelled successfully',
-        data: booking
+        data: booking,
       });
 
     } catch (error) {
@@ -573,7 +573,7 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error cancelling booking',
-        error: error.message
+        error: error.message,
       });
     }
   },
@@ -601,19 +601,19 @@ export const bookingController = {
             totalPaid: { $sum: '$payment.paidAmount' },
             pendingAmount: { $sum: '$payment.pendingAmount' },
             confirmedBookings: {
-              $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0] }
+              $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0] },
             },
             checkedInBookings: {
-              $sum: { $cond: [{ $eq: ['$status', 'checked-in'] }, 1, 0] }
+              $sum: { $cond: [{ $eq: ['$status', 'checked-in'] }, 1, 0] },
             },
             checkedOutBookings: {
-              $sum: { $cond: [{ $eq: ['$status', 'checked-out'] }, 1, 0] }
+              $sum: { $cond: [{ $eq: ['$status', 'checked-out'] }, 1, 0] },
             },
             cancelledBookings: {
-              $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] }
-            }
-          }
-        }
+              $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] },
+            },
+          },
+        },
       ]);
 
       const result = stats[0] || {
@@ -624,12 +624,12 @@ export const bookingController = {
         confirmedBookings: 0,
         checkedInBookings: 0,
         checkedOutBookings: 0,
-        cancelledBookings: 0
+        cancelledBookings: 0,
       };
 
       res.json({
         success: true,
-        data: result
+        data: result,
       });
 
     } catch (error) {
@@ -637,8 +637,8 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error fetching booking statistics',
-        error: error.message
+        error: error.message,
       });
     }
-  }
+  },
 };

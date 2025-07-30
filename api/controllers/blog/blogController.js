@@ -3,6 +3,7 @@ import {Blog} from '../../models/Blog.js';
 import asyncHandler from '../../middleware/async.js';
 import Category from '../../models/Category.js';
 import ErrorResponse from '../../utils/errorResponse.js';
+import logger from '../../utils/logger.js';
 
 
 // Create new blog post
@@ -10,10 +11,20 @@ export const createBlog = asyncHandler(async (req, res) => {
   
   const { title, content, image, tags, categories, status } = req.body;
 
+  const logDetails = {
+  title: title || 'not provided',
+  tags: tags || 'not provided',  
+  categories: categories || 'not provided',
+};
+  
+
+  logger.info(`Create blog request received, meta: ${JSON.stringify(logDetails)}`);
+
   // Validate category IDs and ensure not deleted
   const validCategories = await Category.find({ name: { $in: categories }, isDeleted: false });
 
   if (!validCategories.length) {
+    logger.warn(`Invalid categories in blog creation, meta: ${JSON.stringify(logDetails)}`);
     throw ErrorResponse(400, 'Invalid category');
   }
 
@@ -26,12 +37,14 @@ export const createBlog = asyncHandler(async (req, res) => {
     category: validCategories[0].id,
     status,
     slug: title,
-    readTime: estimateReadTime(content)
+    readTime: estimateReadTime(content),
   });
+
+  logger.info(`Blog Created Successfullt, id:${blog._id}, meta: ${JSON.stringify(logDetails)}`);
 
   res.status(201).json({
     success: true,
-    data: blog
+    data: blog,
   });
 });
 
@@ -61,8 +74,8 @@ export const getAllPublicBlogs = asyncHandler(async (req, res) => {
       page: Number(page),
       limit: Number(limit),
       total,
-      totalPages: Math.ceil(total / limit)
-    }
+      totalPages: Math.ceil(total / limit),
+    },
   });
 });
 
@@ -72,7 +85,7 @@ export const getAllBlogs = asyncHandler(async (req, res) => {
   const { role } = req.user;
 
   if(role !== 'admin'){
-      throw new ErrorResponse('Not Authorize User to use this', 403)
+      throw new ErrorResponse('Not Authorize User to use this', 403);
   }
   
   const query = {};
@@ -100,8 +113,8 @@ export const getAllBlogs = asyncHandler(async (req, res) => {
       page: Number(page),
       limit: Number(limit),
       total,
-      totalPages: Math.ceil(total / limit)
-    }
+      totalPages: Math.ceil(total / limit),
+    },
   });
 });
 
@@ -121,7 +134,7 @@ export const getBlogBySlug = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: blog
+    data: blog,
   });
 });
 
@@ -143,12 +156,12 @@ export const updateBlog = asyncHandler(async (req, res) => {
  const updatedBlog = await Blog.findByIdAndUpdate(
     req.params.id,
     { ...req.body, updatedAt: Date.now() },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   );
 
   res.json({
     success: true,
-    data: updatedBlog
+    data: updatedBlog,
   });
 });
 
@@ -174,7 +187,7 @@ export const deleteBlog = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    message: 'Blog deleted successfully'
+    message: 'Blog deleted successfully',
   });
 });
 

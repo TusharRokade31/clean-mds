@@ -3,7 +3,7 @@ import Category from '../../models/Category.js';
 import CategoryVersion from '../../models/CategoryVersion.js';
 import asyncHandler from '../../middleware/async.js';
 import ErrorResponse from '../../utils/errorResponse.js';
-import {Blog} from '../../models/Blog.js'
+import {Blog} from '../../models/Blog.js';
 
 
 // Create category
@@ -16,12 +16,12 @@ export const createCategory = asyncHandler(async (req, res) => {
   await CategoryVersion.create({
     categoryId: category._id,
     name: category.name,
-    slug: category.slug
+    slug: category.slug,
   });
 
   res.status(201).json({
     success: true,
-    data: category
+    data: category,
   });
 });
 
@@ -31,7 +31,7 @@ export const getAllCategories = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: categories
+    data: categories,
   });
 });
 
@@ -45,6 +45,15 @@ export const updateCategory = asyncHandler(async (req, res) => {
 
   // Increment version
   const newVersion = category.currentVersion + 1;
+  
+
+
+  // Update category
+  const updatedCategory = await Category.findByIdAndUpdate(
+    req.params.id,
+    { ...req.body, currentVersion: newVersion, updatedAt: Date.now() },
+    { new: true, runValidators: true },
+  );
 
   // Create new version entry
   await CategoryVersion.create({
@@ -53,19 +62,12 @@ export const updateCategory = asyncHandler(async (req, res) => {
     name: req.body.name || category.name,
     slug: req.body.name
       ? req.body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-      : category.slug
+      : category.slug,
   });
-
-  // Update category
-  const updatedCategory = await Category.findByIdAndUpdate(
-    req.params.id,
-    { ...req.body, currentVersion: newVersion, updatedAt: Date.now() },
-    { new: true, runValidators: true }
-  );
 
   res.json({
     success: true,
-    data: updatedCategory
+    data: updatedCategory,
   });
 });
 
@@ -87,12 +89,12 @@ export const deleteCategory = asyncHandler(async (req, res) => {
   // Soft delete by setting isDeleted to true
   await Category.findByIdAndUpdate(req.params.id, {
     isDeleted: true,
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
   });
 
   res.json({
     success: true,
-    message: 'Category deleted successfully'
+    message: 'Category deleted successfully',
   });
 });
 
@@ -108,6 +110,6 @@ export const getCategoryVersions = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: versions
+    data: versions,
   });
 });

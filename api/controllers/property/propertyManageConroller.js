@@ -1,7 +1,7 @@
-import Property from "../../models/Property";
-import OTP from "../../models/OTP";
-import State from "../../models/State";
-import City from "../../models/City";
+import Property from '../../models/Property';
+import OTP from '../../models/OTP';
+import State from '../../models/State';
+import City from '../../models/City';
 
 
 // Initialize a new property for multistep form
@@ -15,28 +15,28 @@ export const initializeProperty = async (req, res) => {
       const recentDraft = await Property.findOne({ 
         owner: userId, 
         'formProgress.formCompleted': false,
-        createdAt: { $gte: new Date(Date.now() - 5000) } // 5 seconds ago
+        createdAt: { $gte: new Date(Date.now() - 5000) }, // 5 seconds ago
       });
 
       if (recentDraft) {
         return res.status(200).json({
           success: true,
           message: 'Recent draft found',
-          property: recentDraft
+          property: recentDraft,
         });
       }
 
       // Check for any existing draft
       const existingDraft = await Property.findOne({ 
         owner: userId, 
-        'formProgress.formCompleted': false 
+        'formProgress.formCompleted': false, 
       });
 
       if (existingDraft) {
         return res.status(200).json({
           success: true,
           message: 'Draft property found',
-          property: existingDraft
+          property: existingDraft,
         });
       }
     }
@@ -50,7 +50,7 @@ export const initializeProperty = async (req, res) => {
       propertyBuilt: '2024',
       bookingSince: '2024-01-01',
       rentalForm: 'Entire place',
-      email: "example@gmail.com",
+      email: 'example@gmail.com',
       mobileNumber: '0123456789',
       location: {
         houseName: 'House/Building Name',
@@ -58,7 +58,7 @@ export const initializeProperty = async (req, res) => {
         street: 'Draft Street',
         city: 'Draft City',
         state: 'Draft State',
-        postalCode: '000000'
+        postalCode: '000000',
       },
       amenities: {
         mandatory: new Map(),
@@ -70,7 +70,7 @@ export const initializeProperty = async (req, res) => {
         mediaTechnology: new Map(),
         paymentServices: new Map(),
         security: new Map(),
-        safety: new Map()
+        safety: new Map(),
       },
       rooms: [],
       formProgress: {
@@ -81,21 +81,21 @@ export const initializeProperty = async (req, res) => {
         step5Completed: false,
         step6Completed: false,
         step7Completed: false,
-        formCompleted: false
-      }
+        formCompleted: false,
+      },
     });
 
     return res.status(201).json({
       success: true,
       message: 'New property draft created',
-      property: newProperty
+      property: newProperty,
     });
 
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -114,7 +114,7 @@ export const saveBasicInfo = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -128,7 +128,7 @@ export const saveBasicInfo = async (req, res) => {
         email, 
         propertyId, 
         userId: req.user._id,
-        verified: true
+        verified: true,
       });
 
       if (!otpRecord) {
@@ -165,7 +165,7 @@ export const saveBasicInfo = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Basic info saved successfully',
-      property
+      property,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
@@ -186,13 +186,13 @@ export const saveLocation = async (req, res) => {
     const { propertyId } = req.params;
     const { houseName,
       country, street, roomNumber, city, state, 
-      postalCode, coordinates 
+      postalCode, coordinates, 
     } = req.body;
     
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -213,7 +213,7 @@ export const saveLocation = async (req, res) => {
     if (city && stateRef) {
       const cityDoc = await City.findOne({ 
         name: { $regex: new RegExp(city, 'i') },
-        state: stateRef 
+        state: stateRef, 
       });
       if (cityDoc) {
         cityRef = cityDoc._id;
@@ -231,7 +231,7 @@ export const saveLocation = async (req, res) => {
       stateRef,
       cityRef,
       postalCode,
-      coordinates
+      coordinates,
     };
     property.formProgress.step2Completed = true;
     
@@ -240,7 +240,7 @@ export const saveLocation = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Location saved successfully',
-      property
+      property,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
@@ -263,7 +263,7 @@ export const saveAmenities = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -281,7 +281,7 @@ export const saveAmenities = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Amenities saved successfully',
-      property
+      property,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
@@ -305,7 +305,7 @@ export const addRoom = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -321,7 +321,7 @@ export const addRoom = async (req, res) => {
       success: true,
       message: 'Room added successfully',
       room: property.rooms[property.rooms.length - 1],
-      property
+      property,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
@@ -346,7 +346,7 @@ export const updateRoom = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -371,7 +371,7 @@ export const updateRoom = async (req, res) => {
       success: true,
       message: 'Room updated successfully',
       room: property.rooms[roomIndex],
-      property
+      property,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
@@ -389,7 +389,7 @@ export const deleteRoom = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -412,7 +412,7 @@ export const deleteRoom = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Room deleted successfully',
-      property
+      property,
     });
   } catch (error) {
     return errorResponse(res, 500, 'Server error', error.message);
@@ -426,7 +426,7 @@ export const completeRoomsStep = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -446,7 +446,7 @@ export const completeRoomsStep = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Rooms step completed successfully',
-      property
+      property,
     });
     
   } catch (error) {
@@ -473,7 +473,7 @@ export const uploadPropertyMedia = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -494,7 +494,7 @@ export const uploadPropertyMedia = async (req, res) => {
         tags: [], // Will be updated separately
         isCover: false,
         displayOrder: mediaType === 'image' ? property.media.images.length : property.media.videos.length,
-        uploadedAt: new Date()
+        uploadedAt: new Date(),
       };
       
       // Add to appropriate array
@@ -506,7 +506,7 @@ export const uploadPropertyMedia = async (req, res) => {
       
       uploadedMedia.push({
         ...mediaItem,
-        _id: property.media[mediaType === 'image' ? 'images' : 'videos'][property.media[mediaType === 'image' ? 'images' : 'videos'].length - 1]._id
+        _id: property.media[mediaType === 'image' ? 'images' : 'videos'][property.media[mediaType === 'image' ? 'images' : 'videos'].length - 1]._id,
       });
     }
     
@@ -516,7 +516,7 @@ export const uploadPropertyMedia = async (req, res) => {
       success: true,
       message: `${files.length} media files uploaded successfully`,
       uploadedMedia,
-      property
+      property,
     });
     
   } catch (error) {
@@ -533,7 +533,7 @@ export const updateMediaItem = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -606,7 +606,7 @@ export const updateMediaItem = async (req, res) => {
       success: true,
       message: 'Media item updated successfully',
       mediaItem,
-      property
+      property,
     });
     
   } catch (error) {
@@ -621,7 +621,7 @@ export const validatePropertyMedia = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -638,7 +638,7 @@ export const validatePropertyMedia = async (req, res) => {
           id: item._id,
           filename: item.filename,
           type: item.type,
-          index: index + 1
+          index: index + 1,
         });
       }
     });
@@ -646,14 +646,14 @@ export const validatePropertyMedia = async (req, res) => {
     if (itemsWithoutTags.length > 0) {
       return errorResponse(res, 400, 'Some media items are missing tags', {
         itemsWithoutTags,
-        message: 'Each media item must have at least one tag before proceeding'
+        message: 'Each media item must have at least one tag before proceeding',
       });
     }
     
     return res.status(200).json({
       success: true,
       message: 'All media items have valid tags',
-      totalMedia: allMedia.length
+      totalMedia: allMedia.length,
     });
     
   } catch (error) {
@@ -669,7 +669,7 @@ export const deleteMediaItem = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -716,7 +716,7 @@ export const deleteMediaItem = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Media item deleted successfully',
-      property
+      property,
     });
     
   } catch (error) {
@@ -741,7 +741,7 @@ export const uploadRoomMedia = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -775,7 +775,7 @@ export const uploadRoomMedia = async (req, res) => {
         tags: [], // Will be updated separately
         isCover: false,
         displayOrder: mediaType === 'image' ? room.media.images.length : room.media.videos.length,
-        uploadedAt: new Date()
+        uploadedAt: new Date(),
       };
       
       // Add to appropriate array
@@ -787,7 +787,7 @@ export const uploadRoomMedia = async (req, res) => {
       
       uploadedMedia.push({
         ...mediaItem,
-        _id: room.media[mediaType === 'image' ? 'images' : 'videos'][room.media[mediaType === 'image' ? 'images' : 'videos'].length - 1]._id
+        _id: room.media[mediaType === 'image' ? 'images' : 'videos'][room.media[mediaType === 'image' ? 'images' : 'videos'].length - 1]._id,
       });
     }
     
@@ -798,7 +798,7 @@ export const uploadRoomMedia = async (req, res) => {
       message: `${files.length} media files uploaded to room successfully`,
       uploadedMedia,
       room: property.rooms[roomIndex],
-      property
+      property,
     });
     
   } catch (error) {
@@ -815,7 +815,7 @@ export const updateRoomMediaItem = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -901,7 +901,7 @@ export const updateRoomMediaItem = async (req, res) => {
       message: 'Room media item updated successfully',
       mediaItem,
       room: property.rooms[roomIndex],
-      property
+      property,
     });
     
   } catch (error) {
@@ -917,7 +917,7 @@ export const deleteRoomMediaItem = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -978,7 +978,7 @@ export const deleteRoomMediaItem = async (req, res) => {
       success: true,
       message: 'Room media item deleted successfully',
       room: property.rooms[roomIndex],
-      property
+      property,
     });
     
   } catch (error) {
@@ -1026,8 +1026,8 @@ export const getRoomMedia = async (req, res) => {
       data: mediaItems,
       room: {
         _id: room._id,
-        roomName: room.roomName
-      }
+        roomName: room.roomName,
+      },
     });
     
   } catch (error) {
@@ -1061,7 +1061,7 @@ export const getMediaByTags = async (req, res) => {
     if (tags) {
       const filterTags = tags.split(',').map(tag => tag.trim().toLowerCase());
       mediaItems = mediaItems.filter(item => 
-        item.tags.some(tag => filterTags.includes(tag.toLowerCase()))
+        item.tags.some(tag => filterTags.includes(tag.toLowerCase())),
       );
     }
     
@@ -1071,7 +1071,7 @@ export const getMediaByTags = async (req, res) => {
     return res.status(200).json({
       success: true,
       count: mediaItems.length,
-      data: mediaItems
+      data: mediaItems,
     });
     
   } catch (error) {
@@ -1087,7 +1087,7 @@ export const completeMediaStep = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -1096,7 +1096,7 @@ export const completeMediaStep = async (req, res) => {
     
     // Check if minimum requirements are met (at least 10 media items)
     const totalMedia = property.media.images.length + property.media.videos.length;
-    console.log(property)
+    console.log(property);
     
     if (totalMedia < 10) {
       return errorResponse(res, 400, `Minimum 10 media items required. Currently have ${totalMedia} items.`);
@@ -1119,7 +1119,7 @@ export const completeMediaStep = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Media step completed successfully',
-      property
+      property,
     });
     
   } catch (error) {
@@ -1135,7 +1135,7 @@ export const completePropertyListing = async (req, res) => {
     // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
-      owner: req.user._id
+      owner: req.user._id,
     });
     
     if (!property) {
@@ -1153,7 +1153,7 @@ export const completePropertyListing = async (req, res) => {
         step4Completed,
         step5Completed,
         step6Completed,
-        step7Completed
+        step7Completed,
       });
     }
     
@@ -1164,7 +1164,7 @@ export const completePropertyListing = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Property listing completed successfully',
-      property
+      property,
     });
   } catch (error) {
     return errorResponse(res, 500, 'Server error', error.message);
@@ -1179,7 +1179,7 @@ export const reviewProperty = async (req, res) => {
     if (!['published', 'rejected'].includes(status)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid status value'
+        error: 'Invalid status value',
       });
     }
     
@@ -1188,7 +1188,7 @@ export const reviewProperty = async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        error: 'Property not found'
+        error: 'Property not found',
       });
     }
     
@@ -1196,7 +1196,7 @@ export const reviewProperty = async (req, res) => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: 'Not authorized to review properties'
+        error: 'Not authorized to review properties',
       });
     }
     
@@ -1207,12 +1207,12 @@ export const reviewProperty = async (req, res) => {
     
     res.status(200).json({
       success: true,
-      data: property
+      data: property,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -1225,7 +1225,7 @@ export const deleteProperty = async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        error: 'Property not found'
+        error: 'Property not found',
       });
     }
     
@@ -1233,7 +1233,7 @@ export const deleteProperty = async (req, res) => {
     if (property.status === 'published' && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: 'Only admins can delete published properties'
+        error: 'Only admins can delete published properties',
       });
     }
 
@@ -1241,7 +1241,7 @@ export const deleteProperty = async (req, res) => {
     if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: 'Not authorized to delete this property'
+        error: 'Not authorized to delete this property',
       });
     }
 
@@ -1260,12 +1260,12 @@ export const deleteProperty = async (req, res) => {
     
     res.status(200).json({
       success: true,
-      data: {}
+      data: {},
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };

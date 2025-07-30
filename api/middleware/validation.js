@@ -7,8 +7,8 @@ export const validate = (req, res, next) => {
       success: false,
       errors: errors.array().map(error => ({
         field: error.param,
-        message: error.msg
-      }))
+        message: error.msg,
+      })),
     });
   }
   next();

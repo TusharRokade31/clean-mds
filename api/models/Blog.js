@@ -6,65 +6,65 @@ const blogSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Blog title is required'],
     trim: true,
-    maxlength: [100, 'Title cannot exceed 100 characters']
+    maxlength: [100, 'Title cannot exceed 100 characters'],
   },
   content: {
     type: String,
     required: [true, 'Blog content is required'],
-    trim: true
+    trim: true,
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Author is required']
+    required: [true, 'Author is required'],
   },
   image: {
     type: String,
-    default: null
+    default: null,
   },
   tags: [{
     type: String,
-    trim: true
+    trim: true,
   }],
   category:{
   type: mongoose.Schema.Types.ObjectId,
   ref: 'Category',
-  required: true
+  required: true,
 },
   status: {
     type: String,
     enum: ['draft', 'published'],
-    default: 'draft'
+    default: 'draft',
   },
   slug: {
     type: String,
     unique: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
   
   readTime: {
     type: Number, // Estimated reading time in minutes
-    default: 0
+    default: 0,
   },
   views: {
     type: Number,
-    default: 0
+    default: 0,
   },
   isDeleted: {
     type: Boolean,
-    default: false
+    default: false,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 // Pre-save middleware to generate slug
