@@ -1,8 +1,15 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { fetchAllCategories } from '@/redux/features/blog/blogSlice';
 
 const BlogFilters = ({ filters, onFilterChange }) => {
+  const dispatch = useDispatch()
+
+    useEffect(() => {
+      dispatch(fetchAllCategories())
+    }, [dispatch])
+  
   const { categories } = useSelector(state => state.blog);
 
   const handleInputChange = (field, value) => {
@@ -68,7 +75,7 @@ const BlogFilters = ({ filters, onFilterChange }) => {
           >
             <option value="">All Categories</option>
             {categories.map((category) => (
-              <option key={category._id} value={category.slug}>
+              <option key={category._id} value={category._id}>
                 {category.name}
               </option>
             ))}

@@ -10,8 +10,6 @@ const RichTextEditor = ({
   disabled = false 
 }) => {
   const editor = useRef(null);
-  const [isHtmlMode, setIsHtmlMode] = useState(false);
-  const [htmlContent, setHtmlContent] = useState('');
 
   const config = useMemo(() => ({
     readonly: disabled,
@@ -49,30 +47,7 @@ const RichTextEditor = ({
     }
   };
 
-  const toggleHtmlMode = () => {
-    if (editor.current) {
-      const joditInstance = editor.current;
-      
-      if (!isHtmlMode) {
-        // Switch to HTML mode
-        const content = joditInstance.value;
-        setHtmlContent(content);
-        setIsHtmlMode(true);
-      } else {
-        // Switch back to Visual mode
-        joditInstance.value = htmlContent;
-        setIsHtmlMode(false);
-      }
-    }
-  };
 
-  const handleHtmlChange = (e) => {
-    const newHtmlContent = e.target.value;
-    setHtmlContent(newHtmlContent);
-    if (onChange) {
-      onChange(newHtmlContent);
-    }
-  };
 
   return (
     <div className="rich-text-editor-container">

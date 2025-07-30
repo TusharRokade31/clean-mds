@@ -9,10 +9,8 @@ import PopularTags from "@/component/blogs/PopularTags"
 import Pagination from "@/component/blogs/Pagination"
 import ArticleGrid from "@/component/blogs/ArticleGrid"
 import { 
-  fetchAllBlogs, 
+  fetchAllPublicBlogs, 
   fetchAllCategories, 
-  fetchBlogsByCategory,
-  fetchBlogsByTag,
   updateFilters,
   setCurrentCategory,
   setCurrentTag,
@@ -24,9 +22,6 @@ export default function Home() {
   const dispatch = useDispatch()
   const { 
     blogs, 
-    categories,
-    blogsByCategory,
-    blogsByTag,
     pagination, 
     filters, 
     currentCategory,
@@ -46,13 +41,12 @@ export default function Home() {
 
   // Load initial data on component mount
   useEffect(() => {
-    if (!currentCategory && !currentTag) {
-      dispatch(fetchAllBlogs(filters))
-    } else if (currentCategory && currentCategory !== "All Articles") {
-      dispatch(fetchBlogsByCategory(currentCategory))
-    } else if (currentTag) {
-      dispatch(fetchBlogsByTag(currentTag))
+    const initialFilters = {
+      ...filters,
+      ...(currentCategory && currentCategory !== "All Articles" && { category: currentCategory }),
+      ...(currentTag && { tag: currentTag })
     }
+    dispatch(fetchAllPublicBlogs(initialFilters))
     dispatch(fetchAllCategories())
   }, [dispatch])
 
@@ -67,36 +61,22 @@ export default function Home() {
       const newFilters = {
         ...filters,
         search: debouncedSearchQuery,
+        category: '',
+        tag: '',
         page: 1
       }
       dispatch(updateFilters(newFilters))
-      dispatch(fetchAllBlogs(newFilters))
+      dispatch(fetchAllPublicBlogs(newFilters))
     }
   }, [debouncedSearchQuery, dispatch, filters])
 
-  // Prepare categories array with "All Articles" option
-  const categoryOptions = useMemo(() => {
-    if (isCategoriesLoading || !categories.length) {
-      return ["All Articles"]
-    }
-    return [...categories]
-  }, [categories, isCategoriesLoading])
 
-  // Get current blogs to display based on selection
-  const currentBlogs = useMemo(() => {
-    if (selectedCategory !== "All Articles" && selectedCategory) {
-      return blogsByCategory
-    } else if (selectedTag) {
-      return blogsByTag
-    }
-    return blogs
-  }, [blogs, blogsByCategory, blogsByTag, selectedCategory, selectedTag])
 
   // Extract tags from current blogs
-  const allTags = [...new Set(currentBlogs.flatMap(blog => blog.tags || []))]
+  const allTags = [...new Set(blogs.flatMap(blog => blog.tags || []))]
 
   // Get featured article
-  const featuredArticle = currentBlogs[0]
+  const featuredArticle = blogs[0]
 
   // Handle category change
   const handleCategoryChange = useCallback((category) => {
@@ -105,16 +85,19 @@ export default function Home() {
     
     // Clear search when selecting category
     setSearchQuery("")
-    dispatch(updateFilters({ ...filters, search: "", page: 1 }))
     
-    if (category === "All Articles") {
-      dispatch(clearCategoryAndTag())
-      dispatch(fetchAllBlogs({ ...filters, search: "", page: 1 }))
-    } else {
-      dispatch(setCurrentCategory(category))
-      dispatch(setCurrentTag(""))
-      dispatch(fetchBlogsByCategory(category))
+    const newFilters = {
+      ...filters,
+      search: "",
+      category: category === "All Articles" ? "" : category,
+      tag: "",
+      page: 1
     }
+    
+    dispatch(updateFilters(newFilters))
+    dispatch(setCurrentCategory(category === "All Articles" ? "" : category))
+    dispatch(setCurrentTag(""))
+    dispatch(fetchAllPublicBlogs(newFilters))
   }, [dispatch, filters])
 
   // Handle tag change
@@ -125,34 +108,27 @@ export default function Home() {
     // Clear search and category when selecting tag
     setSearchQuery("")
     setSelectedCategory("All Articles")
-    dispatch(updateFilters({ ...filters, search: "", page: 1 }))
     
-    if (newTag) {
-      dispatch(setCurrentTag(newTag))
-      dispatch(setCurrentCategory(""))
-      dispatch(fetchBlogsByTag(newTag))
-    } else {
-      dispatch(clearCategoryAndTag())
-      dispatch(fetchAllBlogs({ ...filters, search: "", page: 1 }))
+    const newFilters = {
+      ...filters,
+      search: "",
+      category: "",
+      tag: newTag,
+      page: 1
     }
+    
+    dispatch(updateFilters(newFilters))
+    dispatch(setCurrentTag(newTag))
+    dispatch(setCurrentCategory(""))
+    dispatch(fetchAllPublicBlogs(newFilters))
   }, [selectedTag, dispatch, filters])
 
-  // Handle page change - this might need API updates to support pagination for category/tag APIs
+  // Handle page change
   const handlePageChange = useCallback((page) => {
-    if (selectedCategory !== "All Articles") {
-      // You'll need to update your API to support pagination for category filtering
-      console.log(`Page change for category: ${selectedCategory}, page: ${page}`)
-      // dispatch(fetchBlogsByCategory(selectedCategory, page))
-    } else if (selectedTag) {
-      // You'll need to update your API to support pagination for tag filtering
-      console.log(`Page change for tag: ${selectedTag}, page: ${page}`)
-      // dispatch(fetchBlogsByTag(selectedTag, page))
-    } else {
-      const newFilters = { ...filters, page }
-      dispatch(updateFilters(newFilters))
-      dispatch(fetchAllBlogs(newFilters))
-    }
-  }, [dispatch, filters, selectedCategory, selectedTag])
+    const newFilters = { ...filters, page }
+    dispatch(updateFilters(newFilters))
+    dispatch(fetchAllPublicBlogs(newFilters))
+  }, [dispatch, filters])
 
   if (error) {
     return (
@@ -161,7 +137,7 @@ export default function Home() {
           <p>Error loading articles: {error}</p>
           <button 
             onClick={() => {
-              dispatch(fetchAllBlogs(filters))
+              dispatch(fetchAllPublicBlogs(filters))
               dispatch(fetchAllCategories())
             }}
             className="mt-4 px-4 py-2 bg-[#1035ac] text-white rounded hover:bg-[#0d2a8f]"
@@ -181,15 +157,14 @@ export default function Home() {
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          totalResults={currentBlogs.length}
+          totalResults={blogs.length}
           isSearching={isLoading && debouncedSearchQuery !== searchQuery}
         />
 
         <CategoryFilter
-          categories={categoryOptions}
           selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
-          totalResults={currentBlogs.length}
+          totalResults={blogs.length}
           isLoading={isCategoriesLoading}
           error={categoriesError}
         />
@@ -200,10 +175,9 @@ export default function Home() {
           onTagChange={handleTagChange}
         />
 
-        <ArticleGrid articles={currentBlogs} isLoading={isLoading} />
+        <ArticleGrid articles={blogs} isLoading={isLoading} />
 
-        {/* Note: Pagination might need updates for category/tag APIs */}
-        {pagination.totalPages > 1 && !selectedCategory && !selectedTag && (
+        {pagination.totalPages > 1 && (
           <Pagination 
             currentPage={pagination.page} 
             totalPages={pagination.totalPages} 

@@ -6,8 +6,6 @@ import { blogAPI } from './blogAPI';
 const initialState = {
   blogs: [],
   currentBlog: null,
-  blogsByTag: [],
-  blogsByCategory: [],
   categories: [],
   categoryVersions: [],
   pagination: {
@@ -39,7 +37,20 @@ const initialState = {
   categoryError: null,
 };
 
-// Existing async thunks...
+// Fetch public blogs (for public pages)
+export const fetchAllPublicBlogs = createAsyncThunk(
+  'blog/fetchAllPublicBlogs',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await blogAPI.getAllPublicBlogs(params);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch blogs');
+    }
+  }
+);
+
+// Fetch all blogs (for admin)
 export const fetchAllBlogs = createAsyncThunk(
   'blog/fetchAllBlogs',
   async (params, { rejectWithValue }) => {
@@ -72,30 +83,6 @@ export const fetchBlogBySlug = createAsyncThunk(
       return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch blog');
-    }
-  }
-);
-
-export const fetchBlogsByTag = createAsyncThunk(
-  'blog/fetchBlogsByTag',
-  async (tag, { rejectWithValue }) => {
-    try {
-      const response = await blogAPI.getBlogsByTag(tag);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch blogs by tag');
-    }
-  }
-);
-
-export const fetchBlogsByCategory = createAsyncThunk(
-  'blog/fetchBlogsByCategory',
-  async (categorySlug, { rejectWithValue }) => {
-    try {
-      const response = await blogAPI.getBlogsByCategory(categorySlug);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch blogs by category');
     }
   }
 );
@@ -219,12 +206,6 @@ const blogSlice = createSlice({
       state.currentCategory = '';
       state.currentTag = '';
     },
-    clearBlogsByTag: (state) => {
-      state.blogsByTag = [];
-    },
-    clearBlogsByCategory: (state) => {
-      state.blogsByCategory = [];
-    },
     setCurrentCategory: (state, action) => {
       state.currentCategory = action.payload;
     },
@@ -237,7 +218,23 @@ const blogSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Fetch all blogs
+    // Fetch all public blogs
+    builder
+      .addCase(fetchAllPublicBlogs.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllPublicBlogs.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.blogs = action.payload.data;
+        state.pagination = action.payload.pagination;
+      })
+      .addCase(fetchAllPublicBlogs.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
+    // Fetch all blogs (admin)
     builder
       .addCase(fetchAllBlogs.pending, (state) => {
         state.isLoading = true;
@@ -279,38 +276,6 @@ const blogSlice = createSlice({
         state.currentBlog = action.payload.data;
       })
       .addCase(fetchBlogBySlug.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-
-    // Fetch blogs by tag
-    builder
-      .addCase(fetchBlogsByTag.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchBlogsByTag.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.blogsByTag = action.payload.data;
-        state.currentTag = action.meta.arg;
-      })
-      .addCase(fetchBlogsByTag.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-
-    // Fetch blogs by Category
-    builder
-      .addCase(fetchBlogsByCategory.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchBlogsByCategory.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.blogsByCategory = action.payload.data;
-        state.currentCategory = action.payload.category?.name || '';
-      })
-      .addCase(fetchBlogsByCategory.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
@@ -442,8 +407,6 @@ export const {
   clearCurrentBlog,
   updateFilters,
   resetFilters,
-  clearBlogsByTag,
-  clearBlogsByCategory,
   setCurrentCategory,
   setCurrentTag,
   clearCategoryAndTag,

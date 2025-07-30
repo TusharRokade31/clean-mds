@@ -42,10 +42,7 @@ const BlogList = () => {
     });
   };
 
-  console.log(deleteConfirm)
-
   const handleDeleteConfirm = async () => {
-    console.log(deleteConfirm, "handleDeleteConfirm Clicked")
     await dispatch(deleteBlog(deleteConfirm.blogId));
     setDeleteConfirm({ show: false, blogId: null, blogTitle: '' });
     // Refresh the list
@@ -89,7 +86,7 @@ const BlogList = () => {
         </div>
       ) : (
         <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {blogs.map((blog) => (
               <BlogCard
                 key={blog._id}

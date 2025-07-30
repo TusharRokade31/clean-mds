@@ -2,27 +2,21 @@
 import axiosInstance from '../../../services/axios.config';
 
 export const blogAPI = {
-  // Get all blogs with pagination and filtering
-  getAllBlogs: async (params = {}) => {
+  // Get all public blogs with pagination and filtering (for public pages)
+  getAllPublicBlogs: async (params = {}) => {
     const response = await axiosInstance.get('/blogs/', { params });
+    return response.data;
+  },
+
+  // Get all blogs with pagination and filtering (for admin)
+  getAllBlogs: async (params = {}) => {
+    const response = await axiosInstance.get('/blogs/all', { params });
     return response.data;
   },
 
   // Get single blog by slug
   getBlogBySlug: async (slug) => {
     const response = await axiosInstance.get(`/blogs/${slug}`);
-    return response.data;
-  },
-
-  // Get blogs by tag
-  getBlogsByTag: async (tag) => {
-    const response = await axiosInstance.get(`/blogs/tag/${tag}`);
-    return response.data;
-  },
-
-  // Get blogs by category
-  getBlogsByCategory: async (categorySlug) => {
-    const response = await axiosInstance.get(`/blogs/category/${categorySlug}`);
     return response.data;
   },
 
