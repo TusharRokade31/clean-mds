@@ -140,6 +140,47 @@ export const fetchBookingStats = createAsyncThunk(
   }
 );
 
+export const createBookingWithValidation = createAsyncThunk(
+  'booking/createBookingWithValidation',
+  async (bookingData, { rejectWithValue }) => {
+    try {
+      // Validate required fields
+      const requiredFields = ['propertyId', 'roomId', 'primaryGuest', 'checkIn', 'checkOut', 'guestCount']
+      const missingFields = requiredFields.filter(field => !bookingData[field])
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`)
+      }
+
+      // Validate guest details
+      const guestRequiredFields = ['firstName', 'lastName', 'email', 'phone', 'idType', 'idNumber']
+      const missingGuestFields = guestRequiredFields.filter(field => !bookingData.primaryGuest[field])
+      
+      if (missingGuestFields.length > 0) {
+        throw new Error(`Missing guest details: ${missingGuestFields.join(', ')}`)
+      }
+
+      // Validate dates
+      const checkIn = new Date(bookingData.checkIn)
+      const checkOut = new Date(bookingData.checkOut)
+      const today = new Date()
+      
+      if (checkIn < today) {
+        throw new Error('Check-in date cannot be in the past')
+      }
+      
+      if (checkOut <= checkIn) {
+        throw new Error('Check-out date must be after check-in date')
+      }
+
+      const response = await bookingAPI.createBooking(bookingData)
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to create booking')
+    }
+  }
+)
+
 const bookingSlice = createSlice({
   name: 'booking',
   initialState,

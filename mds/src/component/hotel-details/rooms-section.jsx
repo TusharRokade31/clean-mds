@@ -1,6 +1,7 @@
 "use client"
 import { Button, Card, Badge, Dialog, DialogContent, DialogTitle, IconButton } from "@mui/material"
 import { Users, Bed, Bath, Square, Wifi, Tv, Wind, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 // Image Carousel Component
@@ -24,7 +25,7 @@ const ImageCarousel = ({ images, size = "small", room, handleRoomClick }) => {
   }
 
   return (
-    <div className={`relative ${size === "large" ? "aspect-video h-96" : "aspect-square"} overflow-hidden rounded-lg`}>
+    <div className={`relative w-full  ${size === "large" ? "aspect-video h-96" : "aspect-square"} overflow-hidden rounded-lg`}>
       <img
         onClick={() => handleRoomClick(room)}
         src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${images[currentIndex].url}`}
@@ -64,8 +65,10 @@ const ImageCarousel = ({ images, size = "small", room, handleRoomClick }) => {
   )
 }
 
+
+
 // Room Detail Modal Component
-const RoomDetailModal = ({ room, open, onClose }) => {
+const RoomDetailModal = ({ handleBookRoom, room, open, onClose }) => {
   const getAmenityIcon = (amenityName) => {
     switch (amenityName.toLowerCase()) {
       case "wifi":
@@ -79,10 +82,13 @@ const RoomDetailModal = ({ room, open, onClose }) => {
     }
   }
 
+
+
+
   if (!room) return null
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle className="flex justify-between items-center">
         <span className="text-2xl font-bold">{room.roomName}</span>
         <IconButton onClick={onClose}>
@@ -92,9 +98,9 @@ const RoomDetailModal = ({ room, open, onClose }) => {
       
       <DialogContent className="space-y-6">
         {/* Large Image Carousel */}
-        <ImageCarousel images={room.media?.images} size="large" />
+        <ImageCarousel images={room.media?.images} size="large" / >
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           {/* Room Details */}
           <div className="space-y-4">
             <div>
@@ -170,9 +176,13 @@ const RoomDetailModal = ({ room, open, onClose }) => {
               </div>
             )}
 
-            <Button className="w-full" size="lg">
-              Book This Room
-            </Button>
+          <Button 
+            className="w-full" 
+            size="lg"
+            onClick={() => handleBookRoom(room)}
+          >
+            Book This Room
+          </Button>
 
             <p className="text-xs text-gray-500 text-center mt-2">Non-Refundable</p>
           </div>
@@ -182,9 +192,21 @@ const RoomDetailModal = ({ room, open, onClose }) => {
   )
 }
 
-export default function RoomsSection({ rooms }) {
+export default function RoomsSection({data, rooms }) {
   const [selectedRoom, setSelectedRoom] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const router = useRouter()
+
+  const handleBookRoom = (room) => {
+  
+  
+  // Store selected room and property data
+  localStorage.setItem('selectedRoom', JSON.stringify(room))
+  localStorage.setItem('selectedProperty', JSON.stringify(data))
+  
+  // Navigate to booking page
+  router.push(`/booking/${data._id}?room=${room._id}`)
+}
 
   const getAmenityIcon = (amenityName) => {
     switch (amenityName.toLowerCase()) {
@@ -278,13 +300,6 @@ export default function RoomsSection({ rooms }) {
                   </div>
                 </div>
 
-                {/* <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  onClick={() => handleRoomClick(room)}
-                >
-                  View Details
-                </Button> */}
               </div>
 
               {/* Pricing & Booking */}
@@ -313,7 +328,7 @@ export default function RoomsSection({ rooms }) {
                   </div>
                 )}
 
-                <Button className="w-full" size="lg">
+                <Button className="w-full" size="lg" onClick={() => handleBookRoom(room)}>
                   Book This Room
                 </Button>
 
@@ -326,6 +341,7 @@ export default function RoomsSection({ rooms }) {
 
       {/* Room Detail Modal */}
       <RoomDetailModal 
+        handleBookRoom={handleBookRoom}
         room={selectedRoom} 
         open={modalOpen} 
         onClose={handleModalClose}

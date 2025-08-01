@@ -7,10 +7,10 @@ import {
   fetchAllBookings,
   fetchBookingStats,
 } from "@/redux/features/bookings/bookingSlice";
-import BookingModal from "@/component/bookings/BookingModal";
-import RoomGrid from "@/component/bookings/RoomGrid";
-import BookingStats from "@/component/bookings/BookingStats";
-import BookingFlow from "@/component/bookings/BookingFlow";
+import BookingModal from "@/component/walkinbookings/BookingModal";
+import RoomGrid from "@/component/walkinbookings/RoomGrid";
+import BookingStats from "@/component/walkinbookings/BookingStats";
+import BookingFlow from "@/component/walkinbookings/BookingFlow";
 import Link from "next/link";
 
 export default function BookingsPage() {

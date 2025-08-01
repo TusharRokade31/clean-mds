@@ -101,7 +101,7 @@ export const getProperty = async (req, res) => {
     }
     
     // Check if user owns the property or is admin
-    if (property.owner.toString() !== req.user._id.toString()) {
+    if (req.user.role !== "admin" || property.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to access this property',
@@ -1725,8 +1725,6 @@ export const checkPropertyAvailability = async (req, res) => {
     });
   }
 };
-
-
 
 export const getSuggestions = async (req, res) =>{
   try {

@@ -38,7 +38,7 @@ export function PropertyCard({
   const handleThumbnailClick = (index) => {
     setCurrentImageIndex(index)
   }
-
+  
   const currentImage = images[currentImageIndex]
   const imageUrl = currentImage ? `${process.env.NEXT_PUBLIC_IMAGE_URL}${currentImage.url}` : null
   
@@ -52,7 +52,7 @@ export function PropertyCard({
         {/* Image Section */}
         <div className="relative flex-1 w-full lg:w-64 bg-gray-200">
           {verified && (
-            <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1 z-10">
+            <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1 z-5">
               ✓ Verified
             </div>
           )}
