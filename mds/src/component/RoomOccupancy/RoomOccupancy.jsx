@@ -20,7 +20,7 @@ import {
   Link
 } from '@mui/material';
 import { Home } from '@mui/icons-material';
-import BookingFlow from '../bookings/BookingFlow';
+import BookingFlow from '../walkinbookings/BookingFlow';
 import { checkRoomAvailability, fetchRooms, resetRoomFilters, updateRoomFilters, updateRoomStatus } from '@/redux/features/rooms/roomSlice';
 import RoomDetailsModal from './RoomDetailsModal';
 

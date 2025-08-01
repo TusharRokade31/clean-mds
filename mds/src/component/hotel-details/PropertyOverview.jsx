@@ -31,12 +31,13 @@ import {
 } from "@mui/icons-material"
 import { useState } from "react"
 import AmenitiesSection from "./amenities-section"
+import { useRouter } from "next/navigation"
 
 export default function PropertyOverview({ data, setActiveSection }) {
   const [selectedTab, setSelectedTab] = useState(0)
   const [openGallery, setOpenGallery] = useState(false)
   const [selectedImage, setSelectedImage] = useState(0)
-
+const router = useRouter()
   // Add null checks for data and media
   if (!data) {
     return <Typography>Loading...</Typography>
@@ -85,6 +86,20 @@ const getFilteredImages = () => {
     setSelectedImage(index)
     setOpenGallery(true)
   }
+
+  const handleBookRoom = (data) => {
+  // 
+  console.log("handleclicked")
+  console.log(data)
+  console.log(data.rooms[0])
+
+  // Store selected room and property data
+  localStorage.setItem('selectedRoom', JSON.stringify(data.rooms[0]))
+  localStorage.setItem('selectedProperty', JSON.stringify(data))
+  
+  // Navigate to booking page
+  router.push(`/booking/${data._id}?room=${data.rooms[0]._id}`)
+}
 
 
   const coverImage = getCoverImage()
@@ -273,6 +288,7 @@ const getFilteredImages = () => {
             variant="contained" 
             fullWidth 
             size="large"
+            onClick={() => handleBookRoom(data)}
             sx={{ mb: 1 }}
           >
             BOOK THIS NOW
