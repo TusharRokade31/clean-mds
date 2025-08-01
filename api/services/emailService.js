@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 dotenv.config();
 
 // Configure your email transporter - CORRECTED METHOD NAME
@@ -11,8 +11,8 @@ const transporter = nodemailer.createTransport({  // Changed from createTranspor
   secure: false,
   auth: {
     user: process.env.EMAIL_USER ,
-    pass: process.env.EMAIL_PASSWORD // Use app password for Gmail
-  }
+    pass: process.env.EMAIL_PASSWORD, // Use app password for Gmail
+  },
 });
 
 
@@ -38,7 +38,7 @@ export const sendOTPEmail = async (email, otp, propertyName) => {
         <p>This OTP will expire in 5 minutes.</p>
         <p>If you didn't request this verification, please ignore this email.</p>
       </div>
-    `
+    `,
   };
 
   try {

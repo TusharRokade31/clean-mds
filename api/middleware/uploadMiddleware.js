@@ -45,9 +45,9 @@ export const storage = multer.diskStorage({
     
     cb(
       null,
-      `${prefix}-${req.params.propertyId || 'new'}-${Date.now()}${path.extname(file.originalname)}`
+      `${prefix}-${req.params.propertyId || 'new'}-${Date.now()}${path.extname(file.originalname)}`,
     );
-  }
+  },
 });
 
 // Enhanced file type checking for images and videos
@@ -107,7 +107,7 @@ export const upload = multer({
   limits: { fileSize: 10000000 }, // 10MB limit for images
   fileFilter: function(req, file, cb) {
     checkFileType(file, cb);
-  }
+  },
 });
 
 // Enhanced upload for multiple media files with higher limits
@@ -115,20 +115,20 @@ export const uploadMedia = multer({
   storage,
   limits: { 
     fileSize: 100000000, // 100MB limit for videos
-    files: 20 // Maximum 20 files at once
+    files: 20, // Maximum 20 files at once
   },
   fileFilter: function(req, file, cb) {
     checkFileType(file, cb);
-  }
+  },
 });
 
 // NEW: Document upload for registration documents
 export const uploadDocument = multer({
   storage,
   limits: { 
-    fileSize: 15000000 // 15MB limit for documents
+    fileSize: 15000000, // 15MB limit for documents
   },
   fileFilter: function(req, file, cb) {
     checkDocumentType(file, cb);
-  }
+  },
 });

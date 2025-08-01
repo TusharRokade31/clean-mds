@@ -22,7 +22,7 @@ export const getAllstays = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     count: stays.length,
-    data: stays
+    data: stays,
   });
 });
 
@@ -39,7 +39,7 @@ export const getStay = asyncHandler(async (req, res, next) => {
   
   res.status(200).json({
     success: true,
-    data: stay
+    data: stay,
   });
 });
 
@@ -55,12 +55,12 @@ export const createStay = asyncHandler(async (req, res, next) => {
   
   const stay = await Stay.create({
     ...req.body,
-    image: imagePath
+    image: imagePath,
   });
   
   res.status(201).json({
     success: true,
-    data: stay
+    data: stay,
   });
 });
 
@@ -85,12 +85,12 @@ export const updateStay = asyncHandler(async (req, res, next) => {
   
   stay = await Stay.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
-    runValidators: true
+    runValidators: true,
   });
   
   res.status(200).json({
     success: true,
-    data: stay
+    data: stay,
   });
 });
 
@@ -113,7 +113,7 @@ export const deleteStay = asyncHandler(async (req, res, next) => {
   
   res.status(200).json({
     success: true,
-    data: {}
+    data: {},
   });
 });
 
@@ -130,13 +130,13 @@ export const getStayProperties = asyncHandler(async (req, res, next) => {
   // Find properties where stay matches
   const properties = await Property.find({
     'propertyType': stay.name,
-    'status': 'published'
+    'status': 'published',
   }).populate('host', 'name email');
   
   res.status(200).json({
     success: true,
     count: properties.length,
-    data: properties
+    data: properties,
   });
 });
 

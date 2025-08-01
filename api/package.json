@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "lint": "eslint api/ tests/",
+    "lint:fix": "eslint --fix api/ tests/",
+    "format": "prettier --write api/ tests/"
   },
   "keywords": [],
   "author": "",
@@ -35,5 +38,11 @@
     "url": "^0.11.4",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
+    "prettier": "^3.6.2"
   }
 }

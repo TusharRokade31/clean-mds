@@ -1,17 +1,17 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 dotenv.config();
-import express from "express";
-import cookieParser from "cookie-parser";
-import mongoose from "mongoose";
-import cors from "cors";
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import mongoose from 'mongoose';
+import cors from 'cors';
 import errorHandler from './middleware/error.js';
 import registerRoutes from './routes/index.js';
-import {httpLogger} from './middleware/httpLogger.js'
-import {asyncContextMiddleware} from "./middleware/asyncLocalStorage.js";
+import {httpLogger} from './middleware/httpLogger.js';
+import {asyncContextMiddleware} from './middleware/asyncLocalStorage.js';
 
 
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,10 +25,10 @@ const dbURL = process.env.MONGO_URI || process.env.dbURL;
 mongoose
   .connect(dbURL)
   .then(() => {
-    console.log("Connected to MongoDB");
+    console.log('Connected to MongoDB');
   })
   .catch((err) => {
-    console.error("MongoDB connection error:", err);
+    console.error('MongoDB connection error:', err);
   });
 
 
@@ -36,24 +36,24 @@ app.use(express.static(__dirname));
 app.use(express.json());
 
 app.use(asyncContextMiddleware);
-app.use(httpLogger)
+app.use(httpLogger);
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: process.env.CLIENT_URL || true,
     credentials: true,
-  })
+  }),
 );
 app.use(cookieParser());
 
 
-app.get("/", (req, res) => {
-  res.send("Server is running...");
+app.get('/', (req, res) => {
+  res.send('Server is running...');
 });
 
 
 // Add the new routes
-registerRoutes(app)
+registerRoutes(app);
 
 // Error handling middleware - should be last
 app.use(errorHandler);

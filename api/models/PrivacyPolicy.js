@@ -7,7 +7,7 @@ const PrivacyPolicySchema = new Schema({
   property: {
     type: Schema.Types.ObjectId,
     ref: 'Property',
-    required: [true, 'Property reference is required']
+    required: [true, 'Property reference is required'],
   },
   
   // Check-in & Check-out Times
@@ -15,17 +15,17 @@ const PrivacyPolicySchema = new Schema({
     checkInTime: {
       type: String,
       required: [true, 'Check-in time is required'],
-      default: '12:00 pm (noon)'
+      default: '12:00 pm (noon)',
     },
     checkOutTime: {
       type: String,
       required: [true, 'Check-out time is required'],
-      default: '12:00 pm (noon)'
+      default: '12:00 pm (noon)',
     },
     has24HourCheckIn: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   
   // Cancellation Policy
@@ -37,31 +37,31 @@ cancellationPolicy: {
     'free_cancellation_48h', 
     'free_cancellation_72h',
     'free_cancellation_custom',
-    'non_refundable'
+    'non_refundable',
   ],
   required: [true, 'Cancellation policy is required'],
-  default: 'free_cancellation_checkin'
+  default: 'free_cancellation_checkin',
 },
 customCancellationHours: {
   type: Number,
   min: 1,
-  max: 168 // 7 days max
+  max: 168, // 7 days max
 },
   // Property Rules
   propertyRules: {
     guestProfile: {
       allowUnmarriedCouples: {
         type: Boolean,
-        default: false
+        default: false,
       },
       allowGuestsBelow18: {
         type: Boolean,
-        default: false
+        default: false,
       },
       allowOnlyMaleGuests: {
         type: Boolean,
-        default: false
-      }
+        default: false,
+      },
     },
     
     acceptableIdentityProofs: [{
@@ -72,8 +72,8 @@ customCancellationHours: {
         'national_id',
         'voter_id',
         'aadhaar_card',
-        'pan_card'
-      ]
+        'pan_card',
+      ],
     }],
     
 
@@ -84,106 +84,106 @@ customCancellationHours: {
     nonVegetarianFood: {
       allowed: {
         type: Boolean,
-        default: true
+        default: true,
       },
       restrictions: {
         type: String,
-        default: ''
-      }
+        default: '',
+      },
     },
     alcoholSmoking: {
       alcoholAllowed: {
         type: Boolean,
-        default: false
+        default: false,
       },
       smokingAllowed: {
         type: Boolean,
-        default: false
+        default: false,
       },
       smokingAreas: {
         type: String,
         enum: ['not_allowed', 'designated_areas', 'everywhere'],
-        default: 'not_allowed'
+        default: 'not_allowed',
       },
       restrictions: {
         type: String,
-        default: ''
-      }
+        default: '',
+      },
     },
     noiseRestrictions: {
       quietHours: {
         enabled: {
           type: Boolean,
-          default: true
+          default: true,
         },
         startTime: {
           type: String,
-          default: '10:00 PM'
+          default: '10:00 PM',
         },
         endTime: {
           type: String,
-          default: '7:00 AM'
-        }
+          default: '7:00 AM',
+        },
       },
       musicAllowed: {
         type: Boolean,
-        default: true
+        default: true,
       },
       partyAllowed: {
         type: Boolean,
-        default: false
+        default: false,
       },
       restrictions: {
         type: String,
-        default: ''
-      }
-    }
+        default: '',
+      },
+    },
   },
 
   // Pet Policy
   petPolicy: {
     petsAllowed: {
       type: Boolean,
-      default: false
+      default: false,
     },
     petTypes: [{
       type: String,
-      enum: ['dogs', 'cats', 'birds', 'fish', 'small_pets', 'others']
+      enum: ['dogs', 'cats', 'birds', 'fish', 'small_pets', 'others'],
     }],
     petDeposit: {
       required: {
         type: Boolean,
-        default: false
+        default: false,
       },
       amount: {
         type: Number,
-        default: 0
-      }
+        default: 0,
+      },
     },
     petRules: {
       type: String,
-      default: ''
-    }
+      default: '',
+    },
   },
 
   // Custom Policies
   customPolicies: [{
     title: {
       type: String,
-      required: true
+      required: true,
     },
     description: {
       type: String,
-      required: true
+      required: true,
     },
     isActive: {
       type: Boolean,
-      default: true
+      default: true,
     },
     createdAt: {
       type: Date,
-      default: Date.now
-    }
+      default: Date.now,
+    },
   }],
 
   // Meal Rack Prices
@@ -191,52 +191,52 @@ customCancellationHours: {
     breakfast: {
       available: {
         type: Boolean,
-        default: false
+        default: false,
       },
       price: {
         type: Number,
-        default: 0
+        default: 0,
       },
       description: {
         type: String,
-        default: ''
-      }
+        default: '',
+      },
     },
     lunch: {
       available: {
         type: Boolean,
-        default: false
+        default: false,
       },
       price: {
         type: Number,
-        default: 0
+        default: 0,
       },
       description: {
         type: String,
-        default: ''
-      }
+        default: '',
+      },
     },
     dinner: {
       available: {
         type: Boolean,
-        default: false
+        default: false,
       },
       price: {
         type: Number,
-        default: 0
+        default: 0,
       },
       description: {
         type: String,
-        default: ''
-      }
-    }
+        default: '',
+      },
+    },
   },
   
   // Data Collection & Privacy
   dataCollection: {
     personalDataCollection: {
       type: Boolean,
-      default: true
+      default: true,
     },
     dataTypes: [{
       type: String,
@@ -248,21 +248,21 @@ customCancellationHours: {
         'identity_proof',
         'payment_info',
         'booking_history',
-        'preferences'
-      ]
+        'preferences',
+      ],
     }],
     dataRetentionPeriod: {
       type: Number, // in months
-      default: 24
+      default: 24,
     },
     shareDataWithThirdParties: {
       type: Boolean,
-      default: false
+      default: false,
     },
     thirdPartyServices: [{
       serviceName: String,
-      purpose: String
-    }]
+      purpose: String,
+    }],
   },
   
   // Communication Preferences
@@ -270,43 +270,43 @@ customCancellationHours: {
     emergencyContact: {
       name: String,
       phone: String,
-      relationship: String
+      relationship: String,
     },
     preferredContactMethod: {
       type: String,
       enum: ['phone', 'email', 'whatsapp', 'sms'],
-      default: 'phone'
+      default: 'phone',
     },
     allowMarketingCommunication: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   
   // Metadata
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   version: {
     type: Number,
-    default: 1
+    default: 1,
   },
   effectiveDate: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   lastUpdated: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   createdBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Created by user is required']
-  }
+    required: [true, 'Created by user is required'],
+  },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 // Indexes

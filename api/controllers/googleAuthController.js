@@ -34,7 +34,7 @@ export const googleLogin = async (req, res, next) => {
         email: userData.email,
         password: Math.random().toString(36).slice(-8), // Random password
         profileImage: userData.picture,
-        isGoogleAccount: true
+        isGoogleAccount: true,
       });
     }
     
@@ -42,7 +42,7 @@ export const googleLogin = async (req, res, next) => {
     const jwtToken = jwt.sign(
       { id: user._id, role: user.role },
       config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn }
+      { expiresIn: config.jwt.expiresIn },
     );
     
     // Set cookie
@@ -63,7 +63,7 @@ export const googleLogin = async (req, res, next) => {
       success: true,
       message: 'Google login successful',
       token: jwtToken,
-      userId: user._id
+      userId: user._id,
     });
   } catch (error) {
     console.error('Google login error:', error);

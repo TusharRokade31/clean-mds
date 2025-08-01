@@ -20,7 +20,7 @@ export const signup = asyncHandler(async (req, res, next) => {
   const user = await User.create({
     name,
     email,
-    password
+    password,
   });
 
   sendTokenResponse(user, 201, res, 'User registered successfully');
@@ -62,7 +62,7 @@ export const getMe = asyncHandler(async (req, res, next) => {
   
   res.status(200).json({
     success: true,
-    data: user
+    data: user,
   });
 });
 
@@ -75,18 +75,18 @@ export const logout = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict', // or 'lax', 'none' - match what you used when setting
-      path: '/'
+      path: '/',
     });
     
     return res.status(200).json({
       success: true,
-      message: 'Logged out successfully'
+      message: 'Logged out successfully',
     });
   } catch (error) {
     console.error('Logout error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Server error during logout'
+      message: 'Server error during logout',
     });
   }
 };
@@ -104,7 +104,7 @@ export const createAdmin = asyncHandler(async (req, res, next) => {
     name,
     email,
     password,
-    role: 'admin'
+    role: 'admin',
   });
 
   sendTokenResponse(user, 201, res, 'Admin user created successfully');
@@ -153,7 +153,7 @@ const sendTokenResponse = (user, statusCode, res, message) => {
   const token = jwt.sign(
     { id: user._id, role: user.role },
     config.jwt.secret,
-    { expiresIn: config.jwt.expiresIn }
+    { expiresIn: config.jwt.expiresIn },
   );
 
   // Cookie options
@@ -166,7 +166,7 @@ const sendTokenResponse = (user, statusCode, res, message) => {
 
   // Add secure flag only if HTTPS is available
   if (process.env.NODE_ENV === 'production') {
-    console.log("in the production")
+    console.log('in the production');
     cookieOptions.secure = true; // Only if you have HTTPS
     cookieOptions.sameSite = process.env.NODE_ENV === 'production' ? 'none' : 'lax'; // Important for cross-origin
     // If you don't have HTTPS in production, comment out the line above
@@ -185,6 +185,6 @@ const sendTokenResponse = (user, statusCode, res, message) => {
     success: true,
     message,
     token,
-    userId: user._id
+    userId: user._id,
   });
 };

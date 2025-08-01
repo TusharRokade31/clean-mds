@@ -12,7 +12,7 @@ export const getAllUsers = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     count: users.length,
-    data: users
+    data: users,
   });
 });
 
@@ -20,7 +20,7 @@ export const getAllUsers = asyncHandler(async (req, res, next) => {
 // @route   GET /api/admin/users/:id
 // @access  Private/Admin
 export const getUserById = asyncHandler(async (req, res, next) => {
-  console.log(req.params.id)
+  console.log(req.params.id);
   const user = await User.findById(req.params.id).select('-password');
   
   if (!user) {
@@ -29,7 +29,7 @@ export const getUserById = asyncHandler(async (req, res, next) => {
   
   res.status(200).json({
     success: true,
-    data: user
+    data: user,
   });
 });
 
@@ -39,7 +39,7 @@ export const getUserById = asyncHandler(async (req, res, next) => {
 export const updateUser = asyncHandler(async (req, res, next) => {
   // Get allowed fields from the schema (excluding system fields)
   const allowedFields = Object.keys(User.schema.paths).filter(
-    key => !['_id', '__v', 'password'].includes(key)
+    key => !['_id', '__v', 'password'].includes(key),
   );
     const updateFields = {};
 
@@ -53,14 +53,14 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   // If no valid field is present
   if (Object.keys(updateFields).length === 0) {
     return next(
-      new ErrorResponse('No valid fields provided for update.', 400)
+      new ErrorResponse('No valid fields provided for update.', 400),
     );
   }
   
   const user = await User.findByIdAndUpdate(
     req.params.id, 
     updateFields, 
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   ).select('-password');
   
   if (!user) {
@@ -69,7 +69,7 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   
   res.status(200).json({
     success: true,
-    data: user
+    data: user,
   });
 });
 
@@ -86,6 +86,6 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: 'User deleted successfully',
-    data: user
+    data: user,
   });
 });

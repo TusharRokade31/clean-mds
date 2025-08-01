@@ -13,13 +13,13 @@ export const getPrivacyPolicy = async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        message: 'Property not found'
+        message: 'Property not found',
       });
     }
     
     let privacyPolicy = await PrivacyPolicy.findOne({ 
       property: propertyId, 
-      isActive: true 
+      isActive: true, 
     }).populate('property', 'placeName propertyType');
     
     // If no privacy policy exists, create one with default values
@@ -29,68 +29,68 @@ export const getPrivacyPolicy = async (req, res) => {
         checkInCheckOut: {
           checkInTime: '12:00 pm (noon)',
           checkOutTime: '12:00 pm (noon)',
-          has24HourCheckIn: false
+          has24HourCheckIn: false,
         },
         cancellationPolicy: 'free_cancellation_checkin',
         propertyRules: {
           guestProfile: {
             allowUnmarriedCouples: false,
             allowGuestsBelow18: false,
-            allowOnlyMaleGuests: false
+            allowOnlyMaleGuests: false,
           },
           acceptableIdentityProofs: [],
         },
         propertyRestrictions: {
           nonVegetarianFood: {
             allowed: true,
-            restrictions: ''
+            restrictions: '',
           },
           alcoholSmoking: {
             alcoholAllowed: false,
             smokingAllowed: false,
             smokingAreas: 'not_allowed',
-            restrictions: ''
+            restrictions: '',
           },
           noiseRestrictions: {
             quietHours: {
               enabled: true,
               startTime: '10:00 PM',
-              endTime: '7:00 AM'
+              endTime: '7:00 AM',
             },
             musicAllowed: true,
             partyAllowed: false,
-            restrictions: ''
-          }
+            restrictions: '',
+          },
         },
         petPolicy: {
           petsAllowed: false,
           petTypes: [],
           petDeposit: {
             required: false,
-            amount: 0
+            amount: 0,
           },
-          petRules: ''
+          petRules: '',
         },
         customPolicies: [],
         mealPrices: {
           breakfast: {
             available: false,
             price: 0,
-            description: ''
+            description: '',
           },
           lunch: {
             available: false,
             price: 0,
-            description: ''
+            description: '',
           },
           dinner: {
             available: false,
             price: 0,
-            description: ''
-          }
+            description: '',
+          },
         },
         createdBy: property.owner || req.user?.id,
-        isActive: true
+        isActive: true,
       };
 
       privacyPolicy = new PrivacyPolicy(defaultPolicy);
@@ -103,14 +103,14 @@ export const getPrivacyPolicy = async (req, res) => {
     
     res.status(200).json({
       success: true,
-      data: privacyPolicy
+      data: privacyPolicy,
     });
   } catch (error) {
     console.error('Get privacy policy error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -124,19 +124,19 @@ export const addCustomPolicy = async (req, res) => {
     if (!title || !description) {
       return res.status(400).json({
         success: false,
-        message: 'Title and description are required'
+        message: 'Title and description are required',
       });
     }
 
     const privacyPolicy = await PrivacyPolicy.findOne({ 
       property: propertyId, 
-      isActive: true 
+      isActive: true, 
     });
     
     if (!privacyPolicy) {
       return res.status(404).json({
         success: false,
-        message: 'Privacy policy not found'
+        message: 'Privacy policy not found',
       });
     }
     
@@ -144,7 +144,7 @@ export const addCustomPolicy = async (req, res) => {
       title,
       description,
       isActive: true,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
     
     privacyPolicy.customPolicies.push(newCustomPolicy);
@@ -157,14 +157,14 @@ export const addCustomPolicy = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Custom policy added successfully',
-      data: updatedPolicy
+      data: updatedPolicy,
     });
   } catch (error) {
     console.error('Add custom policy error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -177,13 +177,13 @@ export const updateCustomPolicy = async (req, res) => {
     
     const privacyPolicy = await PrivacyPolicy.findOne({ 
       property: propertyId, 
-      isActive: true 
+      isActive: true, 
     });
     
     if (!privacyPolicy) {
       return res.status(404).json({
         success: false,
-        message: 'Privacy policy not found'
+        message: 'Privacy policy not found',
       });
     }
     
@@ -191,7 +191,7 @@ export const updateCustomPolicy = async (req, res) => {
     if (!customPolicy) {
       return res.status(404).json({
         success: false,
-        message: 'Custom policy not found'
+        message: 'Custom policy not found',
       });
     }
     
@@ -208,14 +208,14 @@ export const updateCustomPolicy = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Custom policy updated successfully',
-      data: updatedPolicy
+      data: updatedPolicy,
     });
   } catch (error) {
     console.error('Update custom policy error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -227,13 +227,13 @@ export const deleteCustomPolicy = async (req, res) => {
     
     const privacyPolicy = await PrivacyPolicy.findOne({ 
       property: propertyId, 
-      isActive: true 
+      isActive: true, 
     });
     
     if (!privacyPolicy) {
       return res.status(404).json({
         success: false,
-        message: 'Privacy policy not found'
+        message: 'Privacy policy not found',
       });
     }
     
@@ -247,14 +247,14 @@ export const deleteCustomPolicy = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Custom policy deleted successfully',
-      data: updatedPolicy
+      data: updatedPolicy,
     });
   } catch (error) {
     console.error('Delete custom policy error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -267,7 +267,7 @@ export const createOrUpdatePrivacyPolicy = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Validation errors',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
     
@@ -279,14 +279,14 @@ export const createOrUpdatePrivacyPolicy = async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        message: 'Property not found'
+        message: 'Property not found',
       });
     }
     
     // Deactivate existing policy
     await PrivacyPolicy.updateMany(
       { property: propertyId },
-      { isActive: false }
+      { isActive: false },
     );
     
     // Create new policy
@@ -296,7 +296,7 @@ export const createOrUpdatePrivacyPolicy = async (req, res) => {
       createdBy: req.user?.id || property.owner,
       isActive: true,
       version: 1,
-      effectiveDate: new Date()
+      effectiveDate: new Date(),
     });
     
     await newPrivacyPolicy.save();
@@ -309,14 +309,14 @@ export const createOrUpdatePrivacyPolicy = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Privacy policy created/updated successfully',
-      data: populatedPolicy
+      data: populatedPolicy,
     });
   } catch (error) {
     console.error('Create/Update privacy policy error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -332,20 +332,20 @@ export const completePrivacyPolicyStep = async (req, res) => {
     if (!property) {
       return res.status(404).json({
         success: false,
-        message: 'Property not found'
+        message: 'Property not found',
       });
     }
 
     // Get privacy policy
     const privacyPolicy = await PrivacyPolicy.findOne({ 
       property: propertyId, 
-      isActive: true 
+      isActive: true, 
     });
 
     if (!privacyPolicy) {
       return res.status(404).json({
         success: false,
-        message: 'Privacy policy not found'
+        message: 'Privacy policy not found',
       });
     }
 
@@ -400,7 +400,7 @@ export const completePrivacyPolicyStep = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Privacy policy is incomplete',
-        errors: validationErrors
+        errors: validationErrors,
       });
     }
 
@@ -414,8 +414,8 @@ export const completePrivacyPolicyStep = async (req, res) => {
       data: {
         propertyId: property._id,
         step6Completed: true,
-        privacyPolicy: privacyPolicy
-      }
+        privacyPolicy: privacyPolicy,
+      },
     });
 
   } catch (error) {
@@ -423,7 +423,7 @@ export const completePrivacyPolicyStep = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -435,13 +435,13 @@ export const updatePrivacyPolicySection = async (req, res) => {
     
     const privacyPolicy = await PrivacyPolicy.findOne({ 
       property: propertyId, 
-      isActive: true 
+      isActive: true, 
     });
     
     if (!privacyPolicy) {
       return res.status(404).json({
         success: false,
-        message: 'Privacy policy not found'
+        message: 'Privacy policy not found',
       });
     }
     
@@ -454,7 +454,7 @@ export const updatePrivacyPolicySection = async (req, res) => {
     } else {
       return res.status(400).json({
         success: false,
-        message: 'Invalid section name'
+        message: 'Invalid section name',
       });
     }
     
@@ -467,14 +467,14 @@ export const updatePrivacyPolicySection = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Privacy policy section updated successfully',
-      data: updatedPolicy
+      data: updatedPolicy,
     });
   } catch (error) {
     console.error('Update privacy policy section error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -491,14 +491,14 @@ export const getPrivacyPolicyHistory = async (req, res) => {
     
     res.status(200).json({
       success: true,
-      data: policies
+      data: policies,
     });
   } catch (error) {
     console.error('Get privacy policy history error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -510,13 +510,13 @@ export const deletePrivacyPolicy = async (req, res) => {
     
     const privacyPolicy = await PrivacyPolicy.findOne({ 
       property: propertyId, 
-      isActive: true 
+      isActive: true, 
     });
     
     if (!privacyPolicy) {
       return res.status(404).json({
         success: false,
-        message: 'Privacy policy not found'
+        message: 'Privacy policy not found',
       });
     }
     
@@ -525,14 +525,14 @@ export const deletePrivacyPolicy = async (req, res) => {
     
     res.status(200).json({
       success: true,
-      message: 'Privacy policy deleted successfully'
+      message: 'Privacy policy deleted successfully',
     });
   } catch (error) {
     console.error('Delete privacy policy error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -544,84 +544,84 @@ export const getPrivacyPolicyTemplate = async (req, res) => {
       checkInCheckOut: {
         checkInTime: '12:00 pm (noon)',
         checkOutTime: '12:00 pm (noon)',
-        has24HourCheckIn: false
+        has24HourCheckIn: false,
       },
       cancellationPolicy: 'free_cancellation_checkin',
       propertyRules: {
         guestProfile: {
           allowUnmarriedCouples: false,
           allowGuestsBelow18: false,
-          allowOnlyMaleGuests: false
+          allowOnlyMaleGuests: false,
         },
         acceptableIdentityProofs: ['passport', 'drivers_license', 'national_id'],
       },
       propertyRestrictions: {
         nonVegetarianFood: {
           allowed: true,
-          restrictions: ''
+          restrictions: '',
         },
         alcoholSmoking: {
           alcoholAllowed: false,
           smokingAllowed: false,
           smokingAreas: 'not_allowed',
-          restrictions: ''
+          restrictions: '',
         },
         noiseRestrictions: {
           quietHours: {
             enabled: true,
             startTime: '10:00 PM',
-            endTime: '7:00 AM'
+            endTime: '7:00 AM',
           },
           musicAllowed: true,
           partyAllowed: false,
-          restrictions: ''
-        }
+          restrictions: '',
+        },
       },
       petPolicy: {
         petsAllowed: false,
         petTypes: [],
         petDeposit: {
           required: false,
-          amount: 0
+          amount: 0,
         },
-        petRules: ''
+        petRules: '',
       },
       customPolicies: [],
       mealPrices: {
         breakfast: {
           available: false,
           price: 0,
-          description: ''
+          description: '',
         },
         lunch: {
           available: false,
           price: 0,
-          description: ''
+          description: '',
         },
         dinner: {
           available: false,
           price: 0,
-          description: ''
-        }
+          description: '',
+        },
       },
       dataCollection: {
         personalDataCollection: true,
         dataTypes: ['name', 'email', 'phone', 'identity_proof'],
         dataRetentionPeriod: 24,
-        shareDataWithThirdParties: false
-      }
+        shareDataWithThirdParties: false,
+      },
     };
     
     res.status(200).json({
       success: true,
-      data: template
+      data: template,
     });
   } catch (error) {
     console.error('Get privacy policy template error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
-      error: error.message
+      error: error.message,
     });
   }
 };

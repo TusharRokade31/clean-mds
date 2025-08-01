@@ -6,34 +6,34 @@ const StateSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please add a state name'],
     unique: true,
-    trim: true
+    trim: true,
   },
   code: {
     type: String,
     required: [true, 'Please add a state code'],
     unique: true,
-    trim: true
+    trim: true,
   },
   description: {
     type: String,
-    required: false
+    required: false,
   },
   image: {
     type: String,
-    required: false
+    required: false,
   },
   featured: {
     type: Boolean,
-    default: false
+    default: false,
   },
   active: {
     type: Boolean,
-    default: true
+    default: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 const State = mongoose.model('State', StateSchema);

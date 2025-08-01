@@ -9,10 +9,10 @@ const stream = {
         ip: global._currentReq?.ip,
         userAgent: global._currentReq?.get('User-Agent'),
         referrer: global._currentReq?.get('referrer'),
-        userId: global._currentReq?.user?._id || 'Unauthenticated'
-      }
+        userId: global._currentReq?.user?._id || 'Unauthenticated',
+      },
     });
-  }
+  },
 };
 
 morgan.token('source', (req) => {
@@ -25,7 +25,7 @@ morgan.token('source', (req) => {
 
 export const httpLogger = morgan(
     ':method :url :status :res[content-length] - :response-time ms :source',
-  { stream }
+  { stream },
 //   ':method :url :status :response-time ms - :res[content-length]',
 //   { stream: logger.stream }
 );
