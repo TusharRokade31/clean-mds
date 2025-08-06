@@ -5,6 +5,7 @@ import stayRoutes from './stayRoutes.js';
 import userRoutes from './userRoutes.js';
 import authRoutes from './authRoutes.js';
 import bookingRoutes from './bookingRoutes.js';
+import dashboardRoutes from './dashboardRoutes.js';
 import roomRoutes from './roomRoutes.js';
 import blogRoutes from './blogRoutes.js';
 
@@ -17,6 +18,7 @@ const registerRoutes = (app) => {
   app.use('/api/states', stateRoutes);
   app.use('/api/stays', stayRoutes);
   app.use('/api/bookings', bookingRoutes);
+  app.use('/api/stats', dashboardRoutes);
   app.use('/api/blogs', blogRoutes);
   app.use('/api', roomRoutes);
 };

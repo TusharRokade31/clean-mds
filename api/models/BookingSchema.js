@@ -43,11 +43,13 @@ const GuestSchema = new Schema({
   },
   age: {
     type: Number,
-    min: [0, 'Age cannot be negative'],
+    required: [true, 'Age is required'],
+    min: [18, 'Guest must be at least 18 years old'],
   },
   gender: {
     type: String,
     enum: ['male', 'female', 'other'],
+    required: [true, 'Gender is required'],
   },
 });
 
@@ -162,8 +164,8 @@ const BookingSchema = new Schema({
   // Booking Status
   status: {
     type: String,
-    enum: ['confirmed', 'checked-in', 'checked-out', 'cancelled', 'no-show'],
-    default: 'confirmed',
+    enum: ['pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled', 'no-show'],
+    default: 'pending',
   },
   
   // Special Requests

@@ -27,7 +27,7 @@ export default function BookingPage({ property, selectedRoom }) {
       postalCode: "",
       country: "India"
     },
-    age: "",
+    age: "20",
     gender: "male"
   })
   const [specialRequests, setSpecialRequests] = useState("")
