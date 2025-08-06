@@ -7,6 +7,7 @@ import privacyPolicyReducer from './features/privacyPolicy/privacyPolicySlice';
 import bookingReducer from './features/bookings/bookingSlice';
 import roomReducer from './features/rooms/roomSlice';
 import blogReducer from './features/blog/blogSlice';
+import adminReducer from './features/admin/adminSlice';
 import dashboardReducer from './features/stats/dashboardSlice';
 
 export const store = configureStore({
@@ -19,6 +20,8 @@ export const store = configureStore({
     rooms: roomReducer,
     blog: blogReducer,
     dashboard: dashboardReducer,
+    admin: adminReducer,
+    
     // Add other reducers here as needed
   },
   middleware: (getDefaultMiddleware) =>
