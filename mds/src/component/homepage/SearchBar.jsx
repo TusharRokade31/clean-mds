@@ -548,7 +548,7 @@ export default function SearchBar() {
         </div>
       )}
 
-      {/* Suggestions Dropdown */}
+    {/* Suggestions Dropdown */}
       {showSuggestions && (
         <div 
           ref={suggestionsRef}
@@ -587,7 +587,7 @@ export default function SearchBar() {
       
       {/* Calendar Dropdown */}
       {showCalendar && renderCalendar()}
-      
+                   
       {/* Guests Dropdown */}
       {showGuests && (
         <div className="absolute top-22 right-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-10">

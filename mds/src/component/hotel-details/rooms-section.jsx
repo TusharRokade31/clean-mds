@@ -1,10 +1,11 @@
 "use client"
 import { Button, Card, Badge, Dialog, DialogContent, DialogTitle, IconButton } from "@mui/material"
-import { Users, Bed, Bath, Square, Wifi, Tv, Wind, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { Users, Bed, Bath, Square, Wifi, Tv, Wind, X, ChevronLeft, ChevronRight, Calendar, MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import BookingConfirmationDialog from "./BookingConfirmationDialog"
 
-// Image Carousel Component
+// Image Carousel Component (unchanged)
 const ImageCarousel = ({ images, size = "small", room, handleRoomClick }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -67,7 +68,7 @@ const ImageCarousel = ({ images, size = "small", room, handleRoomClick }) => {
 
 
 
-// Room Detail Modal Component
+// Room Detail Modal Component (unchanged except for handleBookRoom call)
 const RoomDetailModal = ({ handleBookRoom, room, open, onClose }) => {
   const getAmenityIcon = (amenityName) => {
     switch (amenityName.toLowerCase()) {
@@ -82,9 +83,6 @@ const RoomDetailModal = ({ handleBookRoom, room, open, onClose }) => {
     }
   }
 
-
-
-
   if (!room) return null
 
   return (
@@ -98,7 +96,7 @@ const RoomDetailModal = ({ handleBookRoom, room, open, onClose }) => {
       
       <DialogContent className="space-y-6">
         {/* Large Image Carousel */}
-        <ImageCarousel images={room.media?.images} size="large" / >
+        <ImageCarousel images={room.media?.images} size="large" />
         
         <div className="grid grid-cols-2 gap-6">
           {/* Room Details */}
@@ -176,13 +174,13 @@ const RoomDetailModal = ({ handleBookRoom, room, open, onClose }) => {
               </div>
             )}
 
-          <Button 
-            className="w-full" 
-            size="lg"
-            onClick={() => handleBookRoom(room)}
-          >
-            Book This Room
-          </Button>
+            <Button 
+              className="w-full" 
+              size="lg"
+              onClick={() => handleBookRoom(room)}
+            >
+              Book This Room
+            </Button>
 
             <p className="text-xs text-gray-500 text-center mt-2">Non-Refundable</p>
           </div>
@@ -195,18 +193,21 @@ const RoomDetailModal = ({ handleBookRoom, room, open, onClose }) => {
 export default function RoomsSection({data, rooms }) {
   const [selectedRoom, setSelectedRoom] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [bookingConfirmOpen, setBookingConfirmOpen] = useState(false)
+  const [roomToBook, setRoomToBook] = useState(null)
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
   const router = useRouter()
 
   const handleBookRoom = (room) => {
-  
-  
-  // Store selected room and property data
-  localStorage.setItem('selectedRoom', JSON.stringify(room))
-  localStorage.setItem('selectedProperty', JSON.stringify(data))
-  
-  // Navigate to booking page
-  router.push(`/booking/${data._id}?room=${room._id}`)
-}
+    setRoomToBook(room)
+    setBookingConfirmOpen(true)
+    // Close room detail modal if open
+    if (modalOpen) {
+      setModalOpen(false)
+      setSelectedRoom(null)
+    }
+  }
+
 
   const getAmenityIcon = (amenityName) => {
     switch (amenityName.toLowerCase()) {
@@ -229,6 +230,11 @@ export default function RoomsSection({data, rooms }) {
   const handleModalClose = () => {
     setModalOpen(false)
     setSelectedRoom(null)
+  }
+
+  const handleBookingConfirmClose = () => {
+    setBookingConfirmOpen(false)
+    setRoomToBook(null)
   }
 
   return (
@@ -299,7 +305,6 @@ export default function RoomsSection({data, rooms }) {
                       ))}
                   </div>
                 </div>
-
               </div>
 
               {/* Pricing & Booking */}
@@ -345,6 +350,15 @@ export default function RoomsSection({data, rooms }) {
         room={selectedRoom} 
         open={modalOpen} 
         onClose={handleModalClose}
+      />
+
+      {/* Booking Confirmation Dialog */}
+      <BookingConfirmationDialog
+        room={roomToBook}
+        property={data}
+        open={bookingConfirmOpen}
+        onClose={handleBookingConfirmClose}
+        isLoading={isCheckingAvailability}
       />
     </div>
   )
