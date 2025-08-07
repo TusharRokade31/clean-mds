@@ -1,7 +1,7 @@
 // layout.jsx
 "use client"
 import { useState, useEffect } from "react"
-import { BarChart3, Users, Home, Settings, Menu, X, Bell, Search, ChevronDown, Calendar, Bookmark, CreditCard, HelpCircle, Building, BedDouble } from "lucide-react"
+import { Home, Menu, X, Bell, Search, ChevronDown, Calendar, Building, MapPinHouse, MapPinPlus, NotebookText, BedDouble, } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import AvatarDropdown from "@/component/AvatarDropdown"
@@ -62,10 +62,10 @@ export default function HotelDashboardLayout({ children }) {
         </div>
         
         <nav className="space-y-1 px-2">
-          <NavItem icon={<Home className="h-5 w-5" />} label="Properties" />
-          <NavItem icon={<Calendar className="h-5 w-5" />} label="onboarding" />
-          <NavItem icon={<Calendar className="h-5 w-5" />} label="allbookings" />
-          <NavItem icon={<Calendar className="h-5 w-5" />} label="occupancy" />
+          <NavItem icon={<MapPinHouse className="h-5 w-5" />} label="Properties" />
+          <NavItem icon={<MapPinPlus className="h-5 w-5" />} label="onboarding" />
+          <NavItem icon={<NotebookText className="h-5 w-5" />} label="allbookings" />
+          <NavItem icon={<BedDouble className="h-5 w-5" />} label="occupancy" />
           
           {/* Booking Dropdown */}
           <div className="relative">

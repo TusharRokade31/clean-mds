@@ -1,7 +1,7 @@
 // layout.jsx
 "use client"
 import { useState, useEffect } from "react"
-import { Home, Menu, X, Bell, Search,  Calendar, Building } from "lucide-react"
+import { Home, Menu, X, Bell, Search,  Calendar, Building, MapPinHouse, UsersRound, CirclePlus, List, ChartColumnStacked } from "lucide-react"
 import Link from "next/link"
 import AvatarDropdown from "@/component/AvatarDropdown"
 import { usePathname, useRouter } from "next/navigation"
@@ -49,10 +49,11 @@ export default function HotelDashboardLayout({ children }) {
         </div>
         
         <nav className="space-y-1 px-2">
-          <NavItem icon={<Home className="h-5 w-5" />} label="Properties" />
-          <NavItem icon={<Calendar className="h-5 w-5" />} label="add-blog" />
-          <NavItem icon={<Calendar className="h-5 w-5" />} label="bloglist" />
-          <NavItem icon={<Calendar className="h-5 w-5" />} label="categories" />
+          <NavItem icon={<MapPinHouse className="h-5 w-5" />} label="Properties" />
+          <NavItem icon={<UsersRound className="h-5 w-5" />} label="users" />
+          <NavItem icon={<CirclePlus className="h-5 w-5" />} label="add-blog" />
+          <NavItem icon={<List className="h-5 w-5" />} label="bloglist" />
+          <NavItem icon={<ChartColumnStacked className="h-5 w-5" />} label="categories" />
         </nav>
       </aside>
 
