@@ -16,7 +16,7 @@ export function middleware(request) {
                 request.cookies.get('authToken')?.value || 
                 request.cookies.get('jwt')?.value || ''
   
-  console.log('Token found:', !!token)
+
   
   // Function to clear cookies and redirect to login
   const clearCookiesAndRedirect = () => {
@@ -64,7 +64,7 @@ export function middleware(request) {
       // Role-based checks
       if (isDashboardPath && (!decoded.role || decoded.role !== 'admin')) {
         console.log('User does not have admin role:', decoded.role)
-        return NextResponse.redirect(new URL('/login', request.url))
+        return NextResponse.redirect(new URL('/admin-login', request.url))
       }
       
     } catch (error) {
@@ -80,7 +80,7 @@ export function middleware(request) {
   
   if (isDashboardPath && !token) {
     console.log('No token for admin path, redirecting to login')
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/admin-login', request.url))
   }
   
   return NextResponse.next()
