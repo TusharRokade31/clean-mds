@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function myBookingsLayout({ children }) {
+export default function MyBookingsLayout({ children }) {
   const pathname = usePathname();
 
   const isActive = (path) => pathname === path;
@@ -25,8 +25,6 @@ export default function myBookingsLayout({ children }) {
               </Link>
             </motion.div>
           </div>
-
-         
 
           <div className="relative">
             <motion.div
@@ -61,7 +59,7 @@ export default function myBookingsLayout({ children }) {
       </nav>
 
       <div className="w-full min-h-screen px-2 bg-gray-50 lg:px-36 sm:px-4 lg:container mx-auto py-4">
-        { children }
+        {children}
       </div>
     </div>
   );

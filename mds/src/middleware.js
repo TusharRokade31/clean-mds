@@ -6,7 +6,7 @@ export function middleware(request) {
   const path = request.nextUrl.pathname
   console.log('Middleware executing for path:', path)
 
-  const publicPaths = ['/login', '/signup']
+  const publicPaths = ['/login', '/signup', '/admin-login']
   const protectedPaths = ['/account', '/account-billing', '/list-property', '/account-password', '/account-savelists']
   const isPublicPath = publicPaths.includes(path)
   const isProtectedPaths = protectedPaths.includes(path)
@@ -88,6 +88,7 @@ export function middleware(request) {
 
 export const config = {
   matcher: [
+    '/admin-login',
     '/login',
     '/signup',
     '/admin/:path*',

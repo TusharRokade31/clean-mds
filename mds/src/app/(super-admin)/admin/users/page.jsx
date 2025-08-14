@@ -27,12 +27,23 @@ import {
   Select,
   MenuItem,
   Grid,
+  Avatar,
+  Divider,
+  Card,
+  CardContent,
+  Stack,
 } from '@mui/material';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as ViewIcon,
   Add as AddIcon,
+  Close as CloseIcon,
+  Download as DownloadIcon,
+  Notifications as NotificationsIcon,
+  Support as SupportIcon,
+  LockReset as LockResetIcon,
+  Block as BlockIcon,
 } from '@mui/icons-material';
 
 import { 
@@ -43,6 +54,8 @@ import {
   clearError,
   clearSelectedUser 
 } from '@/redux/features/admin/adminSlice';
+import UserProfileDialog from '../../components/users/UserProfileDialog';
+import EditUserDialog from '../../components/users/EditUserDialog';
 
 const UserManagement = () => {
   const dispatch = useDispatch();
@@ -65,6 +78,12 @@ const UserManagement = () => {
   const [viewDialog, setViewDialog] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
+
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('All Roles');
+  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [cityFilter, setCityFilter] = useState('All Cities');
 
   // Form state for editing
   const [editFormData, setEditFormData] = useState({
@@ -119,7 +138,7 @@ const UserManagement = () => {
           phoneNumber: user.phoneNumber || '',
           username: user.username || '',
         });
-        setSelectedUserId(userId, name);
+        setSelectedUserId({userId, name});
         setEditDialog(true);
       }
     });
@@ -150,7 +169,6 @@ const UserManagement = () => {
   const handleDeleteConfirm = () => {
     dispatch(deleteUser(selectedUserId.userId)).then((result) => {
       if (result.type === 'admin/deleteUser/fulfilled') {
-        console.log(result)
         setDeleteDialog(false);
         setSelectedUserId(null);
       }
@@ -170,9 +188,69 @@ const UserManagement = () => {
   };
 
   const getRoleColor = (role) => {
-    return role === 'admin' ? 'error' : 'default';
+    switch (role?.toLowerCase()) {
+      case 'admin':
+        return { backgroundColor: '#ffa726', color: 'white' };
+      case 'dharamshala partner':
+        return { backgroundColor: '#4caf50', color: 'white' };
+      case 'guest':
+        return { backgroundColor: '#e3f2fd', color: '#1976d2' };
+      default:
+        return { backgroundColor: '#f5f5f5', color: '#666' };
+    }
   };
 
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return { backgroundColor: '#4caf50', color: 'white' };
+      case 'suspended':
+        return { backgroundColor: '#ff9800', color: 'white' };
+      case 'blocked':
+        return { backgroundColor: '#f44336', color: 'white' };
+      default:
+        return { backgroundColor: '#f5f5f5', color: '#666' };
+    }
+  };
+
+  const getInitials = (name) => {
+    return name?.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2) || 'U';
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setRoleFilter('All Roles');
+    setStatusFilter('All Status');
+    setCityFilter('All Cities');
+  };
+
+  const exportUsers = () => {
+    // Export functionality to be implemented
+    console.log('Export users');
+  };
+
+
+    const tableActions = (user) => (
+    <Box display="flex" gap={1} justifyContent="center">
+      <Button
+        variant="text"
+        size="small"
+        onClick={() => handleView(user._id)}
+        sx={{ color: '#1976d2' }}
+      >
+        View
+      </Button>
+      <Button
+        variant="text"
+        size="small"
+        onClick={() => handleEdit(user._id, user.name)}
+        sx={{ color: '#ff9800' }}
+        startIcon={<EditIcon />}
+      >
+        Edit
+      </Button>
+    </Box>
+  );
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -183,17 +261,14 @@ const UserManagement = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1">
+      {/* Header */}
+      <Box mb={3}>
+        <Typography variant="h4" component="h1" fontWeight="bold" mb={1}>
           User Management
         </Typography>
-        {/* <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          sx={{ mb: 2 }}
-        >
-          Add User
-        </Button> */}
+        <Typography variant="body1" color="text.secondary">
+          Manage all users, partners, and administrators across the platform.
+        </Typography>
       </Box>
 
       {error && (
@@ -202,20 +277,98 @@ const UserManagement = () => {
         </Alert>
       )}
 
+      {/* Filters Section */}
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item size={{xs:12, md:3}}>
+            <Typography variant="subtitle2" mb={1}>Search Users</Typography>
+            <TextField
+              fullWidth
+              placeholder="Search by name, email, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              size="small"
+            />
+          </Grid>
+          <Grid item size={{xs:6,md:2}}>
+            <Typography variant="subtitle2" mb={1}>Role</Typography>
+            <FormControl fullWidth size="small">
+              <Select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+              >
+                <MenuItem value="All Roles">All Roles</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="guest">Guest</MenuItem>
+                <MenuItem value="dharamshala partner">Dharamshala Partner</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item size={{xs:6, md:2}}>
+            <Typography variant="subtitle2" mb={1}>Status</Typography>
+            <FormControl fullWidth size="small">
+              <Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <MenuItem value="All Status">All Status</MenuItem>
+                <MenuItem value="active">Active</MenuItem>
+                <MenuItem value="suspended">Suspended</MenuItem>
+                <MenuItem value="blocked">Blocked</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item size={{xs:6, md:2}}>
+            <Typography variant="subtitle2" mb={1}>City</Typography>
+            <FormControl fullWidth size="small">
+              <Select
+                value={cityFilter}
+                onChange={(e) => setCityFilter(e.target.value)}
+              >
+                <MenuItem value="All Cities">All Cities</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item size={{xs:6, md:1}}>
+            <Typography variant="subtitle2" mb={1}>Signup Date</Typography>
+            <TextField
+              fullWidth
+              type="date"
+              size="small"
+            />
+          </Grid>
+          <Grid item size={{xs:12, md:2}}>
+            <Box display="flex" gap={1} mt={3}>
+              <Button variant="outlined" onClick={clearFilters} size="small">
+                Clear Filters
+              </Button>
+              <Button variant="contained" onClick={exportUsers} size="small">
+                Export Users
+              </Button>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* Users List */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+          <Typography variant="h6">Users List</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Showing 1-10 of {totalUsers || 0} users
+          </Typography>
+        </Box>
+        
         <TableContainer sx={{ maxHeight: 600 }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Username</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Gender</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell>City</TableCell>
-                <TableCell>Created At</TableCell>
-                <TableCell align="center">Actions</TableCell>
+                <TableCell>USER</TableCell>
+                <TableCell>ROLE</TableCell>
+                <TableCell>STATUS</TableCell>
+                <TableCell>BOOKINGS</TableCell>
+                <TableCell>JOINED</TableCell>
+                <TableCell align="center">ACTIONS</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -223,43 +376,46 @@ const UserManagement = () => {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((user) => (
                   <TableRow hover key={user._id}>
-                    <TableCell>{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.username || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Box display="flex" alignItems="center" gap={2}>
+                        <Avatar sx={{ bgcolor: '#1976d2', width: 40, height: 40 }}>
+                          {getInitials(user.name)}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {user.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {user.email}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
                     <TableCell>
                       <Chip 
-                        label={user.role} 
-                        color={getRoleColor(user.role)}
+                        label={user.role || 'Guest'} 
                         size="small"
+                        sx={getRoleColor(user.role)}
                       />
                     </TableCell>
-                    <TableCell>{user.gender || 'N/A'}</TableCell>
-                    <TableCell>{user.phoneNumber || 'N/A'}</TableCell>
-                    <TableCell>{user.city || 'N/A'}</TableCell>
-                    <TableCell>{formatDate(user.createdAt)}</TableCell>
-                    <TableCell align="center">
-                      <IconButton
+                    <TableCell>
+                      <Chip 
+                        label={user.isDeleted ? 'Blocked' : 'Active'} 
                         size="small"
-                        onClick={() => handleView(user._id)}
-                        color="primary"
-                      >
-                        <ViewIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEdit(user._id, user.name)}
-                        color="secondary"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleDelete(user._id, user.name)}
-                        color="error"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                        sx={getStatusColor(user.isDeleted ? 'blocked' : 'active')}
+                      />
                     </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">0</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {formatDate(user.createdAt)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                    {tableActions(user)}
+                  </TableCell>
                   </TableRow>
                 ))}
             </TableBody>
@@ -276,185 +432,34 @@ const UserManagement = () => {
         />
       </Paper>
 
-      {/* Edit Dialog */}
-      <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Edit User</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item size={{xs:12, sm:6}}>
-              <TextField
-                fullWidth
-                label="Name"
-                value={editFormData.name}
-                onChange={handleInputChange('name')}
-              />
-            </Grid>
-            <Grid item size={{xs:12, sm:6}}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={editFormData.email}
-                onChange={handleInputChange('email')}
-              />
-            </Grid>
-            <Grid item size={{xs:12, sm:6}}>
-              <TextField
-                fullWidth
-                label="Username"
-                value={editFormData.username}
-                onChange={handleInputChange('username')}
-              />
-            </Grid>
-            <Grid item size={{xs:12, sm:6}}>
-              <FormControl fullWidth>
-                <InputLabel>Role</InputLabel>
-                <Select
-                  value={editFormData.role}
-                  label="Role"
-                  onChange={handleInputChange('role')}
-                >
-                  <MenuItem value="user">User</MenuItem>
-                  <MenuItem value="admin">Admin</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item size={{xs:12, sm:6}}>
-              <FormControl fullWidth>
-                <InputLabel>Gender</InputLabel>
-                <Select
-                  value={editFormData.gender}
-                  label="Gender"
-                  onChange={handleInputChange('gender')}
-                >
-                  <MenuItem value="Male">Male</MenuItem>
-                  <MenuItem value="Female">Female</MenuItem>
-                  <MenuItem value="Other">Other</MenuItem>
-                  <MenuItem value="Prefer not to say">Prefer not to say</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item size={{xs:12, sm:6}}>
-              <TextField
-                fullWidth
-                label="Date of Birth"
-                type="date"
-                value={editFormData.dateOfBirth}
-                onChange={handleInputChange('dateOfBirth')}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item size={{xs:12, sm:6}}>
-              <TextField
-                fullWidth
-                label="Phone Number"
-                value={editFormData.phoneNumber}
-                onChange={handleInputChange('phoneNumber')}
-              />
-            </Grid>
-            <Grid item size={{xs:12, sm:6}}>
-              <TextField
-                fullWidth
-                label="Marital Status"
-                value={editFormData.maritalStatus}
-                onChange={handleInputChange('maritalStatus')}
-              />
-            </Grid>
-            <Grid item size={{xs:12, sm:6}}>
-              <TextField
-                fullWidth
-                label="State"
-                value={editFormData.state}
-                onChange={handleInputChange('state')}
-              />
-            </Grid>
-            <Grid item size={{xs:12, sm:6}}>
-              <TextField
-                fullWidth
-                label="City"
-                value={editFormData.city}
-                onChange={handleInputChange('city')}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Address"
-                multiline
-                rows={3}
-                value={editFormData.address}
-                onChange={handleInputChange('address')}
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialog(false)}>Cancel</Button>
-          <Button 
-            onClick={handleEditSubmit} 
-            variant="contained"
-            disabled={isUpdating}
-          >
-            {isUpdating ? <CircularProgress size={20} /> : 'Update'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+       <UserProfileDialog
+        open={viewDialog}
+        onClose={() => setViewDialog(false)}
+        selectedUser={selectedUser}
+        onEdit={handleEdit}
+        formatDate={formatDate}
+        getRoleColor={getRoleColor}
+        getStatusColor={getStatusColor}
+        getInitials={getInitials}
+      />
 
-      {/* View Dialog */}
-      <Dialog open={viewDialog} onClose={() => setViewDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>User Details</DialogTitle>
-        <DialogContent>
-          {selectedUser && (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>Name:</strong> {selectedUser.name}</Typography>
-              </Grid>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>Email:</strong> {selectedUser.email}</Typography>
-              </Grid>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>Username:</strong> {selectedUser.username || 'N/A'}</Typography>
-              </Grid>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>Role:</strong> {selectedUser.role}</Typography>
-              </Grid>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>Gender:</strong> {selectedUser.gender || 'N/A'}</Typography>
-              </Grid>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>Date of Birth:</strong> {formatDate(selectedUser.dateOfBirth)}</Typography>
-              </Grid>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>Phone:</strong> {selectedUser.phoneNumber || 'N/A'}</Typography>
-              </Grid>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>Marital Status:</strong> {selectedUser.maritalStatus || 'N/A'}</Typography>
-              </Grid>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>State:</strong> {selectedUser.state || 'N/A'}</Typography>
-              </Grid>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>City:</strong> {selectedUser.city || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography><strong>Address:</strong> {selectedUser.address || 'N/A'}</Typography>
-              </Grid>
-              <Grid item size={{xs:12, sm:6}}>
-                <Typography><strong>Created At:</strong> {formatDate(selectedUser.createdAt)}</Typography>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setViewDialog(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      <EditUserDialog
+        open={editDialog}
+        onClose={() => setEditDialog(false)}
+        editFormData={editFormData}
+        onInputChange={handleInputChange}
+        onSubmit={handleEditSubmit}
+        isUpdating={isUpdating}
+        selectedUserId={selectedUserId}
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
-          <Typography>{`Are you sure you want to delete ${selectedUserId?.name} account? This action cannot be undone.`}</Typography>
+          <Typography>
+            Are you sure you want to delete {selectedUserId?.name} account? This action cannot be undone.
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialog(false)}>Cancel</Button>
