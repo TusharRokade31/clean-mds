@@ -99,14 +99,15 @@ export const getProperty = async (req, res) => {
         error: 'Property not found',
       });
     }
+
     
     // Check if user owns the property or is admin
-    if (req.user.role !== "admin" || property.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to access this property',
-      });
-    }
+   if (!(req.user?.role === "admin" || property.owner?.toString() === req.user._id.toString())) {
+  return res.status(403).json({
+    success: false,
+    error: 'Not authorized to access this property',
+  });
+}
     
     res.status(200).json({
       success: true,
