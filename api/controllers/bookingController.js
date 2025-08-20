@@ -40,6 +40,7 @@ const calculatePricing = (room, adults, children, totalDays, checkIn, checkOut) 
   };
 };
 
+
 // Check room availability
 const checkRoomAvailability = async (roomId, checkIn, checkOut, excludeBookingId = null) => {
   const query = {
@@ -60,6 +61,7 @@ const checkRoomAvailability = async (roomId, checkIn, checkOut, excludeBookingId
   const conflictingBookings = await Booking.find(query);
   return conflictingBookings.length === 0;
 };
+
 
 export const bookingController = {
   // Create new booking
@@ -443,6 +445,51 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error updating payment',
+        error: error.message,
+      });
+    }
+  },
+
+  // status update
+  updateStatus: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const booking = await Booking.findById(id);
+      if (!booking) {
+        return res.status(404).json({
+          success: false,
+          message: 'Booking not found',
+        });
+      }
+
+      // If no status provided, default based on current status
+      const newStatus = status || (booking.status === 'pending' ? 'confirmed' : booking.status);
+
+      booking.status = newStatus;
+      await booking.save(); // Schema enum validation happens automatically
+
+      res.json({
+        success: true,
+        message: `Booking status updated to ${booking.status} successfully`,
+        data: booking,
+      });
+
+    } catch (error) {
+      console.error('Status update error:', error);
+      
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid status value. Valid statuses are: pending, confirmed, checked-in, checked-out, cancelled, no-show',
+          error: error.message,
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: 'Error updating booking status',
         error: error.message,
       });
     }

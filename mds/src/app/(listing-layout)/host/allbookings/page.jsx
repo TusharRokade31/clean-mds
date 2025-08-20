@@ -65,7 +65,8 @@ import {
   cancelBooking,
   updateFilters,
   resetFilters,
-  clearBookingError
+  clearBookingError,
+  updateStatus
 } from '@/redux/features/bookings/bookingSlice';
 
 const BookingDashboard = () => {
@@ -116,6 +117,8 @@ const BookingDashboard = () => {
     reason: '',
     refundAmount: 0
   });
+  
+ const [status, setStatus] = useState({status:''})
 
   // Filter states
   const [searchFilters, setSearchFilters] = useState({
@@ -362,6 +365,16 @@ const sortedBookings = React.useMemo(() => {
       setCancelDialog(false);
     }
   };
+
+  const handleConfirmStatusUpdate = (bookingId) => {
+    if (bookingId) {
+      dispatch(updateStatus({
+        id: bookingId,
+        status: "confirmed"
+      }));
+    }
+  };
+
 
   // Get status color
   const getStatusColor = (status) => {
@@ -753,6 +766,15 @@ const sortedBookings = React.useMemo(() => {
       </ListItemIcon>
       <ListItemText>View Details</ListItemText>
     </MenuItem>
+
+    {selectedBookingForMenu?.status === 'pending' && (
+      <MenuItem onClick={() => handleConfirmStatusUpdate(selectedBookingForMenu._id)}>
+        <ListItemIcon>
+          <CheckInIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>Confirm Booking</ListItemText>
+      </MenuItem>
+    )}
 
     {selectedBookingForMenu?.status === 'confirmed' && (
       <MenuItem onClick={() => handleCheckIn(selectedBookingForMenu._id)}>
