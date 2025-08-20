@@ -32,6 +32,12 @@ export const bookingAPI = {
     return response.data;
   },
 
+    // Update Status
+  updateStatus: async (id, status) => {
+    const response = await axiosInstance.post(`/bookings/${id}/update-status`, {status:status});
+    return response.data;
+  },
+
   // Check-in guest
   checkIn: async (id) => {
     const response = await axiosInstance.post(`/bookings/${id}/checkin`);

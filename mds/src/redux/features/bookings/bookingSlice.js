@@ -92,6 +92,19 @@ export const updatePayment = createAsyncThunk(
   }
 );
 
+
+export const updateStatus = createAsyncThunk(
+  'booking/updateStatus',
+  async ({ id, status }, { rejectWithValue }) => {
+    try {
+      const response = await bookingAPI.updateStatus(id, status);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update status');
+    }
+  }
+);
+
 export const checkInGuest = createAsyncThunk(
   'booking/checkInGuest',
   async (id, { rejectWithValue }) => {
@@ -295,6 +308,27 @@ const bookingSlice = createSlice({
         }
       })
       .addCase(updatePayment.rejected, (state, action) => {
+        state.isUpdating = false;
+        state.error = action.payload;
+      })
+
+      // Update status
+      .addCase(updateStatus.pending, (state) => {
+        state.isUpdating = true;
+        state.error = null;
+      })
+      .addCase(updateStatus.fulfilled, (state, action) => {
+        state.isUpdating = false;
+        const updatedBooking = action.payload;
+        const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
+        if (index !== -1) {
+          state.bookings[index] = updatedBooking;
+        }
+        if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
+          state.currentBooking = updatedBooking;
+        }
+      })
+      .addCase(updateStatus.rejected, (state, action) => {
         state.isUpdating = false;
         state.error = action.payload;
       })

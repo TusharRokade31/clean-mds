@@ -21,6 +21,7 @@ router.post('/:id/payment', bookingController.updatePayment);
 
 // Booking status operations
 router.post('/:id/checkin', bookingController.checkIn);
+router.post('/:id/update-status', bookingController.updateStatus);
 router.post('/:id/checkout', bookingController.checkOut);
 router.post('/:id/cancel', bookingController.cancelBooking);
 
