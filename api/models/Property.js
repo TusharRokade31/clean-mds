@@ -18,7 +18,6 @@ const AmenitySelectionSchema = new Schema({
   }],
 });
 
-
 const MediaSchema = new Schema({
   url: {
     type: String,
@@ -74,14 +73,12 @@ const RoomSchema = new Schema({
     type: String, 
   },
 
-
-   // Add media support to rooms
+  // Add media support to rooms
   media: {
     images: [MediaSchema],
     videos: [MediaSchema],
     coverImage: {
-      type: Schema.Types.ObjectId,
-      ref: 'Media',
+      type: String, // Changed from ObjectId to String for direct URL storage
     },
   },
 
@@ -90,7 +87,7 @@ const RoomSchema = new Schema({
     count: { type: String },
   },
   
-  // Sleeping arrangement
+  // ... rest of your room schema
   beds: [{
     bedType: { 
       type: String,
@@ -105,17 +102,14 @@ const RoomSchema = new Schema({
       type: Number,
       required: [true, 'Number of people the bed accommodates is required'],
     },
-  
   }],
   
-  // Alternative sleeping arrangement
   alternativeBeds: [{
     bedType: { type: String },
     count: { type: Number, min: 0 },
     accommodates: { type: Number, min: 0 },
   }],
   
-  // Occupancy
   occupancy: {
     baseAdults: { 
       type: Number, 
@@ -136,30 +130,27 @@ const RoomSchema = new Schema({
     },
   },
   
-  // Bathroom details
-bathrooms: {
-  count: { 
-    type: Number, 
-    required: [true, 'Bathroom count is required'],
-    min: [0, 'Bathroom count cannot be negative'],
+  bathrooms: {
+    count: { 
+      type: Number, 
+      required: [true, 'Bathroom count is required'],
+      min: [0, 'Bathroom count cannot be negative'],
+    },
+    private: { 
+      type: Boolean, 
+      default: true, 
+    },
+    shared: { 
+      type: Boolean, 
+      default: false,
+    },
   },
-  private: { 
-    type: Boolean, 
-    default: true, 
-  },
-  shared: { 
-    type: Boolean, 
-    default: false,  // Change default so only one is true initially
-  },
-},
   
-  // Meal plan  
   mealPlan: {
     available: { type: Boolean, default: false },
     planType: { type: String },
   },
   
-  // Room pricing
   pricing: {
     baseAdultsCharge: { 
       type: Number, 
@@ -175,7 +166,6 @@ bathrooms: {
     },
   },
   
-  // Room availability
   availability: [{
     startDate: { 
       type: Date, 
@@ -192,7 +182,6 @@ bathrooms: {
     },
   }],
   
-  // Room amenities with Yes/No selection
   amenities: {
     mandatory: {
       type: Map,
@@ -238,8 +227,12 @@ const PropertySchema = new Schema({
     type: String,
     required: [true, 'Property type is required'],
     enum: [
-    'Dharamshala (Basic spiritual lodging run by religious trusts or communities)', 'Dharamshala', 'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)',
-  ],
+      'Dharamshala (Basic spiritual lodging run by religious trusts or communities)', 
+      'Dharamshala', 
+      'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 
+      'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 
+      'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)',
+    ],
   },
   placeName: {
     type: String,
@@ -247,7 +240,6 @@ const PropertySchema = new Schema({
   },
   placeRating: {
     type: String,
-    // required: [true, 'Place rating is required']
   },
   propertyBuilt: {
     type: String,
@@ -261,8 +253,7 @@ const PropertySchema = new Schema({
     type: String,
     required: [true, 'Email is required'],
   },
-
-   emailVerified: {
+  emailVerified: {
     type: Boolean,
     default: false,
   },
@@ -275,7 +266,6 @@ const PropertySchema = new Schema({
   },
   rentalForm: {
     type: String,
-    // required: [true, 'Rental form is required'],
     enum: ['Entire place', 'Private room', 'Share room'],
   },
   
@@ -306,11 +296,11 @@ const PropertySchema = new Schema({
     },
     stateRef: { 
       type: Schema.Types.ObjectId, 
-      ref: State, 
+      ref: 'State', 
     },
     cityRef: { 
       type: Schema.Types.ObjectId, 
-      ref: City,
+      ref: 'City',
     },
     postalCode: { 
       type: String, 
@@ -366,18 +356,17 @@ const PropertySchema = new Schema({
     },
   },
 
-  // Step 4 - Rooms (multiple rooms can be added to a property)
+  // Step 4 - Rooms
   rooms: [RoomSchema],
 
-  // Step 5 - Media (Photos and Videos)
-media: {
-  images: [MediaSchema],
-  videos: [MediaSchema],
-  coverImage: {
-    type: Schema.Types.ObjectId,
-    ref: 'Media',  // Reference to the cover image
+  // Step 5 - Media (Photos and Videos) - FIXED
+  media: {
+    images: [MediaSchema],
+    videos: [MediaSchema],
+    coverImage: {
+      type: String, // Changed from ObjectId reference to direct string URL
+    },
   },
-},
   
   // Tracking form completion status
   formProgress: {
@@ -391,7 +380,7 @@ media: {
     formCompleted: { type: Boolean, default: false },
   },
   
-    status: {
+  status: {
     type: String,
     enum: ['draft', 'pending', 'published', 'rejected'],
     default: 'draft',

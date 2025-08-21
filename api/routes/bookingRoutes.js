@@ -12,6 +12,7 @@ router.use(protect);
 // Booking CRUD operations
 router.post('/', bookingController.createBooking);
 router.get('/', bookingController.getAllBookings);
+router.get('/my-bookings', protect, bookingController.getSelfBookings);
 router.get('/stats', bookingController.getBookingStats);
 router.get('/:id', bookingController.getBookingById);
 router.put('/:id', bookingController.updateBooking);

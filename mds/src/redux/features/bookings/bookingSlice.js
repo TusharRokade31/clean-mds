@@ -5,9 +5,18 @@ import { bookingAPI } from './bookingAPI';
 // Initial state
 const initialState = {
   bookings: [],
+  selfBookings: [], // Add this for user's own bookings
   currentBooking: null,
   bookingStats: null,
+  selfBookingStats: null, // Add this for user's booking stats
   pagination: {
+    currentPage: 1,
+    totalPages: 0,
+    totalBookings: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
+  selfPagination: { // Add separate pagination for self bookings
     currentPage: 1,
     totalPages: 0,
     totalBookings: 0,
@@ -25,10 +34,23 @@ const initialState = {
     bookingId: '',
     paymentStatus: '',
   },
+  selfFilters: { // Add separate filters for self bookings
+    page: 1,
+    limit: 10,
+    status: '',
+    propertyId: '',
+    checkIn: '',
+    checkOut: '',
+    guestName: '',
+    bookingId: '',
+    paymentStatus: '',
+  },
   isLoading: false,
+  isSelfLoading: false, // Add separate loading state for self bookings
   isCreating: false,
   isUpdating: false,
   error: null,
+  selfError: null, // Add separate error state for self bookings
 };
 
 // Async thunks
@@ -40,6 +62,19 @@ export const fetchAllBookings = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch bookings');
+    }
+  }
+);
+
+// Add fetchSelfBookings thunk
+export const fetchSelfBookings = createAsyncThunk(
+  'booking/fetchSelfBookings',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await bookingAPI.getSelfBookings(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch your bookings');
     }
   }
 );
@@ -61,7 +96,7 @@ export const createBooking = createAsyncThunk(
   async (bookingData, { rejectWithValue }) => {
     try {
       const response = await bookingAPI.createBooking(bookingData);
-      return response.data; // Fixed: was response.property
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create booking');
     }
@@ -91,7 +126,6 @@ export const updatePayment = createAsyncThunk(
     }
   }
 );
-
 
 export const updateStatus = createAsyncThunk(
   'booking/updateStatus',
@@ -153,6 +187,19 @@ export const fetchBookingStats = createAsyncThunk(
   }
 );
 
+// Add fetchSelfBookingStats thunk
+export const fetchSelfBookingStats = createAsyncThunk(
+  'booking/fetchSelfBookingStats',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await bookingAPI.getSelfBookingStats(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch your booking stats');
+    }
+  }
+);
+
 export const createBookingWithValidation = createAsyncThunk(
   'booking/createBookingWithValidation',
   async (bookingData, { rejectWithValue }) => {
@@ -201,14 +248,33 @@ const bookingSlice = createSlice({
     clearBookingError: (state) => {
       state.error = null;
     },
+    clearSelfBookingError: (state) => {
+      state.selfError = null;
+    },
     setCurrentBooking: (state, action) => {
       state.currentBooking = action.payload;
     },
     updateFilters: (state, action) => {
       state.filters = { ...state.filters, ...action.payload };
     },
+    updateSelfFilters: (state, action) => {
+      state.selfFilters = { ...state.selfFilters, ...action.payload };
+    },
     resetFilters: (state) => {
       state.filters = {
+        page: 1,
+        limit: 10,
+        status: '',
+        propertyId: '',
+        checkIn: '',
+        checkOut: '',
+        guestName: '',
+        bookingId: '',
+        paymentStatus: '',
+      };
+    },
+    resetSelfFilters: (state) => {
+      state.selfFilters = {
         page: 1,
         limit: 10,
         status: '',
@@ -241,6 +307,21 @@ const bookingSlice = createSlice({
         state.error = action.payload;
       })
 
+    // Fetch self bookings
+      .addCase(fetchSelfBookings.pending, (state) => {
+        state.isSelfLoading = true;
+        state.selfError = null;
+      })
+      .addCase(fetchSelfBookings.fulfilled, (state, action) => {
+        state.isSelfLoading = false;
+        state.selfBookings = action.payload.bookings;
+        state.selfPagination = action.payload.pagination;
+      })
+      .addCase(fetchSelfBookings.rejected, (state, action) => {
+        state.isSelfLoading = false;
+        state.selfError = action.payload;
+      })
+
     // Fetch booking by ID
       .addCase(fetchBookingById.pending, (state) => {
         state.isLoading = true;
@@ -263,6 +344,7 @@ const bookingSlice = createSlice({
       .addCase(createBooking.fulfilled, (state, action) => {
         state.isCreating = false;
         state.bookings.unshift(action.payload);
+        state.selfBookings.unshift(action.payload); // Also add to self bookings
         state.currentBooking = action.payload;
       })
       .addCase(createBooking.rejected, (state, action) => {
@@ -278,10 +360,19 @@ const bookingSlice = createSlice({
       .addCase(updateBooking.fulfilled, (state, action) => {
         state.isUpdating = false;
         const updatedBooking = action.payload;
+        
+        // Update in bookings array
         const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
         if (index !== -1) {
           state.bookings[index] = updatedBooking;
         }
+        
+        // Update in self bookings array
+        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
+        if (selfIndex !== -1) {
+          state.selfBookings[selfIndex] = updatedBooking;
+        }
+        
         if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
           state.currentBooking = updatedBooking;
         }
@@ -299,10 +390,19 @@ const bookingSlice = createSlice({
       .addCase(updatePayment.fulfilled, (state, action) => {
         state.isUpdating = false;
         const updatedBooking = action.payload;
+        
+        // Update in bookings array
         const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
         if (index !== -1) {
           state.bookings[index] = updatedBooking;
         }
+        
+        // Update in self bookings array
+        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
+        if (selfIndex !== -1) {
+          state.selfBookings[selfIndex] = updatedBooking;
+        }
+        
         if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
           state.currentBooking = updatedBooking;
         }
@@ -320,10 +420,19 @@ const bookingSlice = createSlice({
       .addCase(updateStatus.fulfilled, (state, action) => {
         state.isUpdating = false;
         const updatedBooking = action.payload;
+        
+        // Update in bookings array
         const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
         if (index !== -1) {
           state.bookings[index] = updatedBooking;
         }
+        
+        // Update in self bookings array
+        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
+        if (selfIndex !== -1) {
+          state.selfBookings[selfIndex] = updatedBooking;
+        }
+        
         if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
           state.currentBooking = updatedBooking;
         }
@@ -341,10 +450,19 @@ const bookingSlice = createSlice({
       .addCase(checkInGuest.fulfilled, (state, action) => {
         state.isUpdating = false;
         const updatedBooking = action.payload;
+        
+        // Update in bookings array
         const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
         if (index !== -1) {
           state.bookings[index] = updatedBooking;
         }
+        
+        // Update in self bookings array
+        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
+        if (selfIndex !== -1) {
+          state.selfBookings[selfIndex] = updatedBooking;
+        }
+        
         if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
           state.currentBooking = updatedBooking;
         }
@@ -362,10 +480,19 @@ const bookingSlice = createSlice({
       .addCase(checkOutGuest.fulfilled, (state, action) => {
         state.isUpdating = false;
         const updatedBooking = action.payload;
+        
+        // Update in bookings array
         const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
         if (index !== -1) {
           state.bookings[index] = updatedBooking;
         }
+        
+        // Update in self bookings array
+        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
+        if (selfIndex !== -1) {
+          state.selfBookings[selfIndex] = updatedBooking;
+        }
+        
         if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
           state.currentBooking = updatedBooking;
         }
@@ -383,10 +510,19 @@ const bookingSlice = createSlice({
       .addCase(cancelBooking.fulfilled, (state, action) => {
         state.isUpdating = false;
         const updatedBooking = action.payload;
+        
+        // Update in bookings array
         const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
         if (index !== -1) {
           state.bookings[index] = updatedBooking;
         }
+        
+        // Update in self bookings array
+        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
+        if (selfIndex !== -1) {
+          state.selfBookings[selfIndex] = updatedBooking;
+        }
+        
         if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
           state.currentBooking = updatedBooking;
         }
@@ -408,15 +544,32 @@ const bookingSlice = createSlice({
       .addCase(fetchBookingStats.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+      
+    // Fetch self booking stats
+      .addCase(fetchSelfBookingStats.pending, (state) => {
+        state.isSelfLoading = true;
+        state.selfError = null;
+      })
+      .addCase(fetchSelfBookingStats.fulfilled, (state, action) => {
+        state.isSelfLoading = false;
+        state.selfBookingStats = action.payload;
+      })
+      .addCase(fetchSelfBookingStats.rejected, (state, action) => {
+        state.isSelfLoading = false;
+        state.selfError = action.payload;
       });
   },
 });
 
 export const {
   clearBookingError,
+  clearSelfBookingError,
   setCurrentBooking,
   updateFilters,
+  updateSelfFilters,
   resetFilters,
+  resetSelfFilters,
   clearCurrentBooking,
 } = bookingSlice.actions;
 
