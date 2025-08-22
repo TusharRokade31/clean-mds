@@ -14,6 +14,12 @@ export const bookingAPI = {
     return response.data;
   },
 
+    // Get self bookings with filters
+  getSelfBookings: async (params = {}) => {
+    const response = await axiosInstance.get('/bookings/my-bookings', { params });
+    return response.data;
+  },
+
   // Create new booking
   createBooking: async (bookingData) => {
     const response = await axiosInstance.post('/bookings', bookingData);

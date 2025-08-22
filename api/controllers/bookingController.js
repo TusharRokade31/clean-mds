@@ -64,6 +64,163 @@ const checkRoomAvailability = async (roomId, checkIn, checkOut, excludeBookingId
 
 
 export const bookingController = {
+    // Get all bookings with filters
+  getAllBookings: async (req, res) => {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        status,
+        propertyId,
+        checkIn,
+        checkOut,
+        guestName,
+        bookingId,
+        paymentStatus,
+      } = req.query;
+
+      // Build filter query
+      const filter = {};
+      
+      if (status) filter.status = status;
+      if (propertyId) filter.property = propertyId;
+      if (paymentStatus) filter['payment.status'] = paymentStatus;
+      if (bookingId) filter.bookingId = new RegExp(bookingId, 'i');
+      
+      // Date range filter
+      if (checkIn || checkOut) {
+        filter.$or = [];
+        if (checkIn) {
+          filter.$or.push({ checkIn: { $gte: new Date(checkIn) } });
+        }
+        if (checkOut) {
+          filter.$or.push({ checkOut: { $lte: new Date(checkOut) } });
+        }
+      }
+
+      // Guest name filter
+      if (guestName) {
+        filter.$or = [
+          { 'primaryGuest.firstName': new RegExp(guestName, 'i') },
+          { 'primaryGuest.lastName': new RegExp(guestName, 'i') },
+          { 'primaryGuest.email': new RegExp(guestName, 'i') },
+        ];
+      }
+
+      const skip = (page - 1) * limit;
+
+      const bookings = await Booking.find(filter)
+        .populate('property', 'placeName location propertyType')
+        .populate('createdBy', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+
+      const total = await Booking.countDocuments(filter);
+
+      res.json({
+        success: true,
+        data: {
+          bookings,
+          pagination: {
+            currentPage: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            totalBookings: total,
+            hasNextPage: page < Math.ceil(total / limit),
+            hasPrevPage: page > 1,
+          },
+        },
+      });
+
+    } catch (error) {
+      console.error('Get bookings error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching bookings',
+        error: error.message,
+      });
+    }
+  },
+
+  // Get user's own bookings (self bookings)
+getSelfBookings: async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      propertyId,
+      checkIn,
+      checkOut,
+      guestName,
+      bookingId,
+      paymentStatus,
+    } = req.query;
+
+    const filter = {
+      createdBy: req.user._id,
+    };
+    
+    if (status) filter.status = status;
+    if (propertyId) filter.property = propertyId;
+    if (paymentStatus) filter['payment.status'] = paymentStatus;
+    if (bookingId) filter.bookingId = new RegExp(bookingId, 'i');
+    
+    if (checkIn || checkOut) {
+      const dateFilter = {};
+      if (checkIn) {
+        dateFilter.checkIn = { $gte: new Date(checkIn) };
+      }
+      if (checkOut) {
+        dateFilter.checkOut = { $lte: new Date(checkOut) };
+      }
+      Object.assign(filter, dateFilter);
+    }
+
+    if (guestName) {
+      filter.$or = [
+        { 'primaryGuest.firstName': new RegExp(guestName, 'i') },
+        { 'primaryGuest.lastName': new RegExp(guestName, 'i') },
+        { 'primaryGuest.email': new RegExp(guestName, 'i') },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+
+    const bookings = await Booking.find(filter)
+      .populate('property', 'placeName location propertyType media') // Simplified - no nested populate needed
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 }) 
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Booking.countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: {
+        bookings,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalBookings: total,
+          hasNextPage: page < Math.ceil(total / limit),
+          hasPrevPage: page > 1,
+        },
+      },
+      message: `Found ${total} booking(s) created by you`,
+    });
+
+  } catch (error) {
+    console.error('Get self bookings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching your bookings',
+      error: error.message,
+    });
+  }
+},
+
   // Create new booking
   createBooking: async (req, res) => {
     try {
@@ -189,84 +346,6 @@ export const bookingController = {
       res.status(500).json({
         success: false,
         message: 'Error creating booking',
-        error: error.message,
-      });
-    }
-  },
-
-  // Get all bookings with filters
-  getAllBookings: async (req, res) => {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        status,
-        propertyId,
-        checkIn,
-        checkOut,
-        guestName,
-        bookingId,
-        paymentStatus,
-      } = req.query;
-
-      // Build filter query
-      const filter = {};
-      
-      if (status) filter.status = status;
-      if (propertyId) filter.property = propertyId;
-      if (paymentStatus) filter['payment.status'] = paymentStatus;
-      if (bookingId) filter.bookingId = new RegExp(bookingId, 'i');
-      
-      // Date range filter
-      if (checkIn || checkOut) {
-        filter.$or = [];
-        if (checkIn) {
-          filter.$or.push({ checkIn: { $gte: new Date(checkIn) } });
-        }
-        if (checkOut) {
-          filter.$or.push({ checkOut: { $lte: new Date(checkOut) } });
-        }
-      }
-
-      // Guest name filter
-      if (guestName) {
-        filter.$or = [
-          { 'primaryGuest.firstName': new RegExp(guestName, 'i') },
-          { 'primaryGuest.lastName': new RegExp(guestName, 'i') },
-          { 'primaryGuest.email': new RegExp(guestName, 'i') },
-        ];
-      }
-
-      const skip = (page - 1) * limit;
-
-      const bookings = await Booking.find(filter)
-        .populate('property', 'placeName location propertyType')
-        .populate('createdBy', 'name email')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(parseInt(limit));
-
-      const total = await Booking.countDocuments(filter);
-
-      res.json({
-        success: true,
-        data: {
-          bookings,
-          pagination: {
-            currentPage: parseInt(page),
-            totalPages: Math.ceil(total / limit),
-            totalBookings: total,
-            hasNextPage: page < Math.ceil(total / limit),
-            hasPrevPage: page > 1,
-          },
-        },
-      });
-
-    } catch (error) {
-      console.error('Get bookings error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching bookings',
         error: error.message,
       });
     }
