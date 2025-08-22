@@ -190,7 +190,7 @@ getSelfBookings: async (req, res) => {
     const bookings = await Booking.find(filter)
       .populate('property', 'placeName location propertyType media') // Simplified - no nested populate needed
       .populate('createdBy', 'name email')
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 }) 
       .skip(skip)
       .limit(parseInt(limit));
 
