@@ -221,19 +221,19 @@ const handleFileUpload = async (e) => {
   return (
     <Paper elevation={2} sx={{ p: 3,  mx: 'auto', mt: 2 }}>
       <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
-         <Tab 
-          icon={<BusinessIcon />} 
-          label="Ownership Details" 
-          iconPosition="start"
-        />
         <Tab 
           icon={<BankIcon />} 
           label="Banking Details" 
           iconPosition="start"
         />
+         <Tab 
+          icon={<BusinessIcon />} 
+          label="Ownership Details" 
+          iconPosition="start"
+        />
       </Tabs>
 
-      {activeTab === 1 && (
+      {activeTab === 0 && (
         <Box>
           <Typography variant="h5" gutterBottom>
             Banking Details
@@ -387,7 +387,7 @@ const handleFileUpload = async (e) => {
         </Box>
       )}
 
-      {activeTab === 0 && (
+      {activeTab === 1 && (
         <Box>
           <Typography variant="h5" gutterBottom>
             Ownership Details

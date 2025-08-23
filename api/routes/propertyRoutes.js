@@ -1,5 +1,5 @@
 // Current routes from your propertyRoutes.js
-import express from 'express';
+import express from 'express'; 
 import fs from 'fs';
 import { 
   deleteProperty, 
@@ -40,6 +40,9 @@ import {
   getSuggestions,
   getPropertiesByQuery,
   getViewProperty,
+  getPropertiesPendingChanges,
+  getPropertyChangeHistory,
+  getPropertyStatus,
 } from '../controllers/property/propertyController.js';
 
 
@@ -67,7 +70,7 @@ import {
 } from '../controllers/financeLegalController.js';
 
 
-import { protect } from '../middleware/auth.js';
+import { authorize, protect } from '../middleware/auth.js';
 import { check } from 'express-validator' ;
 import { upload, uploadMedia, validateImageSize } from '../middleware/uploadMiddleware.js';
 import { validatePropertyQuery } from '../middleware/validatePropertyQuery.js';
@@ -199,7 +202,7 @@ router.post(
         
         return res.status(400).json({
           success: false,
-          message: 'Some files do not meet requirements',
+          message: invalidFiles,
           invalidFiles: invalidFiles,
         });
       }
@@ -394,6 +397,14 @@ router.post('/:propertyId/legal/complete-step', completeFinanceLegalStep);
 
 // Delete finance legal data
 router.delete('/:propertyId/finance-legal', protect, deleteFinanceLegal);
+
+
+
+router.get('/admin/pending-changes', authorize, getPropertiesPendingChanges);
+router.get('/property/:id/change-history', authorize, getPropertyChangeHistory);
+
+// User routes
+router.get('/property/:propertyId/status', protect, getPropertyStatus);
 
 
 export default router;
