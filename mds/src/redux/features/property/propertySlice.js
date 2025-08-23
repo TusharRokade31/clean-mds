@@ -260,7 +260,7 @@ export const updateRoom = createAsyncThunk(
       return response.data;
     } catch (error) {
       // return console.log(error ,"new error")
-      return rejectWithValue(error.response?.data?.message || 'Failed to update property Rooms');
+      return rejectWithValue(error.response?.data || 'Failed to update property Rooms');
     }
   }
 );
@@ -310,7 +310,7 @@ export const uploadRoomMedia = createAsyncThunk(
       const response = await propertyAPI.uploadRoomMedia(propertyId, roomId, formData);
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to upload room media');
+      return rejectWithValue(error.response?.data || 'Failed to upload room media');
     }
   }
 );
@@ -322,7 +322,7 @@ export const updateRoomMediaItem = createAsyncThunk(
       const response = await propertyAPI.updateRoomMediaItem(propertyId, roomId, mediaId, data);
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update room media item');
+      return rejectWithValue(error.response?.data || 'Failed to update room media item');
     }
   }
 );
@@ -955,6 +955,7 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       });
       builder.addCase(uploadRoomMedia.rejected, (state, action) => {
         state.isLoading = false;
+        console.log(action.payload, "uploadRoomMedia")
         state.error = action.payload;
       });
 
@@ -976,6 +977,7 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       });
       builder.addCase(updateRoomMediaItem.rejected, (state, action) => {
         state.isLoading = false;
+        console.log(action.payload, "updateRoomMediaItem")
         state.error = action.payload;
       });
 

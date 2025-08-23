@@ -382,9 +382,32 @@ const PropertySchema = new Schema({
   
   status: {
     type: String,
-    enum: ['draft', 'pending', 'published', 'rejected'],
+    enum: ['draft', 'pending', 'published', 'rejected', 'pending_changes'],
     default: 'draft',
   },
+
+
+    // Track what was changed
+  pendingChanges: {
+    step1Changed: { type: Boolean, default: false },
+    step2Changed: { type: Boolean, default: false },
+    step3Changed: { type: Boolean, default: false },
+    step4Changed: { type: Boolean, default: false },
+    step5Changed: { type: Boolean, default: false },
+    step6Changed: { type: Boolean, default: false },
+    step7Changed: { type: Boolean, default: false },
+    changedAt: { type: Date },
+    changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  },
+  
+  // Keep original published data for comparison
+  publishedVersion: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+  
+  lastApprovedAt: { type: Date },
+  lastChangedAt: { type: Date },
   
   owner: {
     type: Schema.Types.ObjectId,

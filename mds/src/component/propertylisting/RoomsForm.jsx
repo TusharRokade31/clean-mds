@@ -25,6 +25,7 @@ import RoomsAmenities from './RoomsAmenities';
 
 
 export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, onComplete, onSave, onBack }) {
+  console.log(errors, "RoomForm Errors")
   const dispatch = useDispatch();
   const [isAddingRoom, setIsAddingRoom] = useState(false);
   const [isEditingRoom, setIsEditingRoom] = useState(false);
@@ -421,14 +422,10 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
   };
 
   // Media upload functions
-  const handleFileSelect = async (event) => {
-
+const handleFileSelect = async (event) => {
     const files = Array.from(event.target.files);
-    console.log(files, "handleFileSelect")
-    console.log(currentRoomId)
 
     setValidationError('');
-
     if (files.length > 20) {
       setValidationError('You can upload maximum 20 files at once');
       if (fileInputRef.current) {
@@ -452,27 +449,32 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
         formData
       })).unwrap();
 
-
       setCurrentRoomData(result.room)
-
 
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
 
-
-      // Refresh room data to show new media
-      // You might need to fetch updated room data here
-
     } catch (error) {
-      console.log(error)
+      console.log(error.message)
       console.error('Upload failed:', error);
-      setValidationError('Failed to upload media. Please try again.');
+      
+      // Handle validation errors from the response
+      if (error.invalidFiles && error.invalidFiles.length > 0) {
+        // Create a user-friendly error message from invalidFiles
+        const fileErrors = error.invalidFiles.map(file => 
+          `${file.filename}: ${file.error}`
+        ).join('\n');
+        
+        setValidationError(`Upload failed:\n${fileErrors}`);
+      } else {
+        // Fallback error message
+        setValidationError(error.message || 'Failed to upload media. Please try again.');
+      }
     } finally {
       setIsFileSubmiting(false)
     }
-  };
-
+};
   const handleDeleteMedia = async (mediaId) => {
     if (!currentRoomId || !window.confirm('Are you sure you want to delete this media item?')) return;
 

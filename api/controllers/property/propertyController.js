@@ -9,6 +9,7 @@ import { unlink } from 'fs/promises';
 import { generateOTP, sendOTPEmail } from '../../services/emailService.js';
 import OTP from '../../models/OTP.js';
 import {errorResponse} from '../globalError/errorController.js';
+import { detectPropertyChanges, markForReapproval } from '../../helper/detectPropertyChanges.js';
 
 
 
@@ -120,10 +121,6 @@ export const getProperty = async (req, res) => {
     });
   }
 };
-
-
-
-
 
  
 // Initialize a new property for multistep form //moved to propertyManageController
@@ -376,9 +373,8 @@ export const saveBasicInfo = async (req, res) => {
       return errorResponse(res, 404, 'Property not found or unauthorized');
     }
 
-    // Check if email is verified (only if email is being changed)
+    // Check if email is verified (keep existing logic)
     if (email && email !== property.email) {
-      // If email is different, require verification
       const otpRecord = await OTP.findOne({ 
         email, 
         propertyId, 
@@ -390,14 +386,21 @@ export const saveBasicInfo = async (req, res) => {
         return errorResponse(res, 400, 'Please verify your email address first');
       }
       
-      // Mark new email as verified
       property.emailVerified = true;
     } else if (email === property.email && property.emailVerified) {
-      // Same email and already verified - keep verification status
       // No action needed
     } else if (email && !property.emailVerified) {
-      // Same email but not verified yet
       return errorResponse(res, 400, 'Please verify your email address first');
+    }
+
+    // Check for changes if property is published
+    const hasChanges = detectPropertyChanges(property, {
+      propertyType, placeName, placeRating, propertyBuilt, 
+      bookingSince, rentalForm, email, mobileNumber, landline
+    }, 1);
+
+    if (hasChanges) {
+      await markForReapproval(property, 1, req.user._id);
     }
     
     // Update property with basic info
@@ -414,13 +417,16 @@ export const saveBasicInfo = async (req, res) => {
     
     await property.save();
 
-    // Clean up verified OTP records for this email and property
+    // Clean up verified OTP records
     await OTP.deleteMany({ email, propertyId, verified: true });
     
     return res.status(200).json({
       success: true,
-      message: 'Basic info saved successfully',
+      message: hasChanges ? 
+        'Basic info saved successfully. Property marked for admin review due to changes.' : 
+        'Basic info saved successfully',
       property,
+      requiresApproval: hasChanges,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
@@ -439,12 +445,8 @@ export const saveLocation = async (req, res) => {
     }
 
     const { propertyId } = req.params;
-    const { houseName,
-      country, street, roomNumber, city, state, 
-      postalCode, coordinates, 
-    } = req.body;
+    const { houseName, country, street, roomNumber, city, state, postalCode, coordinates } = req.body;
     
-    // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
       owner: req.user._id,
@@ -454,7 +456,7 @@ export const saveLocation = async (req, res) => {
       return errorResponse(res, 404, 'Property not found or unauthorized');
     }
 
-        // Find state by name
+    // Find state by name
     let stateRef = null;
     if (state) {
       const stateDoc = await State.findOne({ name: { $regex: new RegExp(state, 'i') } });
@@ -474,9 +476,8 @@ export const saveLocation = async (req, res) => {
         cityRef = cityDoc._id;
       }
     }
-    
-    // Update property with location info
-    property.location = {
+
+    const locationData = {
       houseName,
       country,
       street,
@@ -488,14 +489,27 @@ export const saveLocation = async (req, res) => {
       postalCode,
       coordinates,
     };
+
+    // Check for changes if property is published
+    const hasChanges = detectPropertyChanges(property, locationData, 2);
+
+    if (hasChanges) {
+      await markForReapproval(property, 2, req.user._id);
+    }
+    
+    // Update property with location info
+    property.location = locationData;
     property.formProgress.step2Completed = true;
     
     await property.save();
     
     return res.status(200).json({
       success: true,
-      message: 'Location saved successfully',
+      message: hasChanges ? 
+        'Location saved successfully. Property marked for admin review due to changes.' : 
+        'Location saved successfully',
       property,
+      requiresApproval: hasChanges,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
@@ -516,7 +530,6 @@ export const saveAmenities = async (req, res) => {
     const { propertyId } = req.params;
     const { amenities } = req.body;
     
-    // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
       owner: req.user._id,
@@ -525,10 +538,15 @@ export const saveAmenities = async (req, res) => {
     if (!property) {
       return errorResponse(res, 404, 'Property not found or unauthorized');
     }
+
+    // Check for changes if property is published
+    const hasChanges = detectPropertyChanges(property, amenities, 3);
+
+    if (hasChanges) {
+      await markForReapproval(property, 3, req.user._id);
+    }
     
     // Process amenities data
-    // The data should be structured as:
-    // { mandatory: { AirConditioning: { available: true, option: 'room controlled', subOptions: ['All-Weather'] } } }
     property.amenities = amenities;
     property.formProgress.step3Completed = true;
     
@@ -536,8 +554,11 @@ export const saveAmenities = async (req, res) => {
     
     return res.status(200).json({
       success: true,
-      message: 'Amenities saved successfully',
+      message: hasChanges ? 
+        'Amenities saved successfully. Property marked for admin review due to changes.' : 
+        'Amenities saved successfully',
       property,
+      requiresApproval: hasChanges,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
@@ -558,7 +579,6 @@ export const addRoom = async (req, res) => {
     const { propertyId } = req.params;
     const roomData = req.body;
     
-    // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
       owner: req.user._id,
@@ -566,6 +586,14 @@ export const addRoom = async (req, res) => {
     
     if (!property) {
       return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+
+    // Check for changes if property is published
+    const currentRooms = [...property.rooms, roomData];
+    const hasChanges = detectPropertyChanges(property, currentRooms, 4);
+
+    if (hasChanges) {
+      await markForReapproval(property, 4, req.user._id);
     }
     
     // Add room to property
@@ -575,9 +603,12 @@ export const addRoom = async (req, res) => {
     
     return res.status(201).json({
       success: true,
-      message: 'Room added successfully',
+      message: hasChanges ? 
+        'Room added successfully. Property marked for admin review due to changes.' : 
+        'Room added successfully',
       room: property.rooms[property.rooms.length - 1],
       property,
+      requiresApproval: hasChanges,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
@@ -586,6 +617,7 @@ export const addRoom = async (req, res) => {
     return errorResponse(res, 500, 'Server error', error.message);
   }
 };
+
 
 // Update a Room //moved to propertyManageController
 export const updateRoom = async (req, res) => {
@@ -598,7 +630,6 @@ export const updateRoom = async (req, res) => {
     const { propertyId, roomId } = req.params;
     const roomData = req.body;
     
-    // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
       owner: req.user._id,
@@ -614,6 +645,19 @@ export const updateRoom = async (req, res) => {
     if (roomIndex === -1) {
       return errorResponse(res, 404, 'Room not found');
     }
+
+    // Create updated rooms array for comparison
+    const updatedRooms = [...property.rooms];
+    Object.keys(roomData).forEach(key => {
+      updatedRooms[roomIndex][key] = roomData[key];
+    });
+
+    // Check for changes if property is published
+    const hasChanges = detectPropertyChanges(property, updatedRooms, 4);
+
+    if (hasChanges) {
+      await markForReapproval(property, 4, req.user._id);
+    }
     
     // Update room data
     Object.keys(roomData).forEach(key => {
@@ -624,9 +668,12 @@ export const updateRoom = async (req, res) => {
     
     return res.status(200).json({
       success: true,
-      message: 'Room updated successfully',
+      message: hasChanges ? 
+        'Room updated successfully. Property marked for admin review due to changes.' : 
+        'Room updated successfully',
       room: property.rooms[roomIndex],
       property,
+      requiresApproval: hasChanges,
     });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
@@ -641,7 +688,6 @@ export const deleteRoom = async (req, res) => {
   try {
     const { propertyId, roomId } = req.params;
     
-    // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
       owner: req.user._id,
@@ -657,6 +703,16 @@ export const deleteRoom = async (req, res) => {
     if (roomIndex === -1) {
       return errorResponse(res, 404, 'Room not found');
     }
+
+    // Create updated rooms array for comparison
+    const updatedRooms = property.rooms.filter(room => room._id.toString() !== roomId);
+
+    // Check for changes if property is published
+    const hasChanges = detectPropertyChanges(property, updatedRooms, 4);
+
+    if (hasChanges) {
+      await markForReapproval(property, 4, req.user._id);
+    }
     
     // Remove room
     property.rooms.splice(roomIndex, 1);
@@ -666,8 +722,11 @@ export const deleteRoom = async (req, res) => {
     
     return res.status(200).json({
       success: true,
-      message: 'Room deleted successfully',
+      message: hasChanges ? 
+        'Room deleted successfully. Property marked for admin review due to changes.' : 
+        'Room deleted successfully',
       property,
+      requiresApproval: hasChanges,
     });
   } catch (error) {
     return errorResponse(res, 500, 'Server error', error.message);
@@ -721,12 +780,10 @@ export const uploadPropertyMedia = async (req, res) => {
       return errorResponse(res, 400, 'No files uploaded');
     }
     
-    // Add file count validation
     if (files.length > 20) {
       return errorResponse(res, 400, 'Cannot upload more than 20 files at once');
     }
     
-    // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
       owner: req.user._id,
@@ -734,6 +791,13 @@ export const uploadPropertyMedia = async (req, res) => {
     
     if (!property) {
       return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+
+    // Check for changes if property is published (adding new media is a change)
+    const hasChanges = property.status === 'published';
+
+    if (hasChanges) {
+      await markForReapproval(property, 5, req.user._id);
     }
     
     const uploadedMedia = [];
@@ -770,9 +834,12 @@ export const uploadPropertyMedia = async (req, res) => {
     
     return res.status(201).json({
       success: true,
-      message: `${files.length} media files uploaded successfully`,
+      message: hasChanges ? 
+        `${files.length} media files uploaded successfully. Property marked for admin review due to changes.` :
+        `${files.length} media files uploaded successfully`,
       uploadedMedia,
       property,
+      requiresApproval: hasChanges,
     });
     
   } catch (error) {
@@ -922,7 +989,6 @@ export const deleteMediaItem = async (req, res) => {
   try {
     const { propertyId, mediaId } = req.params;
     
-    // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
       owner: req.user._id,
@@ -930,6 +996,13 @@ export const deleteMediaItem = async (req, res) => {
     
     if (!property) {
       return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+
+    // Check for changes if property is published (deleting media is a change)
+    const hasChanges = property.status === 'published';
+
+    if (hasChanges) {
+      await markForReapproval(property, 5, req.user._id);
     }
     
     // Find and remove media item
@@ -971,8 +1044,11 @@ export const deleteMediaItem = async (req, res) => {
     
     return res.status(200).json({
       success: true,
-      message: 'Media item deleted successfully',
+      message: hasChanges ? 
+        'Media item deleted successfully. Property marked for admin review due to changes.' :
+        'Media item deleted successfully',
       property,
+      requiresApproval: hasChanges,
     });
     
   } catch (error) {
@@ -1430,7 +1506,7 @@ export const completePropertyListing = async (req, res) => {
 // Admin: Approve or reject property
 export const reviewProperty = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, rejectionReason } = req.body;
     
     if (!['published', 'rejected'].includes(status)) {
       return res.status(400).json({
@@ -1448,7 +1524,6 @@ export const reviewProperty = async (req, res) => {
       });
     }
     
-    // Only admin can approve/reject properties
     if (req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
@@ -1456,13 +1531,51 @@ export const reviewProperty = async (req, res) => {
       });
     }
     
+    if (status === 'published') {
+      // Save current state as published version
+      property.publishedVersion = {
+        propertyType: property.propertyType,
+        placeName: property.placeName,
+        placeRating: property.placeRating,
+        propertyBuilt: property.propertyBuilt,
+        bookingSince: property.bookingSince,
+        rentalForm: property.rentalForm,
+        email: property.email,
+        mobileNumber: property.mobileNumber,
+        landline: property.landline,
+        location: property.location,
+        amenities: property.amenities,
+        rooms: property.rooms,
+        media: property.media,
+      };
+      
+      // Clear pending changes
+      property.pendingChanges = {
+        step1Changed: false,
+        step2Changed: false,
+        step3Changed: false,
+        step4Changed: false,
+        step5Changed: false,
+        step6Changed: false,
+        step7Changed: false,
+        changedAt: null,
+        changedBy: null,
+      };
+      
+      property.lastApprovedAt = new Date();
+    }
+    
     property.status = status;
+    if (rejectionReason) {
+      property.rejectionReason = rejectionReason;
+    }
     property.updatedAt = Date.now();
     
     await property.save();
     
     res.status(200).json({
       success: true,
+      message: `Property ${status === 'published' ? 'approved and published' : 'rejected'} successfully`,
       data: property,
     });
   } catch (error) {
@@ -1843,5 +1956,153 @@ export const getPropertiesByQuery = async (req, res) =>{
   } catch (err) {
     console.error('Search suggestion error:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
+
+export const getPropertiesPendingChanges = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized',
+      });
+    }
+
+    const { page = 1, limit = 10, sortBy = 'changedAt', sortOrder = 'desc' } = req.query;
+    const skip = (page - 1) * limit;
+
+    const properties = await Property.find({ 
+      status: 'pending_changes' 
+    })
+    .populate('owner', 'name email')
+    .populate('pendingChanges.changedBy', 'name email')
+    .sort({ [`pendingChanges.${sortBy}`]: sortOrder === 'desc' ? -1 : 1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+
+    const total = await Property.countDocuments({ status: 'pending_changes' });
+
+    res.status(200).json({
+      success: true,
+      count: properties.length,
+      total,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      data: properties,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+// Get change history for a property
+export const getPropertyChangeHistory = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id)
+      .populate('pendingChanges.changedBy', 'name email')
+      .populate('owner', 'name email');
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        error: 'Property not found',
+      });
+    }
+
+    // Check authorization
+    if (property.owner._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized',
+      });
+    }
+
+    const changeHistory = {
+      propertyId: property._id,
+      propertyName: property.placeName,
+      currentStatus: property.status,
+      pendingChanges: property.pendingChanges,
+      lastApprovedAt: property.lastApprovedAt,
+      lastChangedAt: property.lastChangedAt,
+      hasPublishedVersion: !!property.publishedVersion,
+      changedSteps: {
+        step1: property.pendingChanges.step1Changed,
+        step2: property.pendingChanges.step2Changed,
+        step3: property.pendingChanges.step3Changed,
+        step4: property.pendingChanges.step4Changed,
+        step5: property.pendingChanges.step5Changed,
+        step6: property.pendingChanges.step6Changed,
+        step7: property.pendingChanges.step7Changed,
+      }
+    };
+
+    res.status(200).json({
+      success: true,
+      data: changeHistory,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+// Get property status for user
+export const getPropertyStatus = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+
+    const property = await Property.findOne({
+      _id: propertyId,
+      owner: req.user._id,
+    }).select('status pendingChanges lastApprovedAt lastChangedAt formProgress');
+
+    if (!property) {
+      return errorResponse(res, 404, 'Property not found or unauthorized');
+    }
+
+    const statusInfo = {
+      status: property.status,
+      formProgress: property.formProgress,
+      pendingChanges: property.pendingChanges,
+      lastApprovedAt: property.lastApprovedAt,
+      lastChangedAt: property.lastChangedAt,
+      message: getStatusMessage(property.status, property.pendingChanges),
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: statusInfo,
+    });
+  } catch (error) {
+    return errorResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+// Helper function to get status message
+const getStatusMessage = (status, pendingChanges) => {
+  switch (status) {
+    case 'draft':
+      return 'Property is in draft mode. Complete all steps to submit for review.';
+    case 'pending':
+      return 'Property is pending admin approval.';
+    case 'published':
+      return 'Property is live and published.';
+    case 'rejected':
+      return 'Property was rejected. Please make necessary changes and resubmit.';
+    case 'pending_changes':
+      const changedSteps = Object.keys(pendingChanges)
+        .filter(key => key.includes('Changed') && pendingChanges[key])
+        .map(key => key.replace('step', 'Step ').replace('Changed', ''))
+        .join(', ');
+      return `Changes made to ${changedSteps}. Awaiting admin approval.`;
+    default:
+      return 'Unknown status';
   }
 };

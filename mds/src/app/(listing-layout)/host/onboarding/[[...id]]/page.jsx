@@ -828,9 +828,10 @@ const validateMandatoryAmenities = () => {
       </Dialog>
 
       <Paper className="max-w-7xl mx-auto my-8 p-4">
-        {error && (
+        {console.log(error)}
+        {error?.message && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+            {error?.message}
           </Alert>
         )}
         {validationErrors.save && (
