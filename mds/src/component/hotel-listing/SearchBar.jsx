@@ -102,13 +102,17 @@ export function SearchBar() {
     }
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    const displayText = `${suggestion.placeName}, ${suggestion.location.city}, ${suggestion.location.state}`;
-    setLocationQuery(displayText);
-    setSearchParams({ ...searchParams, location: displayText });
-    setSelectedLocation(suggestion);
-    setShowSuggestions(false);
-  };
+const handleSuggestionClick = (suggestion, type, location = null) => {
+  // If placeName is clicked, include city and state
+  const displayText = type === 'placeName' 
+    ? `${suggestion}, ${location.city}, ${location.state}`
+    : suggestion;
+    
+  setLocationQuery(displayText);
+  setSearchParams({ ...searchParams, location: displayText });
+  setSelectedLocation(suggestion);
+  setShowSuggestions(false);
+};
 
   const handleGuestsClick = (event) => {
     setGuestsAnchorEl(event.currentTarget);
@@ -199,7 +203,7 @@ export function SearchBar() {
             {showSuggestions && (
               <div 
                 ref={suggestionsRef}
-                className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-10 mt-1"
+                className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-2 mt-1"
               >
                 <h4 className="text-sm font-medium text-gray-600 mb-2">Suggestions</h4>
                 {isSuggestionsLoading ? (
@@ -210,39 +214,41 @@ export function SearchBar() {
                   <ul className="space-y-1">
                     {suggestions.map((suggestion, index) => (
                       <div key={index}>
-                      <li 
-                        className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                      >
-                        <MapPin className="text-gray-400 mr-2 w-4 h-4" />
-                        <div>
-                          <div className="font-medium text-sm">{suggestion.location.city}</div>
-                        </div>
-                      </li>
-                       <li 
-                        
-                        className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                      >
-                        <MapPin className="text-gray-400 mr-2 w-4 h-4" />
-                        <div>
-                          <div className="font-medium text-sm">{suggestion.location.state}</div>
-                        </div>
-                      </li>
-                      <li 
-                        className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                      >
-                        <MapPin className="text-gray-400 mr-2 w-4 h-4" />
-                        <div>
-                          <div className="font-medium text-sm">{suggestion.placeName}</div>
-                          <div className="text-xs text-gray-500">
-                            {suggestion.location.city}, {suggestion.location.state}
+                        <li 
+                          className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
+                          onClick={() => handleSuggestionClick(suggestion.location.city, 'city')}
+                        >
+                          <MapPin className="text-gray-400 mr-2 w-4 h-4" />
+                          <div>
+                            <div className="font-medium text-sm">{suggestion.location.city}</div>
                           </div>
-                        </div>
-                      </li>
+                        </li>
+                        
+                        <li 
+                          className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
+                          onClick={() => handleSuggestionClick(suggestion.location.state, 'state')}
+                        >
+                          <MapPin className="text-gray-400 mr-2 w-4 h-4" />
+                          <div>
+                            <div className="font-medium text-sm">{suggestion.location.state}</div>
+                          </div>
+                        </li>
+                        
+                        <li 
+                          className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
+                          onClick={() => handleSuggestionClick(suggestion.placeName, 'placeName', suggestion.location)}
+                        >
+                          <MapPin className="text-gray-400 mr-2 w-4 h-4" />
+                          <div>
+                            <div className="font-medium text-sm">{suggestion.placeName}</div>
+                            <div className="text-xs text-gray-500">
+                              {suggestion.location.city}, {suggestion.location.state}
+                            </div>
+                          </div>
+                        </li>
                       </div>
                     ))}
+
                   </ul>
                 ) : (
                   <div className="text-gray-500 text-center py-2 text-sm">
@@ -412,7 +418,7 @@ export function SearchBar() {
                   Children
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Ages 2-12
+                  Ages 3-12
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" gap={2}>

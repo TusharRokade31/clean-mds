@@ -243,4 +243,28 @@ deleteFinanceLegal: async (propertyId) => {
   const response = await axiosInstance.delete(`/properties/${propertyId}/finance-legal`);
   return response.data;
 },
+// Add these methods to your existing propertyAPI object
+
+// Voice search methods
+voiceSearch: async (voiceInput, userLocation) => {
+  const response = await axiosInstance.post('/voice-search/search', {
+    voiceInput,
+    userLocation
+  });
+  return response.data;
+},
+
+getPopularVoiceQueries: async () => {
+  const response = await axiosInstance.get('/voice-search/popular-queries');
+  return response.data;
+},
+
+getVoiceSearchSuggestions: async (partialInput) => {
+  const response = await axiosInstance.get('/voice-search/suggestions', {
+    params: { partialInput }
+  });
+  return response.data;
+},
 };
+
+

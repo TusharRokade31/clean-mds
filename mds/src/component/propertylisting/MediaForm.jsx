@@ -44,6 +44,9 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
   const itemsWithoutTags = allMedia.filter(item => !item.tags || item.tags.length === 0);
   const coverPhoto = allMedia.find(item => item.isCover && item.type === 'image');
 
+
+  console.log(error,"Media Form Error")
+
   // All available tags in one flat list
   const availableTags = [
     'Activities and Experiences',

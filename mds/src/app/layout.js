@@ -1,9 +1,9 @@
 import { League_Spartan, Alice } from 'next/font/google'
 import "./globals.css";
-import Header from '../component/Header';
-import Footer from '../component/Footer';
 import GoogleProvider from '@/providers/GoogleProvider';
 import ReduxProvider from '@/providers/ReduxProvider';
+import ClientLayout from '@/component/ClientLayout';
+
 
 const leagueSpartan = League_Spartan({
   subsets: ['latin'],
@@ -31,9 +31,9 @@ export default function RootLayout({ children }) {
       <GoogleProvider>
       <ReduxProvider>
         <div className='relative'>
-          <Header/>
-        {children}
-        <Footer/>
+           <ClientLayout>
+              {children}
+            </ClientLayout>
         </div>
         </ReduxProvider>
         </GoogleProvider>

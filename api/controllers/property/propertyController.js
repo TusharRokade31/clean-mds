@@ -1900,7 +1900,7 @@ export const getSuggestions = async (req, res) =>{
     console.error('Search suggestion error:', err);
     res.status(500).json({ error: 'Server error' });
   }
-};
+}; 
 
 export const getPropertiesByQuery = async (req, res) =>{
   const errors = validationResult(req);

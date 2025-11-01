@@ -1,4 +1,4 @@
-// Update the login page to use your auth system
+// Login page.jsx
 "use client";
 import React, { useState } from "react";
 import facebookSvg from "../../../public/assets/Facebook.svg";
@@ -32,25 +32,28 @@ const loginSocials = [
 
 const PageLogin = ({}) => {
   const dispatch = useDispatch();
+  const router = useRouter();
+
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      // Using any temporarily to bypass type checking
       try {
-        // Google OAuth returns an authorization code or token depending on the flow
         console.log("Token response:", tokenResponse);
 
-        // Pass whatever token we get to the backend
         const result = await dispatch(
           googleLoginUser(tokenResponse.access_token)
         );
+        
         if (result.meta.requestStatus === "fulfilled") {
-          router.push("/");
+          // Wait a bit to ensure cookie is set
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Use hard navigation for production reliability
+          window.location.href = "/";
         }
       } catch (error) {
         console.error("Google login failed:", error);
       }
     },
-    // Remove flow: 'implicit' as it's causing type errors
     scope: "email profile",
     onError: () => {
       console.error("Google login failed");
@@ -60,7 +63,6 @@ const PageLogin = ({}) => {
   const { isLoading, error, isAuthenticated } = useSelector(
     (state) => state.auth
   );
-  const router = useRouter();
 
   const [credentials, setCredentials] = useState({
     email: "",
@@ -76,9 +78,24 @@ const PageLogin = ({}) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await dispatch(loginUser(credentials));
-    if (result.meta.requestStatus === "fulfilled") {
-      router.push("/");
+    
+    try {
+      const result = await dispatch(loginUser(credentials));
+      
+      if (result.meta.requestStatus === "fulfilled") {
+        // Small delay to ensure cookie is properly set
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Use window.location.href for reliable production redirect
+        // This forces a full page reload which ensures middleware reads the cookie
+        window.location.href = "/";
+        
+        // Alternative: Use router.push with refresh (less reliable)
+        // router.refresh();
+        // router.push("/");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
     }
   };
 
@@ -94,9 +111,7 @@ const PageLogin = ({}) => {
               <a
                 key={index}
                 href={item.name.includes("Google") ? undefined : item.href}
-                onClick={
-                  item.name.includes("Google") ? () => googleLogin() : undefined
-                }
+                onClick={item.name.includes("Google") ? () => googleLogin() : undefined}
                 className="flex w-full rounded-lg cursor-pointer bg-[#eef2ff] px-4 py-3 transition-transform hover:translate-y-[-2px] sm:px-6"
               >
                 <Image
@@ -152,7 +167,7 @@ const PageLogin = ({}) => {
             </label>
             <button
               type="submit"
-              className="bg-[#4f46e5] rounded-full text-white cursor-pointer py-3 px-4"
+              className="bg-[#4f46e5] rounded-full text-white cursor-pointer py-3 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
               {isLoading ? "Logging in..." : "Continue"}
