@@ -11,6 +11,21 @@ const initialState = {
   error: null,
 };
 
+// Helper function to set cookie
+const setCookie = (name, value, days = 7) => {
+  if (typeof window !== 'undefined') {
+    const maxAge = days * 24 * 60 * 60;
+    const secure = window.location.protocol === 'https:' ? 'Secure;' : '';
+    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax; ${secure}`;
+  }
+};
+
+const deleteCookie = (name) => {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+  }
+};
+
 // Async thunks
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -70,7 +85,10 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await authAPI.logout();
-      return;
+      deleteCookie('token');
+      deleteCookie('authToken');
+      deleteCookie('jwt');
+      return true;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Logout failed');
     }
@@ -111,6 +129,10 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.user = action.payload.data;
       state.token = action.payload.token;
+      // Set cookie immediately
+      if (action.payload.token) {
+        setCookie('token', action.payload.token, 7);
+      }
     });
     builder.addCase(loginUser.rejected, (state, action) => {
       state.isLoading = false;
@@ -127,6 +149,10 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.user = action.payload.data;
       state.token = action.payload.token;
+      // Set cookie immediately
+      if (action.payload.token) {
+        setCookie('token', action.payload.token, 7);
+      }
     });
     builder.addCase(signupUser.rejected, (state, action) => {
       state.isLoading = false;
@@ -143,6 +169,10 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.user = action.payload.data;
       state.token = action.payload.token;
+      // Set cookie immediately
+      if (action.payload.token) {
+        setCookie('token', action.payload.token, 7);
+      }
     });
     builder.addCase(googleLoginUser.rejected, (state, action) => {
       state.isLoading = false;

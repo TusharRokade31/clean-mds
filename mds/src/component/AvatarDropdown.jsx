@@ -33,9 +33,26 @@ export default function AvatarDropdown() {
     }
   }, []);
 
-  const handleLogout = async () => {
-    await dispatch(logoutUser());
-    router.push("/login");
+const handleLogout = async () => {
+    try {
+      // Clear cookies manually
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      document.cookie = 'jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      
+      // Dispatch logout action
+      await dispatch(logoutUser());
+      
+      // Small delay to ensure cookies are cleared
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Force hard navigation to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback: still redirect even if there's an error
+      window.location.href = '/login';
+    }
   };
 
   // If not authenticated, show login button

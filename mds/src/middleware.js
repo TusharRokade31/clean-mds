@@ -11,13 +11,13 @@ export function middleware(request) {
   const isPublicPath = publicPaths.includes(path)
   const isProtectedPaths = protectedPaths.includes(path)
   
-  // Check auth token
+  // Check auth token - try all possible cookie names
   const token = request.cookies.get('token')?.value || 
                 request.cookies.get('authToken')?.value || 
                 request.cookies.get('jwt')?.value || ''
   
+  console.log('Token found:', !!token, 'for path:', path)
 
-  
   // Function to clear cookies and redirect to login
   const clearCookiesAndRedirect = () => {
     const response = NextResponse.redirect(new URL('/login', request.url))
@@ -37,15 +37,20 @@ export function middleware(request) {
       const decoded = jwtDecode(token)
       const currentTime = Date.now() / 1000
       if (decoded.exp < currentTime) {
+        console.log('Token expired on public path')
         return clearCookiesAndRedirect()
       }
+      // Token is valid, redirect to home
+      console.log('Valid token on public path, redirecting to home')
+      return NextResponse.redirect(new URL('/', request.url))
     } catch (error) {
+      console.log('Token decode error on public path:', error)
       return clearCookiesAndRedirect()
     }
-    return NextResponse.redirect(new URL('/', request.url))
   }
   
   if (isProtectedPaths && !token) {
+    console.log('No token for protected path, redirecting to login')
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -67,6 +72,8 @@ export function middleware(request) {
         return NextResponse.redirect(new URL('/admin-login', request.url))
       }
       
+      console.log('Token valid for protected path')
+      
     } catch (error) {
       console.log('Token decode error:', error)
       return clearCookiesAndRedirect()
@@ -79,7 +86,7 @@ export function middleware(request) {
   }
   
   if (isDashboardPath && !token) {
-    console.log('No token for admin path, redirecting to login')
+    console.log('No token for admin path, redirecting to admin-login')
     return NextResponse.redirect(new URL('/admin-login', request.url))
   }
   

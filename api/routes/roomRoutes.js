@@ -51,7 +51,6 @@ router.put(
 
 router.get(
   '/rooms/:roomId/availability',
-  protect,
   validateRoomId,
   validateDateRange,
   roomController.getRoomAvailability,

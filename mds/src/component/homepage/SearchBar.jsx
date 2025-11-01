@@ -33,6 +33,8 @@ export default function SearchBar() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const searchInputRef = useRef(null);
   const suggestionsRef = useRef(null);
+  const calendarRef = useRef(null);  // Add this
+  const guestsRef = useRef(null);     // Add this
   
   // Debounce search query to avoid too many API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -119,17 +121,24 @@ export default function SearchBar() {
 
   // Handle click outside to close suggestions
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target) &&
-          searchInputRef.current && !searchInputRef.current.contains(event.target)) {
-        setShowSuggestions(false);
-        setShowRecentSearches(false);
-      }
-    };
+  const handleClickOutside = (event) => {
+    const isClickInsideAnyDropdown = 
+      (suggestionsRef.current && suggestionsRef.current.contains(event.target)) ||
+      (calendarRef.current && calendarRef.current.contains(event.target)) ||
+      (guestsRef.current && guestsRef.current.contains(event.target)) ||
+      (searchInputRef.current && searchInputRef.current.contains(event.target));
+    
+    if (!isClickInsideAnyDropdown) {
+      setShowSuggestions(false);
+      setShowRecentSearches(false);
+      setShowCalendar(false);
+      setShowGuests(false);
+    }
+  };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => document.removeEventListener('mousedown', handleClickOutside);
+}, []);
 
   const handleLocationFocus = () => {
     setShowCalendar(false);
@@ -165,8 +174,11 @@ export default function SearchBar() {
     setShowSuggestions(false);
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    const displayText = `${suggestion.placeName}, ${suggestion.location.city}, ${suggestion.location.state}`;
+const handleSuggestionClick = (suggestion, type, location = null) => {
+  // If placeName is clicked, include city and state
+  const displayText = type === 'placeName' 
+    ? `${suggestion}, ${location.city}, ${location.state}`
+    : suggestion;
     setSearchQuery(displayText);
     setSelectedLocation(suggestion);
     
@@ -260,9 +272,12 @@ export default function SearchBar() {
     // Save to cache
     saveSearchToCache(searchData);
 
+    
+console.log(selectedLocation?.placeName, "selected location ")
+
     // Dispatch search query with location data
     dispatch(getPropertiesByQuery({
-      location: selectedLocation.placeName,
+      location: selectedLocation,
       checkin: selectedDates.checkin,
       checkout: selectedDates.checkout,
       persons: searchData.persons,
@@ -353,7 +368,7 @@ export default function SearchBar() {
     const nextMonthData = renderMonthCalendar(nextMonthDate);
     
     return (
-      <div className="absolute top-22 max-w-5xl left-20 right-0 bg-white rounded-2xl shadow-lg p-6 z-10">
+      <div ref={calendarRef} className="absolute top-22 max-w-5xl left-20 right-0 bg-white rounded-2xl shadow-lg p-6 z-2">
         <div className="flex justify-between items-center mb-4">
           <button 
             onClick={prevMonth} 
@@ -520,7 +535,7 @@ export default function SearchBar() {
       
       {/* Recent Searches Dropdown */}
       {showRecentSearches && !showSuggestions && (
-        <div className="absolute top-22 left-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-10">
+        <div ref={suggestionsRef} className="absolute top-22 left-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-2">
           <h3 className="text-lg font-semibold mb-4">Recent searches</h3>
           {recentSearches.length > 0 ? (
             <ul className="space-y-4">
@@ -552,7 +567,7 @@ export default function SearchBar() {
       {showSuggestions && (
         <div 
           ref={suggestionsRef}
-          className="absolute top-22 left-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-10"
+          className="absolute top-22 left-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-2"
         >
           <h3 className="text-lg font-semibold mb-4">Suggestions</h3>
           {isSuggestionsLoading ? (
@@ -561,21 +576,41 @@ export default function SearchBar() {
             </div>
           ) : suggestions.length > 0 ? (
             <ul className="space-y-2">
-              {suggestions.map((suggestion, index) => (
-                <li 
-                  key={index} 
-                  className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                >
-                  <FiMapPin className="text-gray-400 mr-3" />
-                  <div>
-                    <div className="font-medium">{suggestion.placeName}</div>
-                    <div className="text-sm text-gray-500">
-                      {suggestion.location.city}, {suggestion.location.state}
-                    </div>
-                  </div>
-                </li>
-              ))}
+               {suggestions.map((suggestion, index) => (
+                      <div key={index}>
+                      <li 
+                        className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
+                        onClick={() => handleSuggestionClick(suggestion?.location?.city)}
+                      >
+                        <FiMapPin className="text-gray-400 mr-2 w-4 h-4" />
+                        <div>
+                          <div className="font-medium text-sm">{suggestion.location.city}</div>
+                        </div>
+                      </li>
+                       <li 
+                        
+                        className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
+                        onClick={() => handleSuggestionClick(suggestion?.location?.state)}
+                      >
+                        <FiMapPin className="text-gray-400 mr-2 w-4 h-4" />
+                        <div>
+                          <div className="font-medium text-sm">{suggestion.location.state}</div>
+                        </div>
+                      </li>
+                      <li 
+                        className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
+                        onClick={() => handleSuggestionClick(suggestion.placeName, 'placeName', suggestion.location)}
+                      >
+                        <FiMapPin className="text-gray-400 mr-2 w-4 h-4" />
+                        <div>
+                          <div className="font-medium text-sm">{suggestion.placeName}</div>
+                          <div className="text-xs text-gray-500">
+                            {suggestion.location.city}, {suggestion.location.state}
+                          </div>
+                        </div>
+                      </li>
+                      </div>
+                    ))}
             </ul>
           ) : (
             <div className="text-gray-500 text-center py-4">
@@ -590,7 +625,7 @@ export default function SearchBar() {
                    
       {/* Guests Dropdown */}
       {showGuests && (
-        <div className="absolute top-22 right-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-10">
+        <div  ref={guestsRef} className="absolute top-22 right-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-2">
           <div className="flex items-center justify-between py-4">
             <div>
               <h4 className="font-semibold">Adults</h4>
@@ -617,7 +652,7 @@ export default function SearchBar() {
           <div className="flex items-center justify-between py-4 border-t border-gray-100">
             <div>
               <h4 className="font-semibold">Children</h4>
-              <p className="text-lg text-gray-500">Ages 2-12</p>
+              <p className="text-lg text-gray-500">Ages 3-12</p>
             </div>
             <div className="flex items-center space-x-3">
               <button 

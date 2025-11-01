@@ -37,6 +37,14 @@ const initialState = {
     hasMore: true,
     total: 0
   },
+   // NEW VOICE SEARCH STATE
+  voiceSearchResults: [],
+  voiceSearchResponse: null,
+  voiceSearchParsedQuery: null,
+  popularVoiceQueries: [],
+  voiceSearchSuggestions: [],
+  isVoiceSearching: false,
+  voiceSearchError: null,
   isSuggestionsLoading: false,
   suggestionsError: null,
   isLoading: false,
@@ -545,6 +553,58 @@ export const completeFinanceLegalStep = createAsyncThunk(
   }
 );
 
+// Add to propertySlice.js
+export const searchPropertiesByQuery = createAsyncThunk(
+  'property/searchByQuery',
+  async (queryParams, { rejectWithValue }) => {
+    try {
+      saveSearchQueryToLocal(queryParams);
+      const data = await propertyAPI.getPropertiesByQuery(queryParams);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+
+// Voice search thunk
+export const voiceSearchProperties = createAsyncThunk(
+  'property/voiceSearch',
+  async ({ voiceInput, userLocation }, { rejectWithValue }) => {
+    try {
+      const data = await propertyAPI.voiceSearch(voiceInput, userLocation);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const fetchPopularVoiceQueries = createAsyncThunk(
+  'property/popularVoiceQueries',
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await propertyAPI.getPopularVoiceQueries();
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const fetchVoiceSearchSuggestions = createAsyncThunk(
+  'property/voiceSearchSuggestions',
+  async (partialInput, { rejectWithValue }) => {
+    try {
+      const data = await propertyAPI.getVoiceSearchSuggestions(partialInput);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 // Property slice
 const propertySlice = createSlice({
   name: 'property',
@@ -583,6 +643,13 @@ const propertySlice = createSlice({
         hasMore: true,
         total: 0
       };
+    },
+    
+    clearVoiceSearchResults: (state) => {
+      state.voiceSearchResults = [];
+      state.voiceSearchResponse = null;
+      state.voiceSearchParsedQuery = null;
+      state.voiceSearchError = null;
     },
 
      // Add action to clear search query
@@ -657,7 +724,7 @@ const propertySlice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     });
-        // Get property by ID
+     // Get property by ID
     builder.addCase(getViewProperty.pending, (state) => {
       state.isLoading = true;
       state.error = null;
@@ -691,7 +758,7 @@ const propertySlice = createSlice({
     });
 
 
-      builder.addCase(getPropertiesByQuery.pending, (state, action) => {
+    builder.addCase(getPropertiesByQuery.pending, (state, action) => {
       state.isSearchLoading = true;
       state.searchError = null;
       
@@ -729,6 +796,28 @@ const propertySlice = createSlice({
       state.isSearchLoading = false;
       state.searchError = action.payload;
     });
+
+     builder.addCase(voiceSearchProperties.pending, (state) => {
+        state.isVoiceSearching = true;
+        state.voiceSearchError = null;
+      })
+      builder.addCase(voiceSearchProperties.fulfilled, (state, action) => {
+        state.isVoiceSearching = false;
+        state.voiceSearchResults = action.payload.data.properties;
+        state.voiceSearchResponse = action.payload.data.responseText;
+        state.voiceSearchParsedQuery = action.payload.data.parsedQuery;
+        state.searchQuery = action.payload.data.searchParams;
+      })
+      builder.addCase(voiceSearchProperties.rejected, (state, action) => {
+        state.isVoiceSearching = false;
+        state.voiceSearchError = action.payload;
+      })
+      builder.addCase(fetchPopularVoiceQueries.fulfilled, (state, action) => {
+        state.popularVoiceQueries = action.payload.data;
+      })
+      builder.addCase(fetchVoiceSearchSuggestions.fulfilled, (state, action) => {
+        state.voiceSearchSuggestions = action.payload.data;
+      });
 
     builder.addCase(sendEmailOTP.pending, (state) => {
       state.isLoading = true;
@@ -1108,6 +1197,27 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
+
+    // Add to extraReducers
+    builder.addCase(searchPropertiesByQuery.pending, (state) => {
+      state.isSearchLoading = true;
+      state.searchError = null;
+    });
+    builder.addCase(searchPropertiesByQuery.fulfilled, (state, action) => {
+      state.isSearchLoading = false;
+      state.searchResults = action.payload.properties || [];
+      state.searchPagination = {
+        currentPage: action.payload.currentPage || 0,
+        hasMore: action.payload.hasMore || false,
+        total: action.payload.total || 0
+      };
+    });
+    builder.addCase(searchPropertiesByQuery.rejected, (state, action) => {
+      state.isSearchLoading = false;
+      state.searchError = action.payload;
+    });
+    
+    
   },
 });
 

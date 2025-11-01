@@ -37,8 +37,6 @@ export default function PropertyBookingApp() {
       <div className="hidden lg:block">
         <Header />
       </div>
-
-    
      
 
       {/* Mobile Header Drawer */}
@@ -79,7 +77,8 @@ export default function PropertyBookingApp() {
             }
             
           </p>
-          <Button
+          <div className="md:hidden">
+            <Button
               onClick={() => setShowMobileHeader(true)}
               sx={{
                 color: '#1035ac',
@@ -95,6 +94,7 @@ export default function PropertyBookingApp() {
               <Search className="w-4 h-4 mr-1" />
               Search
             </Button>
+          </div>
           </div>
             {searchError && (
               <p className="text-red-600 text-sm mt-1">
