@@ -1902,60 +1902,85 @@ export const getSuggestions = async (req, res) =>{
   }
 }; 
 
-export const getPropertiesByQuery = async (req, res) =>{
+export const getPropertiesByQuery = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
-  try{
-    const {location, checkin, checkout, persons, skip, limit} = req.query; 
+  
+  try {
+    const {
+      location, 
+      checkin, 
+      checkout, 
+      persons, 
+      skip = 0,  // ✅ Add default value
+      limit = 10  // ✅ Add default value
+    } = req.query; 
 
-      const searchQuery = [
-        {
-          $search: {
-            index: 'suggestions',
-            compound: {
-              should: [
-                 {
-                      autocomplete: {
-                        query: location,
-                        path: 'placeName',
-                      },
-                    },
-                 {
-                      autocomplete: {
-                        query: location,
-                        path: 'location.city',
-                      },
-                    },
-                    {
-                      autocomplete: {
-                        query: location,
-                        path: 'location.state',
-                      },
-                    },
-                  
-              ].filter(Boolean), // Remove null clauses
-            },
+    // ✅ Parse and validate
+    const skipNum = parseInt(skip) || 0;
+    const limitNum = parseInt(limit) || 10;
+
+    const searchQuery = [
+      {
+        $search: {
+          index: 'suggestions',
+          compound: {
+            should: [
+              {
+                autocomplete: {
+                  query: location,
+                  path: 'placeName',
+                },
+              },
+              {
+                autocomplete: {
+                  query: location,
+                  path: 'location.city',
+                },
+              },
+              {
+                autocomplete: {
+                  query: location,
+                  path: 'location.state',
+                },
+              },
+            ].filter(Boolean),
           },
         },
-        {
-          $match: {
-            status: 'published', // 👈 Only include published hotels
-          },
+      },
+      {
+        $match: {
+          status: 'published',
         },
-        {$skip: (1 - parseInt(skip))* parseInt(limit) },
-        { $limit: parseInt(limit) }, // Limit results for performance
-      ];
-    
+      },
+      { $skip: skipNum }, // ✅ Fixed: Just use the skip value directly
+      { $limit: limitNum },
+    ];
 
     const propertyList = await Property.aggregate(searchQuery);
-    console.log(propertyList);
+    console.log('Properties found:', propertyList.length);
   
-    res.status(200).json(propertyList);
+    // ✅ Return structured response
+    res.status(200).json({
+      success: true,
+      data: propertyList,
+      pagination: {
+        skip: skipNum,
+        limit: limitNum,
+        count: propertyList.length,
+        hasMore: propertyList.length === limitNum
+      }
+    });
+    
   } catch (err) {
     console.error('Search suggestion error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error',
+      message: err.message 
+    });
   }
 };
 

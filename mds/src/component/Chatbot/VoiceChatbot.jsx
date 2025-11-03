@@ -113,11 +113,11 @@ const VoiceChatbot = () => {
         speakText(result.data.responseText);
       }
 
-      if (result.data.properties.length > 0) {
-        setTimeout(() => {
-          router.push(`/search-results?voiceSearch=true&q=${encodeURIComponent(command)}`);
-        }, 3000);
-      }
+      // if (result.data.properties.length > 0) {
+      //   setTimeout(() => {
+      //     router.push(`/search-results?voiceSearch=true&q=${encodeURIComponent(command)}`);
+      //   }, 3000);
+      // }
     } catch (error) {
       console.error('Voice search error:', error);
       const errorMsg = 'Sorry, I encountered an error while searching. Please try again.';

@@ -151,12 +151,44 @@ export const propertyAPI = {
     return response.data;
   },
 
-
-   getPropertiesByQuery: async (queryParams) => {
-    const { location, checkin, checkout, persons, skip = 0, limit = 10 } = queryParams;
-     const response = await axiosInstance.get(`/properties/property-listing?location=${encodeURIComponent(location)}&checkin=${checkin}&checkout=${checkout}&persons=${persons}&skip=${skip}&limit=${limit}`);
-     return response.data
-  },
+getPropertiesByQuery: async (queryParams) => {
+  const { 
+    location, 
+    checkin, 
+    checkout, 
+    persons, 
+    skip = 0, 
+    limit = 10 
+  } = queryParams;
+  
+  try {
+    const response = await axiosInstance.get(
+      `/properties/property-listing`, 
+      {
+        params: {
+          location,
+          checkin,
+          checkout,
+          persons,
+          skip,
+          limit
+        }
+      }
+    );
+    
+    console.log('API Response:', response); // ✅ Add this
+    console.log('Response data:', response.data); // ✅ Add this
+    
+    return response.data;
+  } catch (error) {
+    console.error('API Error Details:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    throw error;
+  }
+},
 
 
   // Finalize property
