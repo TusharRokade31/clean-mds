@@ -32,10 +32,11 @@ const initialState = {
   suggestionsCache: {},
   searchResults: [],
   searchQuery: getSearchQueryFromLocal(), // Load from localStorage on init
-  searchPagination: {
-    currentPage: 0,
-    hasMore: true,
-    total: 0
+ searchPagination: {
+    skip: 0,
+    limit: 10,
+    count: 0,
+    hasMore: false
   },
    // NEW VOICE SEARCH STATE
   voiceSearchResults: [],
@@ -145,12 +146,20 @@ export const getPropertiesByQuery = createAsyncThunk(
   async (queryParams, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.getPropertiesByQuery(queryParams);
+      
+      console.log('Thunk response:', response); // Debug log
+      
+      // ✅ Your backend returns: {success: true, data: Array, pagination: {...}}
       return {
-        properties: response,
-        queryParams // Include query params for potential caching
+        properties: response.data,  // ✅ Access the 'data' property
+        pagination: response.pagination,
+        queryParams
       };
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch properties by query');
+      console.error('Redux error:', error);
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to fetch properties'
+      );
     }
   }
 );
@@ -757,46 +766,33 @@ const propertySlice = createSlice({
       state.suggestionsError = action.payload;
     });
 
-
-    builder.addCase(getPropertiesByQuery.pending, (state, action) => {
+ builder.addCase(getPropertiesByQuery.pending, (state) => {
       state.isSearchLoading = true;
       state.searchError = null;
-      
-      if (action.meta.arg.skip === 1 || action.meta.arg.skip === '1') {
-        state.searchResults = [];
-        state.searchPagination.currentPage = 0;
-        state.searchPagination.hasMore = true;
-      }
-    });
-    
+    })
     builder.addCase(getPropertiesByQuery.fulfilled, (state, action) => {
       state.isSearchLoading = false;
-      const { properties, queryParams } = action.payload;
-      console.log(queryParams, "queryParams in slice")
+      const { properties, pagination, queryParams } = action.payload;
       
-      // Store current search query in state and localStorage
-      state.searchQuery = queryParams;
-      saveSearchQueryToLocal(queryParams);
+      console.log('Reducer - properties:', properties); // Debug log
+      console.log('Reducer - pagination:', pagination); // Debug log
       
-      if (queryParams.skip === 1 || queryParams.skip === '1') {
+      // If skip is 0 or undefined, replace results; otherwise append for pagination
+      if (!queryParams?.skip || queryParams.skip === 0) {
         state.searchResults = properties;
       } else {
         state.searchResults = [...state.searchResults, ...properties];
       }
       
-      state.searchPagination.currentPage = Math.floor(queryParams.skip / queryParams.limit);
-      state.searchPagination.hasMore = properties.length === queryParams.limit;
-      
-      if (properties.length < queryParams.limit) {
-        state.searchPagination.hasMore = false;
-      }
-    });
-    
+      state.searchPagination = pagination || { hasMore: false };
+      state.searchQuery = queryParams;
+      state.searchError = null;
+    })
     builder.addCase(getPropertiesByQuery.rejected, (state, action) => {
       state.isSearchLoading = false;
-      state.searchError = action.payload;
+      state.searchError = action.payload || 'Failed to fetch properties';
+      console.error('Search failed:', action.payload);
     });
-
      builder.addCase(voiceSearchProperties.pending, (state) => {
         state.isVoiceSearching = true;
         state.voiceSearchError = null;
