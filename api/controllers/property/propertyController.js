@@ -1992,13 +1992,13 @@ export const getFilteredProperties = async (req, res) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
-  
+
   try {
     const {
-      location, 
-      checkin, 
-      checkout, 
-      persons, 
+      location,
+      checkin,
+      checkout,
+      persons,
       skip = 0,
       limit = 10,
       // Filter parameters
@@ -2008,7 +2008,15 @@ export const getFilteredProperties = async (req, res) => {
       amenities,
       propertyType,
       sortBy = 'relevance'
-    } = req.query; 
+    } = req.query;
+
+    // Validate required parameters
+    if (!location) {
+      return res.status(400).json({
+        success: false,
+        error: 'Location parameter is required'
+      });
+    }
 
     const skipNum = parseInt(skip) || 0;
     const limitNum = parseInt(limit) || 10;
@@ -2018,9 +2026,11 @@ export const getFilteredProperties = async (req, res) => {
       priceRange: priceRange ? priceRange.split(',') : [],
       starRating: starRating ? starRating.split(',') : [],
       distance: distance ? distance.split(',') : [],
-      amenities: amenities ? amenities.split(',') : [],
+      amenities: amenities ? amenities.split(',').map(a => a.trim()) : [],
       propertyType: propertyType ? propertyType.split(',') : []
     };
+
+    console.log('Applied Filters:', filters); // Debug log
 
     // Build aggregation pipeline
     const pipeline = [
@@ -2052,7 +2062,7 @@ export const getFilteredProperties = async (req, res) => {
           },
         },
       },
-      
+
       // Stage 2: Match published properties
       {
         $match: {
@@ -2073,7 +2083,14 @@ export const getFilteredProperties = async (req, res) => {
         $match: buildFilterMatch(filters, checkin, checkout, persons)
       },
 
-      // Stage 5: Group back rooms
+      // Stage 5: Ensure rooms exist
+      {
+        $match: {
+          rooms: { $exists: true }
+        }
+      },
+
+      // Stage 6: Group back rooms
       {
         $group: {
           _id: '$_id',
@@ -2084,13 +2101,13 @@ export const getFilteredProperties = async (req, res) => {
         }
       },
 
-      // Stage 6: Reconstruct property document
+      // Stage 7: Reconstruct property document
       {
         $replaceRoot: {
           newRoot: {
             $mergeObjects: [
               '$property',
-              { 
+              {
                 rooms: '$rooms',
                 priceRange: {
                   min: '$minPrice',
@@ -2102,12 +2119,19 @@ export const getFilteredProperties = async (req, res) => {
         }
       },
 
-      // Stage 7: Apply sorting
+      // Stage 8: Remove duplicate rooms field from reconstruction
+      {
+        $project: {
+          'property.rooms': 0
+        }
+      },
+
+      // Stage 9: Apply sorting
       {
         $sort: buildSortStage(sortBy)
       },
 
-      // Stage 8: Get total count before pagination
+      // Stage 10: Get total count before pagination
       {
         $facet: {
           metadata: [{ $count: 'total' }],
@@ -2119,8 +2143,10 @@ export const getFilteredProperties = async (req, res) => {
       }
     ];
 
+    console.log('Aggregation Pipeline:', JSON.stringify(pipeline, null, 2)); // Debug log
+
     const result = await Property.aggregate(pipeline);
-    
+
     const properties = result[0]?.data || [];
     const total = result[0]?.metadata[0]?.total || 0;
 
@@ -2140,157 +2166,150 @@ export const getFilteredProperties = async (req, res) => {
       appliedFilters: filters,
       filterStats: filterStats
     });
-    
+
   } catch (err) {
     console.error('Filter properties error:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       error: 'Server error',
-      message: err.message 
+      message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   }
 };
-
 // Helper function to build filter match conditions
-function buildFilterMatch(filters, checkin, checkout, persons) {
-  const matchConditions = {};
+const buildFilterMatch = (filters, checkin, checkout, persons) => {
+  const match = {};
 
-  // Price Range Filter
-  if (filters.priceRange.length > 0) {
-    const priceConditions = [];
-    
-    filters.priceRange.forEach(range => {
-      switch (range) {
-        case 'Under ₹10,000':
-          priceConditions.push({ 
-            'rooms.pricing.baseAdultsCharge': { $lt: 10000 } 
-          });
-          break;
-        case '₹10,000 - ₹20,000':
-          priceConditions.push({ 
-            'rooms.pricing.baseAdultsCharge': { $gte: 10000, $lte: 20000 } 
-          });
-          break;
-        case '₹20,000 - ₹30,000':
-          priceConditions.push({ 
-            'rooms.pricing.baseAdultsCharge': { $gte: 20000, $lte: 30000 } 
-          });
-          break;
-        case 'Above ₹30,000':
-          priceConditions.push({ 
-            'rooms.pricing.baseAdultsCharge': { $gt: 30000 } 
-          });
-          break;
-      }
+  // Price range filter
+  if (filters.priceRange && filters.priceRange.length > 0) {
+    const priceRanges = filters.priceRange.map(range => {
+      const [min, max] = range.split('-').map(Number);
+      return {
+        'rooms.pricing.baseAdultsCharge': {
+          $gte: min,
+          $lte: max === undefined ? 999999 : max
+        }
+      };
     });
-
-    if (priceConditions.length > 0) {
-      matchConditions.$or = priceConditions;
+    if (priceRanges.length > 0) {
+      match.$or = priceRanges;
     }
   }
 
-  // Star Rating Filter (on property level, not room)
-  if (filters.starRating.length > 0) {
-    const ratings = filters.starRating.map(r => {
-      const match = r.match(/(\d+)/);
-      return match ? match[1] : null;
-    }).filter(r => r !== null);
-
-    if (ratings.length > 0) {
-      matchConditions['placeRating'] = { $in: ratings };
-    }
-  }
-
-  // Property Type Filter
-  if (filters.propertyType.length > 0) {
-    matchConditions['propertyType'] = { $in: filters.propertyType };
-  }
-
-  // Amenities Filter
-  if (filters.amenities.length > 0) {
-    const amenityConditions = [];
-
-    filters.amenities.forEach(amenity => {
-      const amenityKey = mapAmenityToSchemaKey(amenity);
-      if (amenityKey) {
-        // Check property-level amenities
-        amenityConditions.push({
-          [`amenities.${amenityKey.category}.${amenityKey.name}.available`]: true
-        });
-        
-        // Check room-level amenities
-        amenityConditions.push({
-          [`rooms.amenities.${amenityKey.category}.${amenityKey.name}.available`]: true
-        });
-      }
-    });
-
-    if (amenityConditions.length > 0) {
-      matchConditions.$and = matchConditions.$and || [];
-      matchConditions.$and.push({ $or: amenityConditions });
-    }
-  }
-
-  // Occupancy Filter
-  if (persons) {
-    matchConditions['rooms.occupancy.maximumOccupancy'] = { 
-      $gte: parseInt(persons) 
+  // Star rating filter
+  if (filters.starRating && filters.starRating.length > 0) {
+    match.placeRating = { 
+      $in: filters.starRating.map(rating => rating.toString()) 
     };
   }
 
-  // Availability Filter
-  if (checkin && checkout) {
-    const checkInDate = new Date(checkin);
-    const checkOutDate = new Date(checkout);
+  // Property type filter
+  if (filters.propertyType && filters.propertyType.length > 0) {
+    match.propertyType = { $in: filters.propertyType };
+  }
 
-    matchConditions['rooms.availability'] = {
+  // Amenities filter - Case insensitive with mapping
+  if (filters.amenities && filters.amenities.length > 0) {
+    // Map common variations to actual property names
+    const amenityMap = {
+      'wifi': 'Wifi',
+      'wi-fi': 'Wifi',
+      'ac': 'AirConditioning',
+      'airconditioning': 'AirConditioning',
+      'air conditioning': 'AirConditioning',
+      'laundry': 'Laundry',
+      'parking': 'Parking',
+      'newspaper': 'Newspaper',
+      'roomservice': 'Roomservice',
+      'room service': 'Roomservice',
+      'smokedetector': 'Smokedetector',
+      'smoke detector': 'Smokedetector',
+      'restaurant': 'RestaurantBhojnalay',
+      'restaurantbhojnalay': 'RestaurantBhojnalay',
+      'cctv': 'CCTV',
+      'fireextinguishers': 'Fireextinguishers',
+      'fire extinguishers': 'Fireextinguishers',
+      'luggageassistance': 'Luggageassistance',
+      'luggage assistance': 'Luggageassistance',
+      'tv': 'TV',
+      'hairdryer': 'Hairdryer',
+      'hair dryer': 'Hairdryer',
+      'hotwater': 'HotWater',
+      'hot water': 'HotWater',
+      'toiletries': 'Toiletries',
+      'mineralwater': 'MineralWater',
+      'mineral water': 'MineralWater',
+      'telephone': 'Telephone'
+    };
+    
+    const amenityConditions = filters.amenities.map(amenity => {
+      const normalizedAmenity = amenityMap[amenity.toLowerCase()] || amenity;
+      return {
+        $or: [
+          { [`amenities.mandatory.${normalizedAmenity}.available`]: true },
+          { [`rooms.amenities.mandatory.${normalizedAmenity}.available`]: true }
+        ]
+      };
+    });
+    
+    // All specified amenities must be available
+    match.$and = match.$and || [];
+    match.$and.push(...amenityConditions);
+  }
+
+  // Distance filter (if you have location coordinates)
+  if (filters.distance && filters.distance.length > 0) {
+    // This would require geospatial queries
+    // Implement based on your distance calculation logic
+  }
+
+  // Date availability filter
+  if (checkin && checkout) {
+    const checkinDate = new Date(checkin);
+    const checkoutDate = new Date(checkout);
+    
+    match['rooms.availability'] = {
       $elemMatch: {
-        startDate: { $lte: checkInDate },
-        endDate: { $gte: checkOutDate },
+        startDate: { $lte: checkinDate },
+        endDate: { $gte: checkoutDate },
         availableUnits: { $gt: 0 }
       }
     };
   }
 
-  return matchConditions;
-}
+  // Occupancy filter
+  if (persons) {
+    const personCount = parseInt(persons);
+    match['rooms.occupancy.maximumOccupancy'] = { $gte: personCount };
+  }
 
-// Map amenity names to schema keys
-function mapAmenityToSchemaKey(amenity) {
-  const amenityMap = {
-    'WiFi': { category: 'basicFacilities', name: 'wifi' },
-    'AC': { category: 'basicFacilities', name: 'airConditioning' },
-    'Parking': { category: 'basicFacilities', name: 'parking' },
-    'Hot Water': { category: 'basicFacilities', name: 'hotWater' },
-    'Meals': { category: 'foodBeverages', name: 'dining' },
-    'Pool': { category: 'commonArea', name: 'swimmingPool' },
-    'Lift': { category: 'basicFacilities', name: 'elevator' },
-    'Security': { category: 'security', name: '24x7Security' },
-    'Prayer Room': { category: 'commonArea', name: 'prayerRoom' },
-    'Beach Access': { category: 'commonArea', name: 'beachAccess' }
-  };
+  return match;
+};
 
-  return amenityMap[amenity] || null;
-}
 
 // Build sort stage
-function buildSortStage(sortBy) {
-  const sortMap = {
-    'relevance': { createdAt: -1 },
-    'price_low': { 'priceRange.min': 1 },
-    'price_high': { 'priceRange.max': -1 },
-    'rating': { placeRating: -1 },
+const buildSortStage = (sortBy) => {
+  const sortOptions = {
+    'relevance': { _id: 1 }, // Default sort
+    'price_low_high': { 'priceRange.min': 1 },
+    'price_high_low': { 'priceRange.min': -1 },
+    'rating_high_low': { placeRating: -1 },
+    'rating_low_high': { placeRating: 1 },
     'newest': { createdAt: -1 },
-    'popular': { bookingSince: 1 }
+    'oldest': { createdAt: 1 },
+    'name_a_z': { placeName: 1 },
+    'name_z_a': { placeName: -1 }
   };
 
-  return sortMap[sortBy] || sortMap.relevance;
-}
+  return sortOptions[sortBy] || sortOptions.relevance;
+};
 
 // Calculate filter statistics
-async function calculateFilterStats(location, appliedFilters) {
+const calculateFilterStats = async (location, appliedFilters) => {
   try {
-    const basePipeline = [
+    const pipeline = [
+      // Search by location
       {
         $search: {
           index: 'suggestions',
@@ -2322,93 +2341,74 @@ async function calculateFilterStats(location, appliedFilters) {
         $match: {
           status: 'published',
         },
+      },
+      {
+        $unwind: {
+          path: '$rooms',
+          preserveNullAndEmptyArrays: false
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          minPrice: { $min: '$rooms.pricing.baseAdultsCharge' },
+          maxPrice: { $max: '$rooms.pricing.baseAdultsCharge' },
+          propertyTypes: { $addToSet: '$propertyType' },
+          ratings: { $addToSet: '$placeRating' },
+          totalProperties: { $sum: 1 }
+        }
       }
     ];
 
-    const stats = await Property.aggregate([
-      ...basePipeline,
-      {
-        $facet: {
-          // Price range distribution
-          priceRanges: [
-            { $unwind: '$rooms' },
-            {
-              $bucket: {
-                groupBy: '$rooms.pricing.baseAdultsCharge',
-                boundaries: [0, 10000, 20000, 30000, 100000],
-                default: 'Other',
-                output: {
-                  count: { $sum: 1 }
-                }
-              }
-            }
-          ],
-          
-          // Star rating distribution
-          starRatings: [
-            {
-              $group: {
-                _id: '$placeRating',
-                count: { $sum: 1 }
-              }
-            },
-            { $sort: { _id: -1 } }
-          ],
-          
-          // Property type distribution
-          propertyTypes: [
-            {
-              $group: {
-                _id: '$propertyType',
-                count: { $sum: 1 }
-              }
-            }
-          ],
-          
-          // Total properties
-          total: [
-            { $count: 'count' }
-          ]
-        }
-      }
-    ]);
+    const stats = await Property.aggregate(pipeline);
+    
+    if (stats.length === 0) {
+      return {
+        priceRange: { min: 0, max: 0 },
+        propertyTypes: [],
+        ratings: [],
+        totalProperties: 0
+      };
+    }
 
     return {
-      priceRanges: formatPriceRanges(stats[0]?.priceRanges || []),
-      starRatings: stats[0]?.starRatings || [],
-      propertyTypes: stats[0]?.propertyTypes || [],
-      total: stats[0]?.total[0]?.count || 0,
-      // Distance stats would require geocoding - can be added later
-      distanceRanges: {
-        'Within 500m': 12,
-        '500m - 1km': 8,
-        '1km - 2km': 4
-      }
+      priceRange: {
+        min: stats[0].minPrice || 0,
+        max: stats[0].maxPrice || 0
+      },
+      propertyTypes: stats[0].propertyTypes || [],
+      ratings: stats[0].ratings.sort((a, b) => b - a) || [],
+      totalProperties: stats[0].totalProperties || 0
     };
   } catch (error) {
     console.error('Error calculating filter stats:', error);
-    return null;
+    return {
+      priceRange: { min: 0, max: 0 },
+      propertyTypes: [],
+      ratings: [],
+      totalProperties: 0
+    };
   }
-}
+};
 
 // Format price ranges for UI
 function formatPriceRanges(ranges) {
   const formatted = {
-    'Under ₹10,000': 0,
-    '₹10,000 - ₹20,000': 0,
-    '₹20,000 - ₹30,000': 0,
-    'Above ₹30,000': 0
+    'Under ₹10000': 0,
+    '₹10000 - ₹20000': 0,
+    '₹20000 - ₹30000': 0,
+    'Above ₹30000': 0
   };
 
   ranges.forEach(range => {
     if (range._id < 10000) {
-      formatted['Under ₹10,000'] += range.count;
+      formatted['Under ₹10000'] += range.count;
     } else if (range._id >= 10000 && range._id <= 20000) {
-      formatted['₹10,000 - ₹20,000'] += range.count;
+      formatted['₹10000 - ₹20000'] += range.count;
     } else if (range._id > 20000 && range._id <= 30000) {
-      formatted['₹20,000 - ₹30,000'] += range.count;
+      formatted['₹20000 - ₹30000'] += range.count;
     } else {
-      formatted['Above ₹30,000'] += range.count;
+      formatted['Above ₹30000'] += range.count;
     }
   });
 
