@@ -43,6 +43,7 @@ import {
   getPropertiesPendingChanges,
   getPropertyChangeHistory,
   getPropertyStatus,
+  getFilteredProperties,
 } from '../controllers/property/propertyController.js';
 
 
@@ -75,6 +76,7 @@ import { check } from 'express-validator' ;
 import { upload, uploadMedia, validateImageSize } from '../middleware/uploadMiddleware.js';
 import { validatePropertyQuery } from '../middleware/validatePropertyQuery.js';
 import { setDefaultLocation } from '../middleware/defaultLocation.js';
+import { validateFilterQuery } from '../middleware/validation.js';
 
 
 const router = express.Router();
@@ -82,6 +84,14 @@ const router = express.Router();
 router.get('/suggestions', getSuggestions);
 
 router.get('/property-listing',setDefaultLocation, validatePropertyQuery, getPropertiesByQuery);
+
+//filter
+router.get(
+  '/property-listing-filter',
+  setDefaultLocation,
+  validateFilterQuery, 
+  getFilteredProperties
+);
 
 //Search Property Based on Location, Date and Guest
 router.get('/search-listing', searchProperties);

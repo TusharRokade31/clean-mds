@@ -1985,6 +1985,436 @@ export const getPropertiesByQuery = async (req, res) => {
 };
 
 
+// controllers/propertyController.js
+
+export const getFilteredProperties = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  
+  try {
+    const {
+      location, 
+      checkin, 
+      checkout, 
+      persons, 
+      skip = 0,
+      limit = 10,
+      // Filter parameters
+      priceRange,
+      starRating,
+      distance,
+      amenities,
+      propertyType,
+      sortBy = 'relevance'
+    } = req.query; 
+
+    const skipNum = parseInt(skip) || 0;
+    const limitNum = parseInt(limit) || 10;
+
+    // Parse filter arrays from comma-separated strings
+    const filters = {
+      priceRange: priceRange ? priceRange.split(',') : [],
+      starRating: starRating ? starRating.split(',') : [],
+      distance: distance ? distance.split(',') : [],
+      amenities: amenities ? amenities.split(',') : [],
+      propertyType: propertyType ? propertyType.split(',') : []
+    };
+
+    // Build aggregation pipeline
+    const pipeline = [
+      // Stage 1: Search by location
+      {
+        $search: {
+          index: 'suggestions',
+          compound: {
+            should: [
+              {
+                autocomplete: {
+                  query: location,
+                  path: 'placeName',
+                },
+              },
+              {
+                autocomplete: {
+                  query: location,
+                  path: 'location.city',
+                },
+              },
+              {
+                autocomplete: {
+                  query: location,
+                  path: 'location.state',
+                },
+              },
+            ],
+          },
+        },
+      },
+      
+      // Stage 2: Match published properties
+      {
+        $match: {
+          status: 'published',
+        },
+      },
+
+      // Stage 3: Unwind rooms for filtering
+      {
+        $unwind: {
+          path: '$rooms',
+          preserveNullAndEmptyArrays: false
+        }
+      },
+
+      // Stage 4: Apply filters
+      {
+        $match: buildFilterMatch(filters, checkin, checkout, persons)
+      },
+
+      // Stage 5: Group back rooms
+      {
+        $group: {
+          _id: '$_id',
+          property: { $first: '$$ROOT' },
+          rooms: { $push: '$rooms' },
+          minPrice: { $min: '$rooms.pricing.baseAdultsCharge' },
+          maxPrice: { $max: '$rooms.pricing.baseAdultsCharge' }
+        }
+      },
+
+      // Stage 6: Reconstruct property document
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              '$property',
+              { 
+                rooms: '$rooms',
+                priceRange: {
+                  min: '$minPrice',
+                  max: '$maxPrice'
+                }
+              }
+            ]
+          }
+        }
+      },
+
+      // Stage 7: Apply sorting
+      {
+        $sort: buildSortStage(sortBy)
+      },
+
+      // Stage 8: Get total count before pagination
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: [
+            { $skip: skipNum },
+            { $limit: limitNum }
+          ]
+        }
+      }
+    ];
+
+    const result = await Property.aggregate(pipeline);
+    
+    const properties = result[0]?.data || [];
+    const total = result[0]?.metadata[0]?.total || 0;
+
+    // Calculate filter statistics for UI
+    const filterStats = await calculateFilterStats(location, filters);
+
+    res.status(200).json({
+      success: true,
+      data: properties,
+      pagination: {
+        skip: skipNum,
+        limit: limitNum,
+        count: properties.length,
+        total: total,
+        hasMore: skipNum + properties.length < total
+      },
+      appliedFilters: filters,
+      filterStats: filterStats
+    });
+    
+  } catch (err) {
+    console.error('Filter properties error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error',
+      message: err.message 
+    });
+  }
+};
+
+// Helper function to build filter match conditions
+function buildFilterMatch(filters, checkin, checkout, persons) {
+  const matchConditions = {};
+
+  // Price Range Filter
+  if (filters.priceRange.length > 0) {
+    const priceConditions = [];
+    
+    filters.priceRange.forEach(range => {
+      switch (range) {
+        case 'Under ₹10,000':
+          priceConditions.push({ 
+            'rooms.pricing.baseAdultsCharge': { $lt: 10000 } 
+          });
+          break;
+        case '₹10,000 - ₹20,000':
+          priceConditions.push({ 
+            'rooms.pricing.baseAdultsCharge': { $gte: 10000, $lte: 20000 } 
+          });
+          break;
+        case '₹20,000 - ₹30,000':
+          priceConditions.push({ 
+            'rooms.pricing.baseAdultsCharge': { $gte: 20000, $lte: 30000 } 
+          });
+          break;
+        case 'Above ₹30,000':
+          priceConditions.push({ 
+            'rooms.pricing.baseAdultsCharge': { $gt: 30000 } 
+          });
+          break;
+      }
+    });
+
+    if (priceConditions.length > 0) {
+      matchConditions.$or = priceConditions;
+    }
+  }
+
+  // Star Rating Filter (on property level, not room)
+  if (filters.starRating.length > 0) {
+    const ratings = filters.starRating.map(r => {
+      const match = r.match(/(\d+)/);
+      return match ? match[1] : null;
+    }).filter(r => r !== null);
+
+    if (ratings.length > 0) {
+      matchConditions['placeRating'] = { $in: ratings };
+    }
+  }
+
+  // Property Type Filter
+  if (filters.propertyType.length > 0) {
+    matchConditions['propertyType'] = { $in: filters.propertyType };
+  }
+
+  // Amenities Filter
+  if (filters.amenities.length > 0) {
+    const amenityConditions = [];
+
+    filters.amenities.forEach(amenity => {
+      const amenityKey = mapAmenityToSchemaKey(amenity);
+      if (amenityKey) {
+        // Check property-level amenities
+        amenityConditions.push({
+          [`amenities.${amenityKey.category}.${amenityKey.name}.available`]: true
+        });
+        
+        // Check room-level amenities
+        amenityConditions.push({
+          [`rooms.amenities.${amenityKey.category}.${amenityKey.name}.available`]: true
+        });
+      }
+    });
+
+    if (amenityConditions.length > 0) {
+      matchConditions.$and = matchConditions.$and || [];
+      matchConditions.$and.push({ $or: amenityConditions });
+    }
+  }
+
+  // Occupancy Filter
+  if (persons) {
+    matchConditions['rooms.occupancy.maximumOccupancy'] = { 
+      $gte: parseInt(persons) 
+    };
+  }
+
+  // Availability Filter
+  if (checkin && checkout) {
+    const checkInDate = new Date(checkin);
+    const checkOutDate = new Date(checkout);
+
+    matchConditions['rooms.availability'] = {
+      $elemMatch: {
+        startDate: { $lte: checkInDate },
+        endDate: { $gte: checkOutDate },
+        availableUnits: { $gt: 0 }
+      }
+    };
+  }
+
+  return matchConditions;
+}
+
+// Map amenity names to schema keys
+function mapAmenityToSchemaKey(amenity) {
+  const amenityMap = {
+    'WiFi': { category: 'basicFacilities', name: 'wifi' },
+    'AC': { category: 'basicFacilities', name: 'airConditioning' },
+    'Parking': { category: 'basicFacilities', name: 'parking' },
+    'Hot Water': { category: 'basicFacilities', name: 'hotWater' },
+    'Meals': { category: 'foodBeverages', name: 'dining' },
+    'Pool': { category: 'commonArea', name: 'swimmingPool' },
+    'Lift': { category: 'basicFacilities', name: 'elevator' },
+    'Security': { category: 'security', name: '24x7Security' },
+    'Prayer Room': { category: 'commonArea', name: 'prayerRoom' },
+    'Beach Access': { category: 'commonArea', name: 'beachAccess' }
+  };
+
+  return amenityMap[amenity] || null;
+}
+
+// Build sort stage
+function buildSortStage(sortBy) {
+  const sortMap = {
+    'relevance': { createdAt: -1 },
+    'price_low': { 'priceRange.min': 1 },
+    'price_high': { 'priceRange.max': -1 },
+    'rating': { placeRating: -1 },
+    'newest': { createdAt: -1 },
+    'popular': { bookingSince: 1 }
+  };
+
+  return sortMap[sortBy] || sortMap.relevance;
+}
+
+// Calculate filter statistics
+async function calculateFilterStats(location, appliedFilters) {
+  try {
+    const basePipeline = [
+      {
+        $search: {
+          index: 'suggestions',
+          compound: {
+            should: [
+              {
+                autocomplete: {
+                  query: location,
+                  path: 'placeName',
+                },
+              },
+              {
+                autocomplete: {
+                  query: location,
+                  path: 'location.city',
+                },
+              },
+              {
+                autocomplete: {
+                  query: location,
+                  path: 'location.state',
+                },
+              },
+            ],
+          },
+        },
+      },
+      {
+        $match: {
+          status: 'published',
+        },
+      }
+    ];
+
+    const stats = await Property.aggregate([
+      ...basePipeline,
+      {
+        $facet: {
+          // Price range distribution
+          priceRanges: [
+            { $unwind: '$rooms' },
+            {
+              $bucket: {
+                groupBy: '$rooms.pricing.baseAdultsCharge',
+                boundaries: [0, 10000, 20000, 30000, 100000],
+                default: 'Other',
+                output: {
+                  count: { $sum: 1 }
+                }
+              }
+            }
+          ],
+          
+          // Star rating distribution
+          starRatings: [
+            {
+              $group: {
+                _id: '$placeRating',
+                count: { $sum: 1 }
+              }
+            },
+            { $sort: { _id: -1 } }
+          ],
+          
+          // Property type distribution
+          propertyTypes: [
+            {
+              $group: {
+                _id: '$propertyType',
+                count: { $sum: 1 }
+              }
+            }
+          ],
+          
+          // Total properties
+          total: [
+            { $count: 'count' }
+          ]
+        }
+      }
+    ]);
+
+    return {
+      priceRanges: formatPriceRanges(stats[0]?.priceRanges || []),
+      starRatings: stats[0]?.starRatings || [],
+      propertyTypes: stats[0]?.propertyTypes || [],
+      total: stats[0]?.total[0]?.count || 0,
+      // Distance stats would require geocoding - can be added later
+      distanceRanges: {
+        'Within 500m': 12,
+        '500m - 1km': 8,
+        '1km - 2km': 4
+      }
+    };
+  } catch (error) {
+    console.error('Error calculating filter stats:', error);
+    return null;
+  }
+}
+
+// Format price ranges for UI
+function formatPriceRanges(ranges) {
+  const formatted = {
+    'Under ₹10,000': 0,
+    '₹10,000 - ₹20,000': 0,
+    '₹20,000 - ₹30,000': 0,
+    'Above ₹30,000': 0
+  };
+
+  ranges.forEach(range => {
+    if (range._id < 10000) {
+      formatted['Under ₹10,000'] += range.count;
+    } else if (range._id >= 10000 && range._id <= 20000) {
+      formatted['₹10,000 - ₹20,000'] += range.count;
+    } else if (range._id > 20000 && range._id <= 30000) {
+      formatted['₹20,000 - ₹30,000'] += range.count;
+    } else {
+      formatted['Above ₹30,000'] += range.count;
+    }
+  });
+
+  return formatted;
+}
+
 
 export const getPropertiesPendingChanges = async (req, res) => {
   try {

@@ -1,5 +1,5 @@
 import { Button } from "@mui/material"
-import { Star, Wifi, Car, Utensils, Shield, Droplets, Badge, Heart } from "lucide-react"
+import { Star, Wifi, Car, Utensils, Shield, Droplets, MapPin, Heart } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 
@@ -17,6 +17,7 @@ export function PropertyCard({
   images = [],
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isWishlisted, setIsWishlisted] = useState(false)
 
   const getAmenityIcon = (amenity) => {
     switch (amenity.toLowerCase()) {
@@ -42,98 +43,120 @@ export function PropertyCard({
   const currentImage = images[currentImageIndex]
   const imageUrl = currentImage ? `${process.env.NEXT_PUBLIC_IMAGE_URL}${currentImage.url}` : null
   
-  // Show up to 4 images for thumbnails
   const thumbnailImages = images.slice(0, 4)
   const hasMoreImages = images.length > 4
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-blue-200 group">
       <div className="flex flex-col">
         {/* Mobile Layout */}
         <div className="md:hidden">
           {/* Image Section */}
           <div className="relative w-full">
-            {/* Best Value Badge */}
-             {verified && (
-              <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1 z-5">
-                ✓ Verified
+            {/* Verified Badge */}
+            {verified && (
+              <div className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
+                <span className="text-sm">✓</span> Verified
               </div>
             )}
             
             {/* Wishlist Heart */}
-           
+            <button
+              onClick={() => setIsWishlisted(!isWishlisted)}
+              className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full z-10 shadow-lg hover:scale-110 transition-transform"
+            >
+              <Heart 
+                className={`w-5 h-5 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
+              />
+            </button>
             
             {/* Main Image */}
-            <div className="h-48 relative overflow-hidden">
+            <div className="h-56 relative overflow-hidden">
               {imageUrl ? (
                 <img
                   src={imageUrl}
                   alt={currentImage.filename || name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 text-6xl">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                      🏠
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+                      <span className="text-3xl">🏨</span>
                     </div>
-                    <div className="text-sm text-gray-500">Hotel Image</div>
+                    <div className="text-sm text-gray-500 font-medium">Hotel Image</div>
                   </div>
+                </div>
+              )}
+              {/* Image Counter */}
+              {images.length > 0 && (
+                <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium">
+                  {currentImageIndex + 1} / {images.length}
                 </div>
               )}
             </div>
           </div>
 
           {/* Content Section */}
-          <div className="p-4">
-            <h3 className="text-lg font-semibold mb-1">{name}</h3>
-            <p className="text-gray-600 text-sm mb-2">{location}</p>
+          <div className="p-5">
+            <h3 className="text-xl font-bold mb-1 text-gray-900 group-hover:text-blue-600 transition-colors">{name}</h3>
+            <div className="flex items-center gap-1 text-gray-600 text-sm mb-3">
+              <MapPin className="w-4 h-4 text-red-500" />
+              <p>{location}</p>
+            </div>
 
             {/* Rating */}
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-4 h-4 ${i < Math.floor(rating) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-                  />
-                ))}
+            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
+              <div className="flex items-center bg-gradient-to-r from-yellow-400 to-orange-400 px-3 py-1.5 rounded-lg shadow-md">
+                <Star className="w-4 h-4 text-white fill-white mr-1" />
+                <span className="font-bold text-white text-sm">{rating}</span>
               </div>
-              <span className="font-medium text-sm">{rating} ({reviews} reviews)</span>
+              <span className="text-sm text-gray-600">
+                <span className="font-semibold text-gray-800">{reviews}</span> reviews
+              </span>
             </div>
 
             {/* Amenities */}
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-5">
               {amenities.slice(0, 4).map((amenity) => (
-                <div key={amenity} className="bg-gray-100 px-2 py-1 rounded text-xs">
-                  {amenity}
+                <div key={amenity} className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 flex items-center gap-1">
+                  {getAmenityIcon(amenity)}
+                  <span>{amenity}</span>
                 </div>
               ))}
             </div>
 
             {/* Price and Button */}
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center pt-4 border-t border-gray-100">
               <div>
                 <div className="text-sm text-gray-400 line-through">₹{Math.round(price * 1.2).toLocaleString()}</div>
-                <div className="text-xl font-bold text-blue-600">₹{price.toLocaleString()}</div>
-                <div className="text-xs text-gray-500">per night</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  ₹{price.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500">per night + taxes</div>
               </div>
               <Link href={`/hotel-details/${id}`}>
                 <Button 
                   variant="contained"
                   sx={{
-                    backgroundColor: '#1035ac',
+                    background: 'linear-gradient(135deg, #1035ac 0%, #7c3aed 100%)',
                     color: 'white',
                     textTransform: 'none',
-                    borderRadius: '8px',
+                    borderRadius: '12px',
                     px: 3,
-                    py: 1,
+                    py: 1.5,
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    boxShadow: '0 4px 12px rgba(16, 53, 172, 0.3)',
                     '&:hover': {
-                      backgroundColor: '#0d2d8f'
-                    }
+                      background: 'linear-gradient(135deg, #0d2d8f 0%, #6d28d9 100%)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 16px rgba(16, 53, 172, 0.4)',
+                    },
+                    transition: 'all 0.3s ease'
                   }}
                 >
-                  View Deal
+                  View Details
                 </Button>
               </Link>
             </div>
@@ -143,34 +166,52 @@ export function PropertyCard({
         {/* Desktop Layout */}
         <div className="hidden md:flex">
           {/* Image Section */}
-          <div className="relative flex-1 w-full lg:w-64 bg-gray-200">
+          <div className="relative w-80 bg-gray-200">
             {verified && (
-              <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1 z-5">
-                ✓ Verified
+              <div className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
+                <span className="text-sm">✓</span> Verified
               </div>
             )}
-            <div className="absolute top-3 right-3 bg-white px-2 py-1 rounded text-xs font-medium z-10">
-              {distance}
-            </div>
+            
+            {/* Wishlist Heart */}
+            <button
+              onClick={() => setIsWishlisted(!isWishlisted)}
+              className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full z-10 shadow-lg hover:scale-110 transition-transform"
+            >
+              <Heart 
+                className={`w-5 h-5 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
+              />
+            </button>
+            
+            {distance && (
+              <div className="absolute top-3 right-14 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold z-10 shadow-md">
+                {distance}
+              </div>
+            )}
             
             {/* Main Image */}
-            <div className="h-48 lg:h-40 relative overflow-hidden rounded-t-lg">
+            <div className="h-52 relative overflow-hidden rounded-tl-2xl">
               {imageUrl ? (
                 <img
                   src={imageUrl}
                   alt={currentImage.filename || name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-6xl opacity-50">
-                  🏛️
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+                      <span className="text-3xl">🏨</span>
+                    </div>
+                    <div className="text-sm text-gray-500 font-medium">Hotel Image</div>
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Thumbnails */}
             {thumbnailImages.length > 0 && (
-              <div className="flex gap-1 p-2 bg-gray-50 rounded-b-lg">
+              <div className="flex gap-1.5 p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-bl-2xl">
                 {thumbnailImages.map((image, index) => {
                   const thumbUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL}${image.url}`
                   const isLast = index === 3 && hasMoreImages
@@ -178,22 +219,22 @@ export function PropertyCard({
                   return (
                     <div
                       key={index}
-                      className={`w-16 h-16 relative cursor-pointer overflow-hidden rounded-md ${
-                        index === currentImageIndex ? 'ring-2 ring-blue-500' : ''
-                      }`}
+                      className={`w-16 h-16 relative cursor-pointer overflow-hidden rounded-lg ${
+                        index === currentImageIndex ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                      } hover:scale-105 transition-all duration-300 shadow-md`}
                       onClick={() => handleThumbnailClick(index)}
                     >
                       <img
                         src={thumbUrl}
                         alt={image.filename || `${name} ${index + 1}`}
-                        className="w-full h-full object-cover hover:opacity-80 transition-opacity"
+                        className="w-full h-full object-cover hover:brightness-110 transition-all"
                       />
                       
                       {isLast && (
-                        <div className="absolute inset-0 backdrop-blur-sm bg-opacity-60 flex items-center justify-center">
-                          <div className="text-white text-xs font-medium text-center">
-                            <div className="text-sm font-bold">View All</div>
-                            <div className="text-xs">{images.length} photos</div>
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                          <div className="text-white text-xs font-bold text-center">
+                            <div className="text-base">+{images.length - 4}</div>
+                            <div className="text-[10px]">more</div>
                           </div>
                         </div>
                       )}
@@ -205,49 +246,63 @@ export function PropertyCard({
           </div>
 
           {/* Desktop Content */}
-          <div className="flex-2 p-6">
-            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+          <div className="flex-1 p-6">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 h-full">
               <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-1">{name}</h3>
-                <p className="text-gray-600 mb-3">{location}</p>
+                <h3 className="text-2xl font-bold mb-1 text-gray-900 group-hover:text-blue-600 transition-colors">{name}</h3>
+                <div className="flex items-center gap-1 text-gray-600 mb-4">
+                  <MapPin className="w-4 h-4 text-red-500" />
+                  <p className="font-medium">{location}</p>
+                </div>
 
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-4 h-4 ${i < Math.floor(rating) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-                      />
-                    ))}
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="flex items-center bg-gradient-to-r from-yellow-400 to-orange-400 px-3 py-1.5 rounded-lg shadow-md">
+                    <Star className="w-4 h-4 text-white fill-white mr-1" />
+                    <span className="font-bold text-white">{rating}</span>
                   </div>
-                  <span className="font-medium">({rating})</span>
-                  <span className="text-gray-500">• {reviews} reviews</span>
+                  <span className="text-gray-600">
+                    <span className="font-semibold text-gray-800">{reviews}</span> reviews
+                  </span>
                 </div>
 
-               <div className="flex flex-wrap gap-2 mb-4">
-              {amenities.slice(0, 4).map((amenity) => (
-                <div key={amenity} className="bg-gray-100 px-2 py-1 rounded text-xs">
-                  {amenity}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {amenities.slice(0, 6).map((amenity) => (
+                    <div key={amenity} className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 flex items-center gap-1">
+                      {getAmenityIcon(amenity)}
+                      <span>{amenity}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
               </div>
 
-              <div className="text-right lg:ml-6">
-                <div className="text-2xl font-bold text-blue-600 mb-1">₹{price.toLocaleString()}</div>
-                <div className="text-sm text-gray-500 mb-1">per night</div>
-                <div className="text-xs text-gray-400 mb-4">+ ₹96 taxes</div>
+              <div className="text-right lg:ml-6 flex flex-col justify-between h-full">
+                <div>
+                  <div className="text-sm text-gray-400 line-through mb-1">₹{Math.round(price * 1.2).toLocaleString()}</div>
+                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1">
+                    ₹{price.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-500 mb-1">per night</div>
+                  <div className="text-xs text-gray-400 mb-5">+ ₹{Math.round(price * 0.18)} taxes</div>
+                </div>
+                
                 <Link href={`/hotel-details/${id}`}>
                   <Button sx={{
-                    backgroundColor: '#1035ac',
+                    background: 'linear-gradient(135deg, #1035ac 0%, #7c3aed 100%)',
                     color: 'white',
                     textTransform: 'none',
-                    borderRadius: '8px',
-                    px: 3,
-                    py: 1,
+                    borderRadius: '12px',
+                    px: 4,
+                    py: 1.5,
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    boxShadow: '0 4px 12px rgba(16, 53, 172, 0.3)',
                     '&:hover': {
-                      backgroundColor: '#0d2d8f'
-                    }
+                      background: 'linear-gradient(135deg, #0d2d8f 0%, #6d28d9 100%)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 16px rgba(16, 53, 172, 0.4)',
+                    },
+                    transition: 'all 0.3s ease',
+                    width: '100%'
                   }} >
                     View Details
                   </Button>

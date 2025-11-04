@@ -14,7 +14,7 @@ export default function PropertyBookingApp() {
   const dispatch = useDispatch();
   const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [showMobileSortModal, setShowMobileSortModal] = useState(false);
-  const [showMobileHeader, setShowMobileHeader] = useState(false);
+  const [showMobileHeader, setShowMobileHeader] = useState(false); // New state
   
   const { 
     searchResults, 
@@ -24,24 +24,14 @@ export default function PropertyBookingApp() {
     searchPagination 
   } = useSelector((state) => state.property);
 
+
+  console.log(searchQuery, "serach query ")
+
   useEffect(() => {
-    // ✅ Only dispatch if searchQuery exists and has required fields
-    if (searchQuery?.location && searchQuery?.checkin && searchQuery?.checkout) {
+    if (!searchQuery || searchResults.length === 0) {
       dispatch(getPropertiesByQuery(searchQuery));
     }
-  }, [dispatch]); // Only run once on mount
-
-  // ✅ Show loading state if no searchQuery yet
-  if (!searchQuery) {
-    return (
-      <div className="min-h-screen py-20 bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">No search query found</h2>
-          <p className="text-gray-600">Please use the search form to find properties</p>
-        </div>
-      </div>
-    );
-  }
+  }, [dispatch]);
 
   return (
     <div className="min-h-screen py-20 bg-gray-50">
@@ -51,6 +41,7 @@ export default function PropertyBookingApp() {
         <Header />
       </div>
      
+
       {/* Mobile Header Drawer */}
       <Drawer
         anchor="top"
@@ -75,37 +66,40 @@ export default function PropertyBookingApp() {
       </Drawer>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Rest of your existing code remains the same */}
         <div className="flex flex-col px-4 lg:flex-row lg:items-center lg:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold mb-2">
-              {/* ✅ Safe access with optional chaining */}
-              Sacred Stays in {searchQuery?.location || 'Your Destination'}
+              {/* Sacred Stays in {searchQuery?.location} */}
             </h1>
-            <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
               <p className="text-gray-600">
-                {isSearchLoading ? 
-                  "Loading properties..." : 
-                  `Showing ${searchResults?.length || 0} properties for ${searchQuery?.persons || 0} guests • ${searchQuery?.checkin || ''} to ${searchQuery?.checkout || ''}`
-                }
-              </p>
-              <div className="md:hidden">
-                <Button
-                  onClick={() => setShowMobileHeader(true)}
-                  sx={{
-                    color: '#1035ac',
-                    border: '1px solid #1035ac',
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                    minWidth: 'auto',
-                    px: 2,
-                    py: 0.5
-                  }}
-                >
-                  <Search className="w-4 h-4 mr-1" />
-                  Search
-                </Button>
-              </div>
-            </div>
+            {isSearchLoading ? 
+              "Loading properties..." : 
+              `Showing ${searchResults.length} properties`
+              // `Showing ${searchResults.length} properties for ${searchQuery?.persons} guests • ${searchQuery?.checkin} to ${searchQuery?.checkout}`
+            }
+            
+          </p>
+          <div className="md:hidden">
+            <Button
+              onClick={() => setShowMobileHeader(true)}
+              sx={{
+                color: '#1035ac',
+                border: '1px solid #1035ac',
+                borderRadius: '8px',
+                textTransform: 'none',
+                minWidth: 'auto',
+                px: 2,
+                py: 0.5
+              }}
+            >
+              {/* <Menu className="w-4 h-4 mr-1" /> */}
+              <Search className="w-4 h-4 mr-1" />
+              Search
+            </Button>
+          </div>
+          </div>
             {searchError && (
               <p className="text-red-600 text-sm mt-1">
                 Error: {searchError}
@@ -142,13 +136,14 @@ export default function PropertyBookingApp() {
           </div>
         </div>
 
-        {/* Mobile Filter and Hotels Count Bar */}
+        {/* Mobile Filter and Hotels Count Bar - Updated */}
         <div className="lg:hidden mb-4 px-4">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-600">
-              {searchResults?.length || 0} hotels found
+              {searchResults.length} hotels found
             </div>
             <div className="flex gap-2">
+             
               <Button
                 onClick={() => setShowMobileFilter(true)}
                 sx={{
@@ -184,17 +179,17 @@ export default function PropertyBookingApp() {
           />
 
           <PropertyList 
-            properties={searchResults || []}
+            properties={searchResults}
             isLoading={isSearchLoading}
             error={searchError}
-            hasMore={searchPagination?.hasMore || false}
+            hasMore={searchPagination.hasMore}
             showMobileSortModal={showMobileSortModal}
             setShowMobileSortModal={setShowMobileSortModal}
             onLoadMore={() => {
-              if (searchPagination?.hasMore && !isSearchLoading && searchQuery) {
+              if (searchPagination.hasMore && !isSearchLoading) {
                 dispatch(getPropertiesByQuery({
-                  ...searchQuery,
-                  skip: searchResults?.length || 0
+                  // ...searchQuery,
+                  skip: searchResults.length
                 }));
               }
             }}
