@@ -55,7 +55,7 @@ export function PropertyCard({
           <div className="relative w-full">
             {/* Verified Badge */}
             {verified && (
-              <div className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
+              <div className="absolute top-3 left-3 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
                 <span className="text-sm">✓</span> Verified
               </div>
             )}
@@ -79,9 +79,9 @@ export function PropertyCard({
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-100 to-purple-100">
                   <div className="text-center">
-                    <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+                    <div className="w-20 h-20 bg-linear-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
                       <span className="text-3xl">🏨</span>
                     </div>
                     <div className="text-sm text-gray-500 font-medium">Hotel Image</div>
@@ -107,7 +107,7 @@ export function PropertyCard({
 
             {/* Rating */}
             <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
-              <div className="flex items-center bg-gradient-to-r from-yellow-400 to-orange-400 px-3 py-1.5 rounded-lg shadow-md">
+              <div className="flex items-center bg-linear-to-r from-yellow-400 to-orange-400 px-3 py-1.5 rounded-lg shadow-md">
                 <Star className="w-4 h-4 text-white fill-white mr-1" />
                 <span className="font-bold text-white text-sm">{rating}</span>
               </div>
@@ -119,7 +119,7 @@ export function PropertyCard({
             {/* Amenities */}
             <div className="flex flex-wrap gap-2 mb-5">
               {amenities.slice(0, 4).map((amenity) => (
-                <div key={amenity} className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 flex items-center gap-1">
+                <div key={amenity} className="bg-linear-to-r from-blue-50 to-purple-50 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 flex items-center gap-1">
                   {getAmenityIcon(amenity)}
                   <span>{amenity}</span>
                 </div>
@@ -130,7 +130,7 @@ export function PropertyCard({
             <div className="flex justify-between items-center pt-4 border-t border-gray-100">
               <div>
                 <div className="text-sm text-gray-400 line-through">₹{Math.round(price * 1.2).toLocaleString()}</div>
-                <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <div className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   ₹{price.toLocaleString()}
                 </div>
                 <div className="text-xs text-gray-500">per night + taxes</div>
@@ -168,7 +168,7 @@ export function PropertyCard({
           {/* Image Section */}
           <div className="relative w-80 bg-gray-200">
             {verified && (
-              <div className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
+              <div className="absolute top-3 left-3 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
                 <span className="text-sm">✓</span> Verified
               </div>
             )}
@@ -198,9 +198,9 @@ export function PropertyCard({
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                <div className="w-full h-full flex items-center justify-center bg-linear-to-r from-blue-100 to-purple-100">
                   <div className="text-center">
-                    <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+                    <div className="w-20 h-20 bg-linear-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
                       <span className="text-3xl">🏨</span>
                     </div>
                     <div className="text-sm text-gray-500 font-medium">Hotel Image</div>
@@ -211,7 +211,7 @@ export function PropertyCard({
 
             {/* Thumbnails */}
             {thumbnailImages.length > 0 && (
-              <div className="flex gap-1.5 p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-bl-2xl">
+              <div className="flex gap-1.5 p-3 bg-linear-to-r from-gray-50 to-blue-50 rounded-bl-2xl">
                 {thumbnailImages.map((image, index) => {
                   const thumbUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL}${image.url}`
                   const isLast = index === 3 && hasMoreImages
@@ -256,7 +256,7 @@ export function PropertyCard({
                 </div>
 
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="flex items-center bg-gradient-to-r from-yellow-400 to-orange-400 px-3 py-1.5 rounded-lg shadow-md">
+                  <div className="flex items-center bg-linear-to-r from-yellow-400 to-orange-400 px-3 py-1.5 rounded-lg shadow-md">
                     <Star className="w-4 h-4 text-white fill-white mr-1" />
                     <span className="font-bold text-white">{rating}</span>
                   </div>
@@ -267,7 +267,7 @@ export function PropertyCard({
 
                 <div className="flex flex-wrap gap-2 mb-4">
                   {amenities.slice(0, 6).map((amenity) => (
-                    <div key={amenity} className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 flex items-center gap-1">
+                    <div key={amenity} className="bg-linear-to-r from-blue-50 to-purple-50 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 flex items-center gap-1">
                       {getAmenityIcon(amenity)}
                       <span>{amenity}</span>
                     </div>
@@ -278,7 +278,7 @@ export function PropertyCard({
               <div className="text-right lg:ml-6 flex flex-col justify-between h-full">
                 <div>
                   <div className="text-sm text-gray-400 line-through mb-1">₹{Math.round(price * 1.2).toLocaleString()}</div>
-                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1">
+                  <div className="text-3xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1">
                     ₹{price.toLocaleString()}
                   </div>
                   <div className="text-sm text-gray-500 mb-1">per night</div>
