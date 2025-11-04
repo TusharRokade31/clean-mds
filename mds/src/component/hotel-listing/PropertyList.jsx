@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { List, Map, Tune, SwapVert } from "lucide-react";
 import { PropertyCard } from "./PropertyCard";
 import { Button, Modal, Box, Typography, Radio, RadioGroup, FormControlLabel } from "@mui/material";
+import { TrendingUp, DollarSign, Star, MapPin } from "lucide-react";
 
 const sortModalStyle = {
   position: 'absolute',
@@ -39,12 +39,12 @@ export function PropertyList({
   const [sortBy, setSortBy] = useState("relevance");
 
   const sortOptions = [
-    { value: "relevance", label: "Most Popular" },
-    { value: "price-low", label: "Price (Low to High)" },
-    { value: "price-high", label: "Price (High to Low)" },
-    { value: "rating", label: "Guest Rating (Highest First)" },
-    { value: "star-rating", label: "Star Rating (Highest First)" },
-    { value: "distance", label: "Distance from Beach" }
+    { value: "relevance", label: "Most Popular", icon: <TrendingUp className="w-4 h-4" /> },
+    { value: "price-low", label: "Price (Low to High)", icon: <DollarSign className="w-4 h-4" /> },
+    { value: "price-high", label: "Price (High to Low)", icon: <DollarSign className="w-4 h-4" /> },
+    { value: "rating", label: "Guest Rating", icon: <Star className="w-4 h-4" /> },
+    { value: "star-rating", label: "Star Rating", icon: <Star className="w-4 h-4" /> },
+    { value: "distance", label: "Distance", icon: <MapPin className="w-4 h-4" /> }
   ];
 
   const handleSortChange = (value) => {
@@ -52,14 +52,15 @@ export function PropertyList({
     setShowMobileSortModal(false);
   };
 
-  // Sorting the properties based on the selected sorting criteria
   const sortedProperties = sortProperties(properties, sortBy);
 
   if (error) {
     return (
       <div className="flex-1">
-        <div className="text-center py-8">
-          <p className="text-red-600">Error loading properties: {error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <div className="text-5xl mb-4">❌</div>
+          <p className="text-red-600 font-semibold text-lg">Error loading properties</p>
+          <p className="text-red-500 text-sm mt-2">{error}</p>
         </div>
       </div>
     );
@@ -68,18 +69,33 @@ export function PropertyList({
   return (
     <div className="flex-1">
       {/* Desktop Sort Options */}
-      <div className="hidden md:flex shadow-md p-4 rounded-3xl flex-wrap items-center justify-between mb-6 gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-md font-medium">Sort by:</span>
+      <div className="hidden md:flex bg-white shadow-lg p-5 rounded-2xl flex-wrap items-center justify-between mb-8 border border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="w-1 h-8 bg-linear-to-b from-blue-600 to-purple-600 rounded-full"></div>
+          <span className="text-lg font-bold text-gray-800">Sort by:</span>
           <div className="flex flex-wrap gap-2">
             {sortOptions.slice(0, 4).map((option) => (
               <Button
                 key={option.value}
+                startIcon={option.icon}
                 sx={{
-                  backgroundColor: sortBy === option.value ? "#1035ac" : "transparent",
-                  color: sortBy === option.value ? "white" : "inherit",
-                  "&:hover": {
-                    backgroundColor: sortBy === option.value ? "#1035ac" : "#f5f5f5",
+                  background: sortBy === option.value 
+                    ? 'linear-gradient(135deg, #1035ac 0%, #7c3aed 100%)'
+                    : 'transparent',
+                  color: sortBy === option.value ? 'white' : '#4b5563',
+                  border: sortBy === option.value ? 'none' : '1px solid #e5e7eb',
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  boxShadow: sortBy === option.value 
+                    ? '0 4px 12px rgba(16, 53, 172, 0.3)'
+                    : 'none',
+                  '&:hover': {
+                    background: sortBy === option.value 
+                      ? 'linear-gradient(135deg, #0d2d8f 0%, #6d28d9 100%)'
+                      : '#f9fafb',
                   },
                 }}
                 onClick={() => setSortBy(option.value)}
@@ -89,9 +105,6 @@ export function PropertyList({
             ))}
           </div>
         </div>
-        <div className="text-sm text-gray-500">
-          Sorted by {sortOptions.find(opt => opt.value === sortBy)?.label}
-        </div>
       </div>
 
       {/* Sort Modal for Mobile */}
@@ -99,12 +112,17 @@ export function PropertyList({
         open={showMobileSortModal}
         onClose={() => setShowMobileSortModal(false)}
         BackdropProps={{
-          sx: { backgroundColor: 'rgba(0, 0, 0, 0.5)' }
+          sx: { backgroundColor: 'rgba(0, 0, 0, 0.6)' }
         }}
       >
         <Box sx={sortModalStyle}>
-          <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0' }}>
-            <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
+          <Box sx={{ 
+            p: 3, 
+            borderBottom: '1px solid #e5e7eb',
+            background: 'linear-gradient(135deg, #1035ac 0%, #7c3aed 100%)',
+            borderRadius: '16px 16px 0 0'
+          }}>
+            <Typography variant="h6" component="h2" sx={{ fontWeight: 700, color: 'white' }}>
               Sort Hotels
             </Typography>
             <Button
@@ -114,7 +132,10 @@ export function PropertyList({
                 right: 16,
                 top: 16,
                 minWidth: 'auto',
-                color: '#666'
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }
               }}
             >
               ✕
@@ -140,11 +161,22 @@ export function PropertyList({
                       }} 
                     />
                   }
-                  label={option.label}
+                  label={
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600">{option.icon}</span>
+                      <span className="font-medium">{option.label}</span>
+                    </div>
+                  }
                   sx={{ 
-                    mb: 1,
+                    mb: 1.5,
+                    p: 1.5,
+                    borderRadius: '12px',
+                    '&:hover': {
+                      backgroundColor: '#f9fafb'
+                    },
                     '& .MuiFormControlLabel-label': {
-                      fontSize: '16px'
+                      fontSize: '16px',
+                      width: '100%'
                     }
                   }}
                 />
@@ -152,21 +184,22 @@ export function PropertyList({
             </RadioGroup>
           </Box>
 
-          <Box sx={{ p: 3, borderTop: '1px solid #e0e0e0' }}>
+          <Box sx={{ p: 3, borderTop: '1px solid #e5e7eb' }}>
             <Button
               fullWidth
               variant="contained"
               onClick={() => setShowMobileSortModal(false)}
               sx={{
-                backgroundColor: '#1035ac',
+                background: 'linear-gradient(135deg, #1035ac 0%, #7c3aed 100%)',
                 color: 'white',
                 py: 1.5,
-                borderRadius: '8px',
+                borderRadius: '12px',
                 textTransform: 'none',
                 fontSize: '16px',
                 fontWeight: 600,
+                boxShadow: '0 4px 12px rgba(16, 53, 172, 0.3)',
                 '&:hover': {
-                  backgroundColor: '#0d2d8f'
+                  background: 'linear-gradient(135deg, #0d2d8f 0%, #6d28d9 100%)',
                 }
               }}
             >
@@ -178,51 +211,91 @@ export function PropertyList({
 
       {/* Loading State */}
       {isLoading && properties.length === 0 && (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading properties...</p>
+        <div className="text-center py-16">
+          <div className="relative inline-block">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl">🏨</span>
+            </div>
+          </div>
+          <p className="mt-6 text-gray-600 font-medium text-lg">Finding perfect stays for you...</p>
+          <p className="mt-2 text-gray-400 text-sm">This will just take a moment</p>
         </div>
       )}
 
       {/* Property Cards */}
       <div className="space-y-6 pb-24 lg:pb-0">
-        {sortedProperties.map((property) => (
-          <PropertyCard key={property._id} {...mapPropertyData(property)} />
+        {sortedProperties.map((property, index) => (
+          <div
+            key={property._id}
+            className="animate-fadeIn"
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            <PropertyCard {...mapPropertyData(property)} />
+          </div>
         ))}
       </div>
 
       {/* Load More Button */}
-      {hasMore && (
-        <div className="text-center mt-8 pb-24 lg:pb-0">
+      {hasMore && !isLoading && (
+        <div className="text-center mt-10 pb-24 lg:pb-0">
           <Button
             onClick={onLoadMore}
             disabled={isLoading}
             sx={{
-              backgroundColor: '#1035ac',
+              background: 'linear-gradient(135deg, #1035ac 0%, #7c3aed 100%)',
               color: 'white',
+              px: 6,
+              py: 2,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontSize: '16px',
+              fontWeight: 600,
+              boxShadow: '0 4px 12px rgba(16, 53, 172, 0.3)',
               '&:hover': {
-                backgroundColor: '#0d2d8f'
-              }
+                background: 'linear-gradient(135deg, #0d2d8f 0%, #6d28d9 100%)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 16px rgba(16, 53, 172, 0.4)',
+              },
+              transition: 'all 0.3s ease'
             }}
           >
-            {isLoading ? "Loading..." : "Load More Properties"}
+            Load More Properties
           </Button>
         </div>
       )}
 
       {/* No Properties Message */}
       {!isLoading && properties.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-600">
-            No properties found for your search criteria.
+        <div className="text-center py-16 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <div className="text-7xl mb-6">🔍</div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-3">No Properties Found</h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            We couldn't find any properties matching your search criteria. Try adjusting your filters or search parameters.
           </p>
+          <Button
+            sx={{
+              background: 'linear-gradient(135deg, #1035ac 0%, #7c3aed 100%)',
+              color: 'white',
+              px: 4,
+              py: 1.5,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #0d2d8f 0%, #6d28d9 100%)',
+              }
+            }}
+          >
+            Clear Filters
+          </Button>
         </div>
       )}
     </div>
   );
 }
 
-// Helper function to sort the properties based on the selected sort option
+// Helper function to sort properties
 function sortProperties(properties, sortBy) {
   switch (sortBy) {
     case "price-low":
@@ -250,10 +323,10 @@ function sortProperties(properties, sortBy) {
       );
 
     case "distance":
-      return [...properties]; // Distance calculation can be implemented later
+      return [...properties];
 
     default:
-      return properties; // Default is relevance/most popular
+      return properties;
   }
 }
 
@@ -283,5 +356,5 @@ function extractAmenities(amenities) {
       }
     });
   });
-  return amenityList.slice(0, 4);
+  return amenityList.slice(0, 6);
 }

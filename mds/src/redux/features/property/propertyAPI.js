@@ -151,45 +151,53 @@ export const propertyAPI = {
     return response.data;
   },
 
-getPropertiesByQuery: async (queryParams) => {
+   getPropertiesByQuery: async (queryParams) => {
+    const { location, checkin, checkout, persons, skip = 0, limit = 10 } = queryParams;
+     const response = await axiosInstance.get(`/properties/property-listing?location=${encodeURIComponent(location)}&checkin=${checkin}&checkout=${checkout}&persons=${persons}&skip=${skip}&limit=${limit}`);
+     return response.data
+  },
+
+  getFilteredProperties: async (queryParams) => {
   const { 
     location, 
     checkin, 
     checkout, 
     persons, 
     skip = 0, 
-    limit = 10 
+    limit = 10,
+    priceRange,
+    starRating,
+    distance,
+    amenities,
+    propertyType,
+    sortBy
   } = queryParams;
-  
-  try {
-    const response = await axiosInstance.get(
-      `/properties/property-listing`, 
-      {
-        params: {
-          location,
-          checkin,
-          checkout,
-          persons,
-          skip,
-          limit
-        }
-      }
-    );
-    
-    console.log('API Response:', response); // ✅ Add this
-    console.log('Response data:', response.data); // ✅ Add this
-    
-    return response.data;
-  } catch (error) {
-    console.error('API Error Details:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-    throw error;
-  }
-},
 
+  const params = new URLSearchParams({
+    location: encodeURIComponent(location),
+    skip,
+    limit
+  });
+
+  // Add optional search params
+  if (checkin) params.append('checkin', checkin);
+  if (checkout) params.append('checkout', checkout);
+  if (persons) params.append('persons', persons);
+
+  // Add filters if present
+  if (priceRange?.length) params.append('priceRange', priceRange.join(','));
+  if (starRating?.length) params.append('starRating', starRating.join(','));
+  if (distance?.length) params.append('distance', distance.join(','));
+  if (amenities?.length) params.append('amenities', amenities.join(','));
+  if (propertyType?.length) params.append('propertyType', propertyType.join(','));
+  if (sortBy) params.append('sortBy', sortBy);
+
+  const response = await axiosInstance.get(
+    `/properties/property-listing-filter?${params.toString()}`
+  );
+  
+  return response.data;
+},
 
   // Finalize property
   reviewProperty: async (id, status) => {

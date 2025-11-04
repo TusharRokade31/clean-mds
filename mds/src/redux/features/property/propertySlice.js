@@ -31,14 +31,24 @@ const initialState = {
   suggestions: [],
   suggestionsCache: {},
   searchResults: [],
-  searchQuery: getSearchQueryFromLocal(), // Load from localStorage on init
- searchPagination: {
+  searchQuery: getSearchQueryFromLocal(),
+  searchPagination: {
     skip: 0,
     limit: 10,
     count: 0,
+    total: 0,
     hasMore: false
   },
-   // NEW VOICE SEARCH STATE
+  // Filter state
+  appliedFilters: {
+    priceRange: [],
+    starRating: [],
+    distance: [],
+    amenities: [],
+    propertyType: []
+  },
+  filterStats: null,
+  
   voiceSearchResults: [],
   voiceSearchResponse: null,
   voiceSearchParsedQuery: null,
@@ -53,7 +63,6 @@ const initialState = {
   error: null,
   searchError: null,
 };
-
 
 // Async thunks
 export const initializeProperty = createAsyncThunk(
@@ -146,10 +155,6 @@ export const getPropertiesByQuery = createAsyncThunk(
   async (queryParams, { rejectWithValue }) => {
     try {
       const response = await propertyAPI.getPropertiesByQuery(queryParams);
-      
-      console.log('Thunk response:', response); // Debug log
-      
-      // ✅ Your backend returns: {success: true, data: Array, pagination: {...}}
       return {
         properties: response.data,  // ✅ Access the 'data' property
         pagination: response.pagination,
@@ -163,6 +168,56 @@ export const getPropertiesByQuery = createAsyncThunk(
     }
   }
 );
+
+// Apply filters action
+export const applyFilters = createAsyncThunk(
+  'property/applyFilters',
+  async ({ searchParams, filters }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getFilteredProperties({
+        ...searchParams,
+        ...filters,
+        skip: 0, // Reset to first page when applying filters
+      });
+      
+      return {
+        properties: response.data,
+        pagination: response.pagination,
+        appliedFilters: response.appliedFilters,
+        filterStats: response.filterStats
+      };
+    } catch (error) {
+      console.error('Apply filters error:', error);
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to apply filters'
+      );
+    }
+  }
+);
+
+// Load more with filters
+export const loadMoreFilteredProperties = createAsyncThunk(
+  'property/loadMoreFiltered',
+  async ({ searchParams, filters, currentSkip }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getFilteredProperties({
+        ...searchParams,
+        ...filters,
+        skip: currentSkip,
+      });
+      
+      return {
+        properties: response.data,
+        pagination: response.pagination,
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to load more properties'
+      );
+    }
+  }
+);
+
 
 
 export const sendEmailOTP = createAsyncThunk(
@@ -673,7 +728,14 @@ const propertySlice = createSlice({
     setSearchQuery: (state, action) => {
       state.searchQuery = action.payload;
       saveSearchQueryToLocal(action.payload);
-    }
+    },
+     updateLocalFilters: (state, action) => {
+      state.appliedFilters = action.payload;
+    },
+    
+    clearFilters: (state) => {
+      state.appliedFilters = initialState.appliedFilters;
+    },
   },
   extraReducers: (builder) => {
     // Initialize property
@@ -766,24 +828,14 @@ const propertySlice = createSlice({
       state.suggestionsError = action.payload;
     });
 
- builder.addCase(getPropertiesByQuery.pending, (state) => {
+     builder.addCase(getPropertiesByQuery.pending, (state) => {
       state.isSearchLoading = true;
       state.searchError = null;
     })
     builder.addCase(getPropertiesByQuery.fulfilled, (state, action) => {
       state.isSearchLoading = false;
       const { properties, pagination, queryParams } = action.payload;
-      
-      console.log('Reducer - properties:', properties); // Debug log
-      console.log('Reducer - pagination:', pagination); // Debug log
-      
-      // If skip is 0 or undefined, replace results; otherwise append for pagination
-      if (!queryParams?.skip || queryParams.skip === 0) {
-        state.searchResults = properties;
-      } else {
-        state.searchResults = [...state.searchResults, ...properties];
-      }
-      
+      state.searchResults = properties;
       state.searchPagination = pagination || { hasMore: false };
       state.searchQuery = queryParams;
       state.searchError = null;
@@ -792,6 +844,39 @@ const propertySlice = createSlice({
       state.isSearchLoading = false;
       state.searchError = action.payload || 'Failed to fetch properties';
       console.error('Search failed:', action.payload);
+    });
+    builder.addCase(applyFilters.pending, (state) => {
+      state.isSearchLoading = true;
+      state.searchError = null;
+    })
+    builder.addCase(applyFilters.fulfilled, (state, action) => {
+      state.isSearchLoading = false;
+      state.searchResults = action.payload.properties;
+      state.searchPagination = action.payload.pagination;
+      state.appliedFilters = action.payload.appliedFilters;
+      state.filterStats = action.payload.filterStats;
+      state.searchError = null;
+    })
+    builder.addCase(applyFilters.rejected, (state, action) => {
+        state.isSearchLoading = false;
+        state.searchError = action.payload;
+    })
+
+    // Load more filtered
+    builder.addCase(loadMoreFilteredProperties.pending, (state) => {
+    state.isLoading = true;
+    })
+    builder.addCase(loadMoreFilteredProperties.fulfilled, (state, action) => {
+    state.isLoading = false;
+    state.searchResults = [
+    ...state.searchResults,
+    ...action.payload.properties
+    ];
+    state.searchPagination = action.payload.pagination;
+    })
+    builder.addCase(loadMoreFilteredProperties.rejected, (state, action) => {
+    state.isLoading = false;
+    state.error = action.payload;
     });
      builder.addCase(voiceSearchProperties.pending, (state) => {
         state.isVoiceSearching = true;
@@ -1217,5 +1302,5 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
   },
 });
 
-export const { clearPropertyError, resetCurrentProperty , clearSuggestions, clearSuggestionsCache, clearSearchResults,clearSearchError, resetSearchPagination, clearSearchQuery, setSearchQuery } = propertySlice.actions;
+export const { clearPropertyError, resetCurrentProperty , clearSuggestions, clearSuggestionsCache, clearSearchResults,clearSearchError, resetSearchPagination, clearSearchQuery, setSearchQuery, updateLocalFilters, clearFilters } = propertySlice.actions;
 export default propertySlice.reducer;

@@ -167,7 +167,7 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
     dispatch(
       getPropertiesByQuery({
         ...currentSearchParams,
-        skip: 1,
+        skip: 0,
         limit: 10
       })
     );

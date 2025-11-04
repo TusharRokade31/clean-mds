@@ -26,6 +26,7 @@
     "html-react-parser": "^5.2.6",
     "jodit-react": "^5.2.19",
     "jwt-decode": "^4.0.0",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.509.0",
     "next": "15.3.2",
     "react": "^19.0.0",
