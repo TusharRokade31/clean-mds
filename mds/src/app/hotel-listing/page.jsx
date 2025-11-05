@@ -25,7 +25,6 @@ export default function PropertyBookingApp() {
   } = useSelector((state) => state.property);
 
 
-  console.log(searchQuery, "serach query ")
 
   useEffect(() => {
     if (!searchQuery || searchResults.length === 0) {
