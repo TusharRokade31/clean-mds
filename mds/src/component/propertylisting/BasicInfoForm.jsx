@@ -33,6 +33,7 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
     }
     
     setEmailForVerification(formData.email);
+    console.log(propertyId, "")
     try {
       await dispatch(sendEmailOTP({ 
         propertyId, 

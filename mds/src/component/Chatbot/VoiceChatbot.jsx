@@ -183,7 +183,7 @@ const VoiceChatbot = () => {
       {/* Floating Toggle Button */}
       <button
         onClick={() => setIsActive(!isActive)}
-        className="fixed bottom-5 right-5 w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center z-[10000] group"
+        className="fixed bottom-5 right-5 w-16 h-16 rounded-full bg-linear-to-br from-purple-600 to-purple-800 text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center z-[10000] group"
         aria-label="Toggle voice chatbot"
       >
         {listening ? (
@@ -200,7 +200,7 @@ const VoiceChatbot = () => {
       {isActive && (
         <div className="fixed bottom-24 right-5 w-[420px] max-w-[calc(100vw-40px)] h-[600px] max-h-[calc(100vh-140px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slideUp">
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-5 flex items-center justify-between">
+          <div className="bg-linear-to-r from-purple-600 to-purple-800 text-white p-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Mic className="w-6 h-6" />
               <h3 className="text-lg font-semibold">Voice Assistant</h3>
@@ -269,7 +269,7 @@ const VoiceChatbot = () => {
                   <div
                     className={`rounded-2xl px-4 py-3 ${
                       msg.type === 'user'
-                        ? 'bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-br-sm'
+                        ? 'bg-linear-to-br from-purple-600 to-purple-700 text-white rounded-br-sm'
                         : 'bg-white text-gray-800 rounded-bl-sm shadow-md border border-gray-100'
                     }`}
                   >
@@ -386,7 +386,7 @@ const VoiceChatbot = () => {
                   <button
                     onClick={SpeechRecognition.stopListening}
                     disabled={isProcessing}
-                    className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold flex items-center justify-center gap-3 hover:from-red-600 hover:to-red-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden"
+                    className="w-full py-4 px-6 rounded-xl bg-linear-to-r from-red-500 to-red-600 text-white font-semibold flex items-center justify-center gap-3 hover:from-red-600 hover:to-red-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden"
                   >
                     <MicOff className="w-5 h-5" />
                     <span>Listening...</span>
@@ -396,7 +396,7 @@ const VoiceChatbot = () => {
                   <button
                     onClick={SpeechRecognition.startListening}
                     disabled={isProcessing}
-                    className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold flex items-center justify-center gap-3 hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full py-4 px-6 rounded-xl bg-linear-to-r from-purple-600 to-purple-700 text-white font-semibold flex items-center justify-center gap-3 hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     <Mic className="w-5 h-5" />
                     <span>{isProcessing ? 'Processing...' : 'Tap to speak'}</span>
@@ -418,7 +418,7 @@ const VoiceChatbot = () => {
                 <button
                   type="submit"
                   disabled={!textInput.trim() || isProcessing}
-                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-5 py-3 rounded-xl bg-linear-to-r from-purple-600 to-purple-700 text-white font-semibold hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Send className="w-4 h-4" />
                 </button>

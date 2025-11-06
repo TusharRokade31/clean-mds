@@ -211,7 +211,7 @@ export default function BookingPage({ property, selectedRoom }) {
                         setGuestDetails(prev => ({
                           ...prev,
                           firstName: names[0] || '',
-                          lastName: names.slice(1).join(' ') || ''
+                          lastName: names.slice(1).join(' ') || names[0]
                         }))
                       }}
                       placeholder="Rajesh Kumar Sharma"

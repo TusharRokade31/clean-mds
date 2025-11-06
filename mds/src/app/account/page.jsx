@@ -115,8 +115,8 @@ const cities = [
         <form className='w-full ps-4' onSubmit={handleSubmit}>
           <div className="space-y-6">
             <div className='flex'>
-              <div className='flex-1/2'>
-              <label htmlFor="name" className="block mb-2 font-medium">First Name</label>
+              <div className='flex-1'>
+              <label htmlFor="name" className="block mb-2 font-medium">full Name</label>
               <input
                 type="text"
                 id="name"
@@ -127,17 +127,7 @@ const cities = [
               />
             </div>
 
-             <div className='flex-1/2'>
-              <label htmlFor="name" className="block mb-2 font-medium">Last Name</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full p-2 ms-2 border rounded"
-              />
-            </div>
+          
             </div>
             
             <div>

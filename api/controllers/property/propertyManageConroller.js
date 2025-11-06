@@ -8,6 +8,7 @@ import City from '../../models/City';
 export const initializeProperty = async (req, res) => {
   try {
     const userId = req.user._id;
+    console.log(req.user, "propertyMange")
     const { forceNew } = req.body; // Add this parameter
 
     // If not forcing new, check for recent draft creation (within last 5 seconds)
