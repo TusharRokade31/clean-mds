@@ -9,11 +9,7 @@ import {
   Typography, 
   Chip, 
   Paper, 
-  AppBar, 
-  Toolbar,
   Button,
-  Rating,
-  Divider
 } from "@mui/material"
 import { Star, LocationOn } from "@mui/icons-material"
 
@@ -33,6 +29,7 @@ const sections = [
 ]
 
 export default function PropertyDetailsPage() {
+  
   const { id } = useParams()
   const dispatch = useDispatch()
   const { ViewProperty, loading, error } = useSelector((state) => state.property)

@@ -28,8 +28,8 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import HomeIcon from '@mui/icons-material/Home';
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useDispatch } from "react-redux"
+import { usePathname, useRouter } from "next/navigation"
+import { useDispatch, useSelector } from "react-redux"
 import { checkRoomAvailability } from "@/redux/features/rooms/roomSlice"
 
 // Create custom theme with the specified color
@@ -51,6 +51,7 @@ const BookingConfirmationDialog = ({
   onClose, 
   isLoading = false 
 }) => {
+  const pathName = usePathname()
   const router = useRouter()
   const dispatch = useDispatch()
   const [bookingDetails, setBookingDetails] = useState({
@@ -63,9 +64,19 @@ const BookingConfirmationDialog = ({
   const [availabilityLoading, setAvailabilityLoading] = useState(false)
   const [availabilityError, setAvailabilityError] = useState('')
 
+    const {  isAuthenticated } = useSelector(
+      (state) => state.auth
+    );
+
   // Load data from localStorage on component mount
   useEffect(() => {
     if (open) {
+          if (!isAuthenticated) {
+      localStorage.setItem("hoteldetailPath", pathName);
+    }
+    else{
+      localStorage.removeItem("hoteldetailPath");
+    }
       const lastSearchQuery = localStorage.getItem('lastSearchQuery')
       if (lastSearchQuery) {
         try {
@@ -140,6 +151,11 @@ const BookingConfirmationDialog = ({
   }
 
   const handleConfirm = async () => {
+    if (!isAuthenticated) {
+    onClose()
+    router.push('/login')
+    return
+  }
     if (!validateBookingDetails()) return
 
     // Check room availability first
@@ -246,6 +262,11 @@ const BookingConfirmationDialog = ({
           </DialogTitle>
           
           <DialogContent sx={{ p: 3 }}>
+            {!isAuthenticated && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Please login to continue with your booking
+              </Alert>
+            )}
             {availabilityError && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {availabilityError}
@@ -525,7 +546,7 @@ const BookingConfirmationDialog = ({
                       }
                     }}
                   >
-                    {availabilityLoading ? 'Checking Availability...' : isLoading ? 'Processing...' : 'Confirm & Continue'}
+                    {availabilityLoading ? 'Checking Availability...' : isLoading ? 'Processing...' : !isAuthenticated ? 'Login to Continue' : 'Confirm & Continue'}
                   </Button>
                 </Box>
               </Grid>

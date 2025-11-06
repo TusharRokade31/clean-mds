@@ -247,48 +247,55 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
   };
 
   // Handle search button click
-  const handleSearch = () => {
-    if (!selectedLocation) {
-      alert('Please select a location from the suggestions');
-      return;
-    }
+const handleSearch = async () => {
+  if (!selectedLocation) {
+    alert('Please select a location from the suggestions');
+    return;
+  }
 
-    if (!selectedDates.checkin || !selectedDates.checkout) {
-      alert('Please select check-in and check-out dates');
-      return;
-    }
+  if (!selectedDates.checkin || !selectedDates.checkout) {
+    alert('Please select check-in and check-out dates');
+    return;
+  }
 
-    const searchData = {
-      location: searchQuery,
-      locationData: selectedLocation,
-      checkin: selectedDates.checkin,
-      checkout: selectedDates.checkout,
-      adults: guests.adults,
-      children: guests.children,
-      infants: guests.infants,
-      persons: (guests.adults + guests.children + guests.infants).toString()
-    };
+  const searchData = {
+    location: searchQuery,
+    locationData: selectedLocation,
+    checkin: selectedDates.checkin,
+    checkout: selectedDates.checkout,
+    adults: guests.adults,
+    children: guests.children,
+    infants: guests.infants,
+    persons: (guests.adults + guests.children + guests.infants).toString()
+  };
 
-    // Save to cache
-    saveSearchToCache(searchData);
+  // Save to cache
+  saveSearchToCache(searchData);
 
-    
-console.log(selectedLocation?.placeName, "selected location ")
+  console.log(selectedLocation, "selected location");
 
-    // Dispatch search query with location data
-    dispatch(getPropertiesByQuery({
+  try {
+    // Dispatch search query and wait for response
+    const result = await dispatch(getPropertiesByQuery({
       location: selectedLocation,
       checkin: selectedDates.checkin,
       checkout: selectedDates.checkout,
       persons: searchData.persons,
-      skip: 1,
+      skip: 0,
       limit: 10,
       locationData: selectedLocation
-    }));
+    })).unwrap();
 
-    // Navigate to hotel listing page
+    console.log('Search results:', result);
+
+    // Navigate to hotel listing page after successful response
     router.push('/hotel-listing');
-  };
+    
+  } catch (error) {
+    console.error('Search failed:', error);
+    alert('Failed to search properties. Please try again.');
+  }
+};
 
   const nextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));

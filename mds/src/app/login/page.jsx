@@ -47,8 +47,18 @@ const PageLogin = ({}) => {
           // Wait a bit to ensure cookie is set
           await new Promise(resolve => setTimeout(resolve, 100));
           
-          // Use hard navigation for production reliability
-          window.location.href = "/";
+        // Check if there's a stored redirect path
+      const storedPath = localStorage.getItem("hoteldetailPath");
+      
+      if (storedPath) {
+        // Remove the stored path
+        localStorage.removeItem("hoteldetailPath");
+        // Redirect to the stored path
+        window.location.href = storedPath;
+      } else {
+        // Default redirect to home
+        window.location.href = "/";
+      }
         }
       } catch (error) {
         console.error("Google login failed:", error);
@@ -76,28 +86,33 @@ const PageLogin = ({}) => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  try {
+    const result = await dispatch(loginUser(credentials));
     
-    try {
-      const result = await dispatch(loginUser(credentials));
+    if (result.meta.requestStatus === "fulfilled") {
+      // Small delay to ensure cookie is properly set
+      await new Promise(resolve => setTimeout(resolve, 100));
       
-      if (result.meta.requestStatus === "fulfilled") {
-        // Small delay to ensure cookie is properly set
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Use window.location.href for reliable production redirect
-        // This forces a full page reload which ensures middleware reads the cookie
+      // Check if there's a stored redirect path
+      const storedPath = localStorage.getItem("hoteldetailPath");
+      
+      if (storedPath) {
+        // Remove the stored path
+        localStorage.removeItem("hoteldetailPath");
+        // Redirect to the stored path
+        window.location.href = storedPath;
+      } else {
+        // Default redirect to home
         window.location.href = "/";
-        
-        // Alternative: Use router.push with refresh (less reliable)
-        // router.refresh();
-        // router.push("/");
       }
-    } catch (error) {
-      console.error("Login error:", error);
     }
-  };
+  } catch (error) {
+    console.error("Login error:", error);
+  }
+};
 
   return (
     <div className="px-4">
@@ -112,14 +127,14 @@ const PageLogin = ({}) => {
                 key={index}
                 href={item.name.includes("Google") ? undefined : item.href}
                 onClick={item.name.includes("Google") ? () => googleLogin() : undefined}
-                className="flex w-full rounded-lg cursor-pointer bg-[#eef2ff] px-4 py-3 transition-transform hover:translate-y-[-2px] sm:px-6"
+                className="flex w-full rounded-lg cursor-pointer bg-[#eef2ff] px-4 py-3 transition-transform hover:-translate-y-0.5 sm:px-6"
               >
                 <Image
-                  className="flex-shrink-0"
+                  className="shrink-0"
                   src={item.icon}
                   alt={item.name}
                 />
-                <h3 className="flex-grow text-center text-sm font-medium text-neutral-700  sm:text-sm">
+                <h3 className="grow text-center text-sm font-medium text-neutral-700  sm:text-sm">
                   {item.name}
                 </h3>
               </a>

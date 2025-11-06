@@ -127,6 +127,7 @@ export const getProperty = async (req, res) => {
 export const initializeProperty = async (req, res) => {
   try {
     const userId = req.user._id;
+    console.log(req.user, "propertyMange")
     const { forceNew } = req.body; // Add this parameter
 
     // If not forcing new, check for recent draft creation (within last 5 seconds)
@@ -233,7 +234,7 @@ export const sendEmailOTP = async (req, res) => {
       _id: propertyId,
       owner: req.user._id,
     });
-    
+        
     if (!property) {
       return errorResponse(res, 404, 'Property not found or unauthorized');
     }
