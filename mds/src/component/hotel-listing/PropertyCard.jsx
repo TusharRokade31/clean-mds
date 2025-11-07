@@ -55,7 +55,7 @@ export function PropertyCard({
           <div className="relative w-full">
             {/* Verified Badge */}
             {verified && (
-              <div className="absolute top-3 left-3 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
+              <div className="absolute top-3 left-3 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-2 shadow-lg">
                 <span className="text-sm">✓</span> Verified
               </div>
             )}

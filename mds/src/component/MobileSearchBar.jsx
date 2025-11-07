@@ -193,8 +193,11 @@ export default function SearchComponent() {
     setShowSuggestions(false);
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    const displayText = `${suggestion.placeName}, ${suggestion.location.city}, ${suggestion.location.state}`;
+const handleSuggestionClick = (suggestion, type, location = null) => {
+  // If placeName is clicked, include city and state
+  const displayText = type === 'placeName' 
+    ? `${suggestion}, ${location.city}, ${location.state}`
+    : suggestion;
     setSearchQuery(displayText);
     setDestination(displayText);
     setSelectedLocation(suggestion);
@@ -343,11 +346,11 @@ export default function SearchComponent() {
 
     // Dispatch search query with location data
     dispatch(getPropertiesByQuery({
-      location: selectedLocation.placeName,
+      location: selectedLocation,
       checkin: selectedDates.checkin,
       checkout: selectedDates.checkout,
       persons: searchData.persons,
-      skip: 1,
+      skip: 0,
       limit: 10,
       locationData: selectedLocation
     }));
@@ -483,10 +486,10 @@ export default function SearchComponent() {
                         ) : suggestions.length > 0 ? (
                           <div className="space-y-2">
                             {suggestions.map((suggestion, index) => (
+                              <div key={index}>
                               <div 
-                                key={index} 
                                 className="flex items-center p-3 cursor-pointer hover:bg-gray-100 rounded-lg"
-                                onClick={() => handleSuggestionClick(suggestion)}
+                                onClick={() => handleSuggestionClick(suggestion.placeName, 'placeName', suggestion.location)}
                               >
                                 <IoLocationOutline className="text-gray-500 mr-3" />
                                 <div>
@@ -495,6 +498,31 @@ export default function SearchComponent() {
                                     {suggestion.location.city}, {suggestion.location.state}
                                   </div>
                                 </div>
+                              </div>
+                               <div 
+                                className="flex items-center p-3 cursor-pointer hover:bg-gray-100 rounded-lg"
+                                onClick={() => handleSuggestionClick(suggestion.location.city)}
+                              >
+                                <IoLocationOutline className="text-gray-500 mr-3" />
+                                <div>
+                                  <div className="font-medium">{suggestion.location.city}</div>
+                                  <div className="text-sm text-gray-500">
+                                    {suggestion.location.city}
+                                  </div>
+                                </div>
+                              </div>
+                              <div 
+                                className="flex items-center p-3 cursor-pointer hover:bg-gray-100 rounded-lg"
+                                onClick={() => handleSuggestionClick(suggestion.location.state)}
+                              >
+                                <IoLocationOutline className="text-gray-500 mr-3" />
+                                <div>
+                                  <div className="font-medium">{suggestion.location.state}</div>
+                                  <div className="text-sm text-gray-500">
+                                    {suggestion.location.state}
+                                  </div>
+                                </div>
+                              </div>
                               </div>
                             ))}
                           </div>
