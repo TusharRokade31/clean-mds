@@ -266,6 +266,7 @@ export const sendEmailOTP = async (req, res) => {
     });
 
   } catch (error) {
+    
     return errorResponse(res, 500, 'Server error', error.message);
   }
 };
@@ -1841,88 +1842,22 @@ export const checkPropertyAvailability = async (req, res) => {
   }
 };
 
-export const getSuggestions = async (req, res) =>{
+// Helper function to build location match for fallback
+const buildLocationMatch = (location) => {
+  const regex = new RegExp(location, 'i');
+  return {
+    $or: [
+      { placeName: regex },
+      { 'location.city': regex },
+      { 'location.state': regex },
+    ]
+  };
+};
+
+// Helper function for search with fallback
+const searchPropertiesByLocation = async (location, additionalMatch = {}) => {
   try {
-    const { q } = req.query;
-    console.log(q);
-
-    if (!q) return res.status(200).json([]);
-
-    const searchQuery = [
-        {
-          $search: {
-            index: 'suggestions',
-            compound: {
-              should: [
-                 {
-                      autocomplete: {
-                        query: q,
-                        path: 'placeName',
-                      },
-                    },
-                 {
-                      autocomplete: {
-                        query: q,
-                        path: 'location.city',
-                      },
-                    },
-                    {
-                      autocomplete: {
-                        query: q,
-                        path: 'location.state',
-                      },
-                    },
-                  
-              ].filter(Boolean), // Remove null clauses
-            },
-          },
-        },
-        {
-          $match: {
-            status: 'published', // 👈 Only include published hotels
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            placeName: 1,
-            'location.city': 1,
-            'location.state': 1,
-            score: { $meta: 'searchScore' },
-          },
-        },
-        { $limit: 10 }, // Limit results for performance
-      ];
-
-      const suggestions = await Property.aggregate(searchQuery);
-      console.log(suggestions);
-    res.status(200).json(suggestions);
-  } catch (err) {
-    console.error('Search suggestion error:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-}; 
-
-export const getPropertiesByQuery = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-  
-  try {
-    const {
-      location, 
-      checkin, 
-      checkout, 
-      persons, 
-      skip = 0,  // ✅ Add default value
-      limit = 10  // ✅ Add default value
-    } = req.query; 
-
-    // ✅ Parse and validate
-    const skipNum = parseInt(skip) || 0;
-    const limitNum = parseInt(limit) || 10;
-
+    // Try Atlas Search first
     const searchQuery = [
       {
         $search: {
@@ -1947,33 +1882,227 @@ export const getPropertiesByQuery = async (req, res) => {
                   path: 'location.state',
                 },
               },
-            ].filter(Boolean),
+            ],
           },
         },
       },
       {
         $match: {
           status: 'published',
+          ...additionalMatch
         },
       },
-      { $skip: skipNum }, // ✅ Fixed: Just use the skip value directly
-      { $limit: limitNum },
     ];
 
-    const propertyList = await Property.aggregate(searchQuery);
-    console.log('Properties found:', propertyList.length);
-  
-    // ✅ Return structured response
-    res.status(200).json({
-      success: true,
-      data: propertyList,
-      pagination: {
-        skip: skipNum,
-        limit: limitNum,
-        count: propertyList.length,
-        hasMore: propertyList.length === limitNum
+    return { pipeline: searchQuery, usingFallback: false };
+  } catch (error) {
+    console.warn('Search index not available, using fallback query');
+    
+    // Fallback to regular query
+    const fallbackQuery = [
+      {
+        $match: {
+          status: 'published',
+          ...buildLocationMatch(location),
+          ...additionalMatch
+        }
       }
-    });
+    ];
+    
+    return { pipeline: fallbackQuery, usingFallback: true };
+  }
+};
+
+export const getSuggestions = async (req, res) => {
+  try {
+    const { q } = req.query;
+    console.log(q);
+
+    if (!q) return res.status(200).json([]);
+
+    try {
+      // Try Atlas Search first
+      const searchQuery = [
+        {
+          $search: {
+            index: 'suggestions',
+            compound: {
+              should: [
+                {
+                  autocomplete: {
+                    query: q,
+                    path: 'placeName',
+                  },
+                },
+                {
+                  autocomplete: {
+                    query: q,
+                    path: 'location.city',
+                  },
+                },
+                {
+                  autocomplete: {
+                    query: q,
+                    path: 'location.state',
+                  },
+                },
+              ],
+            },
+          },
+        },
+        {
+          $match: {
+            status: 'published',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            placeName: 1,
+            'location.city': 1,
+            'location.state': 1,
+            score: { $meta: 'searchScore' },
+          },
+        },
+        { $limit: 10 },
+      ];
+
+      const suggestions = await Property.aggregate(searchQuery);
+      console.log(suggestions);
+      return res.status(200).json(suggestions);
+      
+    } catch (searchError) {
+      // Fallback to regular query if search index doesn't exist
+      console.warn('Search index not available, using fallback query');
+      
+      const regex = new RegExp(q, 'i');
+      
+      const suggestions = await Property.find({
+        status: 'published',
+        $or: [
+          { placeName: regex },
+          { 'location.city': regex },
+          { 'location.state': regex },
+        ],
+      })
+        .select('placeName location.city location.state -_id')
+        .limit(10)
+        .lean();
+
+      return res.status(200).json(suggestions);
+    }
+    
+  } catch (err) {
+    console.error('Search suggestion error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
+export const getPropertiesByQuery = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  
+  try {
+    const {
+      location, 
+      checkin, 
+      checkout, 
+      persons, 
+      skip = 0,
+      limit = 10
+    } = req.query; 
+
+    const skipNum = parseInt(skip) || 0;
+    const limitNum = parseInt(limit) || 10;
+
+    try {
+      // Try Atlas Search first
+      const searchQuery = [
+        {
+          $search: {
+            index: 'suggestions',
+            compound: {
+              should: [
+                {
+                  autocomplete: {
+                    query: location,
+                    path: 'placeName',
+                  },
+                },
+                {
+                  autocomplete: {
+                    query: location,
+                    path: 'location.city',
+                  },
+                },
+                {
+                  autocomplete: {
+                    query: location,
+                    path: 'location.state',
+                  },
+                },
+              ].filter(Boolean),
+            },
+          },
+        },
+        {
+          $match: {
+            status: 'published',
+          },
+        },
+        { $skip: skipNum },
+        { $limit: limitNum },
+      ];
+
+      const propertyList = await Property.aggregate(searchQuery);
+      console.log('Properties found:', propertyList.length);
+    
+      return res.status(200).json({
+        success: true,
+        data: propertyList,
+        pagination: {
+          skip: skipNum,
+          limit: limitNum,
+          count: propertyList.length,
+          hasMore: propertyList.length === limitNum
+        }
+      });
+      
+    } catch (searchError) {
+      // Fallback to regular query
+      console.warn('Search index not available, using fallback query');
+      
+      const regex = new RegExp(location, 'i');
+      
+      const propertyList = await Property.find({
+        status: 'published',
+        $or: [
+          { placeName: regex },
+          { 'location.city': regex },
+          { 'location.state': regex },
+        ],
+      })
+        .skip(skipNum)
+        .limit(limitNum)
+        .lean();
+
+      console.log('Properties found (fallback):', propertyList.length);
+      
+      return res.status(200).json({
+        success: true,
+        data: propertyList,
+        pagination: {
+          skip: skipNum,
+          limit: limitNum,
+          count: propertyList.length,
+          hasMore: propertyList.length === limitNum
+        },
+        usingFallback: true
+      });
+    }
     
   } catch (err) {
     console.error('Search suggestion error:', err);
@@ -2002,7 +2131,6 @@ export const getFilteredProperties = async (req, res) => {
       persons,
       skip = 0,
       limit = 10,
-      // Filter parameters
       priceRange,
       starRating,
       distance,
@@ -2011,7 +2139,6 @@ export const getFilteredProperties = async (req, res) => {
       sortBy = 'relevance'
     } = req.query;
 
-    // Validate required parameters
     if (!location) {
       return res.status(400).json({
         success: false,
@@ -2022,7 +2149,6 @@ export const getFilteredProperties = async (req, res) => {
     const skipNum = parseInt(skip) || 0;
     const limitNum = parseInt(limit) || 10;
 
-    // Parse filter arrays from comma-separated strings
     const filters = {
       priceRange: priceRange ? priceRange.split(',') : [],
       starRating: starRating ? starRating.split(',') : [],
@@ -2031,142 +2157,217 @@ export const getFilteredProperties = async (req, res) => {
       propertyType: propertyType ? propertyType.split(',') : []
     };
 
-    console.log('Applied Filters:', filters); // Debug log
+    console.log('Applied Filters:', filters);
 
-    // Build aggregation pipeline
-    const pipeline = [
-      // Stage 1: Search by location
-      {
-        $search: {
-          index: 'suggestions',
-          compound: {
-            should: [
-              {
-                autocomplete: {
-                  query: location,
-                  path: 'placeName',
+    try {
+      // Try Atlas Search first
+      const pipeline = [
+        {
+          $search: {
+            index: 'suggestions',
+            compound: {
+              should: [
+                {
+                  autocomplete: {
+                    query: location,
+                    path: 'placeName',
+                  },
                 },
-              },
-              {
-                autocomplete: {
-                  query: location,
-                  path: 'location.city',
+                {
+                  autocomplete: {
+                    query: location,
+                    path: 'location.city',
+                  },
                 },
-              },
-              {
-                autocomplete: {
-                  query: location,
-                  path: 'location.state',
+                {
+                  autocomplete: {
+                    query: location,
+                    path: 'location.state',
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
         },
-      },
-
-      // Stage 2: Match published properties
-      {
-        $match: {
-          status: 'published',
+        {
+          $match: {
+            status: 'published',
+          },
         },
-      },
-
-      // Stage 3: Unwind rooms for filtering
-      {
-        $unwind: {
-          path: '$rooms',
-          preserveNullAndEmptyArrays: false
-        }
-      },
-
-      // Stage 4: Apply filters
-      {
-        $match: buildFilterMatch(filters, checkin, checkout, persons)
-      },
-
-      // Stage 5: Ensure rooms exist
-      {
-        $match: {
-          rooms: { $exists: true }
-        }
-      },
-
-      // Stage 6: Group back rooms
-      {
-        $group: {
-          _id: '$_id',
-          property: { $first: '$$ROOT' },
-          rooms: { $push: '$rooms' },
-          minPrice: { $min: '$rooms.pricing.baseAdultsCharge' },
-          maxPrice: { $max: '$rooms.pricing.baseAdultsCharge' }
-        }
-      },
-
-      // Stage 7: Reconstruct property document
-      {
-        $replaceRoot: {
-          newRoot: {
-            $mergeObjects: [
-              '$property',
-              {
-                rooms: '$rooms',
-                priceRange: {
-                  min: '$minPrice',
-                  max: '$maxPrice'
+        {
+          $unwind: {
+            path: '$rooms',
+            preserveNullAndEmptyArrays: false
+          }
+        },
+        {
+          $match: buildFilterMatch(filters, checkin, checkout, persons)
+        },
+        {
+          $match: {
+            rooms: { $exists: true }
+          }
+        },
+        {
+          $group: {
+            _id: '$_id',
+            property: { $first: '$$ROOT' },
+            rooms: { $push: '$rooms' },
+            minPrice: { $min: '$rooms.pricing.baseAdultsCharge' },
+            maxPrice: { $max: '$rooms.pricing.baseAdultsCharge' }
+          }
+        },
+        {
+          $replaceRoot: {
+            newRoot: {
+              $mergeObjects: [
+                '$property',
+                {
+                  rooms: '$rooms',
+                  priceRange: {
+                    min: '$minPrice',
+                    max: '$maxPrice'
+                  }
                 }
-              }
+              ]
+            }
+          }
+        },
+        {
+          $project: {
+            'property.rooms': 0
+          }
+        },
+        {
+          $sort: buildSortStage(sortBy)
+        },
+        {
+          $facet: {
+            metadata: [{ $count: 'total' }],
+            data: [
+              { $skip: skipNum },
+              { $limit: limitNum }
             ]
           }
         }
-      },
+      ];
 
-      // Stage 8: Remove duplicate rooms field from reconstruction
-      {
-        $project: {
-          'property.rooms': 0
+      console.log('Aggregation Pipeline:', JSON.stringify(pipeline, null, 2));
+
+      const result = await Property.aggregate(pipeline);
+      const properties = result[0]?.data || [];
+      const total = result[0]?.metadata[0]?.total || 0;
+      const filterStats = await calculateFilterStats(location, filters);
+
+      return res.status(200).json({
+        success: true,
+        data: properties,
+        pagination: {
+          skip: skipNum,
+          limit: limitNum,
+          count: properties.length,
+          total: total,
+          hasMore: skipNum + properties.length < total
+        },
+        appliedFilters: filters,
+        filterStats: filterStats
+      });
+
+    } catch (searchError) {
+      // Fallback to regular query
+      console.warn('Search index not available, using fallback query');
+      
+      const regex = new RegExp(location, 'i');
+      
+      const pipeline = [
+        {
+          $match: {
+            status: 'published',
+            $or: [
+              { placeName: regex },
+              { 'location.city': regex },
+              { 'location.state': regex },
+            ]
+          }
+        },
+        {
+          $unwind: {
+            path: '$rooms',
+            preserveNullAndEmptyArrays: false
+          }
+        },
+        {
+          $match: buildFilterMatch(filters, checkin, checkout, persons)
+        },
+        {
+          $match: {
+            rooms: { $exists: true }
+          }
+        },
+        {
+          $group: {
+            _id: '$_id',
+            property: { $first: '$$ROOT' },
+            rooms: { $push: '$rooms' },
+            minPrice: { $min: '$rooms.pricing.baseAdultsCharge' },
+            maxPrice: { $max: '$rooms.pricing.baseAdultsCharge' }
+          }
+        },
+        {
+          $replaceRoot: {
+            newRoot: {
+              $mergeObjects: [
+                '$property',
+                {
+                  rooms: '$rooms',
+                  priceRange: {
+                    min: '$minPrice',
+                    max: '$maxPrice'
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          $project: {
+            'property.rooms': 0
+          }
+        },
+        {
+          $sort: buildSortStage(sortBy)
+        },
+        {
+          $facet: {
+            metadata: [{ $count: 'total' }],
+            data: [
+              { $skip: skipNum },
+              { $limit: limitNum }
+            ]
+          }
         }
-      },
+      ];
 
-      // Stage 9: Apply sorting
-      {
-        $sort: buildSortStage(sortBy)
-      },
+      const result = await Property.aggregate(pipeline);
+      const properties = result[0]?.data || [];
+      const total = result[0]?.metadata[0]?.total || 0;
+      const filterStats = await calculateFilterStats(location, filters);
 
-      // Stage 10: Get total count before pagination
-      {
-        $facet: {
-          metadata: [{ $count: 'total' }],
-          data: [
-            { $skip: skipNum },
-            { $limit: limitNum }
-          ]
-        }
-      }
-    ];
-
-    console.log('Aggregation Pipeline:', JSON.stringify(pipeline, null, 2)); // Debug log
-
-    const result = await Property.aggregate(pipeline);
-
-    const properties = result[0]?.data || [];
-    const total = result[0]?.metadata[0]?.total || 0;
-
-    // Calculate filter statistics for UI
-    const filterStats = await calculateFilterStats(location, filters);
-
-    res.status(200).json({
-      success: true,
-      data: properties,
-      pagination: {
-        skip: skipNum,
-        limit: limitNum,
-        count: properties.length,
-        total: total,
-        hasMore: skipNum + properties.length < total
-      },
-      appliedFilters: filters,
-      filterStats: filterStats
-    });
+      return res.status(200).json({
+        success: true,
+        data: properties,
+        pagination: {
+          skip: skipNum,
+          limit: limitNum,
+          count: properties.length,
+          total: total,
+          hasMore: skipNum + properties.length < total
+        },
+        appliedFilters: filters,
+        filterStats: filterStats,
+        usingFallback: true
+      });
+    }
 
   } catch (err) {
     console.error('Filter properties error:', err);
@@ -2309,78 +2510,136 @@ const buildSortStage = (sortBy) => {
 // Calculate filter statistics
 const calculateFilterStats = async (location, appliedFilters) => {
   try {
-    const pipeline = [
-      // Search by location
-      {
-        $search: {
-          index: 'suggestions',
-          compound: {
-            should: [
-              {
-                autocomplete: {
-                  query: location,
-                  path: 'placeName',
+    try {
+      // Try Atlas Search first
+      const pipeline = [
+        {
+          $search: {
+            index: 'suggestions',
+            compound: {
+              should: [
+                {
+                  autocomplete: {
+                    query: location,
+                    path: 'placeName',
+                  },
                 },
-              },
-              {
-                autocomplete: {
-                  query: location,
-                  path: 'location.city',
+                {
+                  autocomplete: {
+                    query: location,
+                    path: 'location.city',
+                  },
                 },
-              },
-              {
-                autocomplete: {
-                  query: location,
-                  path: 'location.state',
+                {
+                  autocomplete: {
+                    query: location,
+                    path: 'location.state',
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
         },
-      },
-      {
-        $match: {
-          status: 'published',
+        {
+          $match: {
+            status: 'published',
+          },
         },
-      },
-      {
-        $unwind: {
-          path: '$rooms',
-          preserveNullAndEmptyArrays: false
+        {
+          $unwind: {
+            path: '$rooms',
+            preserveNullAndEmptyArrays: false
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            minPrice: { $min: '$rooms.pricing.baseAdultsCharge' },
+            maxPrice: { $max: '$rooms.pricing.baseAdultsCharge' },
+            propertyTypes: { $addToSet: '$propertyType' },
+            ratings: { $addToSet: '$placeRating' },
+            totalProperties: { $sum: 1 }
+          }
         }
-      },
-      {
-        $group: {
-          _id: null,
-          minPrice: { $min: '$rooms.pricing.baseAdultsCharge' },
-          maxPrice: { $max: '$rooms.pricing.baseAdultsCharge' },
-          propertyTypes: { $addToSet: '$propertyType' },
-          ratings: { $addToSet: '$placeRating' },
-          totalProperties: { $sum: 1 }
-        }
-      }
-    ];
+      ];
 
-    const stats = await Property.aggregate(pipeline);
-    
-    if (stats.length === 0) {
+      const stats = await Property.aggregate(pipeline);
+      
+      if (stats.length === 0) {
+        return {
+          priceRange: { min: 0, max: 0 },
+          propertyTypes: [],
+          ratings: [],
+          totalProperties: 0
+        };
+      }
+
       return {
-        priceRange: { min: 0, max: 0 },
-        propertyTypes: [],
-        ratings: [],
-        totalProperties: 0
+        priceRange: {
+          min: stats[0].minPrice || 0,
+          max: stats[0].maxPrice || 0
+        },
+        propertyTypes: stats[0].propertyTypes || [],
+        ratings: stats[0].ratings.sort((a, b) => b - a) || [],
+        totalProperties: stats[0].totalProperties || 0
+      };
+      
+    } catch (searchError) {
+      // Fallback to regular query
+      console.warn('Search index not available for stats, using fallback');
+      
+      const regex = new RegExp(location, 'i');
+      
+      const pipeline = [
+        {
+          $match: {
+            status: 'published',
+            $or: [
+              { placeName: regex },
+              { 'location.city': regex },
+              { 'location.state': regex },
+            ]
+          }
+        },
+        {
+          $unwind: {
+            path: '$rooms',
+            preserveNullAndEmptyArrays: false
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            minPrice: { $min: '$rooms.pricing.baseAdultsCharge' },
+            maxPrice: { $max: '$rooms.pricing.baseAdultsCharge' },
+            propertyTypes: { $addToSet: '$propertyType' },
+            ratings: { $addToSet: '$placeRating' },
+            totalProperties: { $sum: 1 }
+          }
+        }
+      ];
+
+      const stats = await Property.aggregate(pipeline);
+      
+      if (stats.length === 0) {
+        return {
+          priceRange: { min: 0, max: 0 },
+          propertyTypes: [],
+          ratings: [],
+          totalProperties: 0
+        };
+      }
+
+      return {
+        priceRange: {
+          min: stats[0].minPrice || 0,
+          max: stats[0].maxPrice || 0
+        },
+        propertyTypes: stats[0].propertyTypes || [],
+        ratings: stats[0].ratings.sort((a, b) => b - a) || [],
+        totalProperties: stats[0].totalProperties || 0
       };
     }
-
-    return {
-      priceRange: {
-        min: stats[0].minPrice || 0,
-        max: stats[0].maxPrice || 0
-      },
-      propertyTypes: stats[0].propertyTypes || [],
-      ratings: stats[0].ratings.sort((a, b) => b - a) || [],
-      totalProperties: stats[0].totalProperties || 0
-    };
   } catch (error) {
     console.error('Error calculating filter stats:', error);
     return {
@@ -2391,6 +2650,7 @@ const calculateFilterStats = async (location, appliedFilters) => {
     };
   }
 };
+
 
 // Format price ranges for UI
 function formatPriceRanges(ranges) {
