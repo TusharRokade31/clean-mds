@@ -1,0 +1,52 @@
+name: Deploy API to Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'api/**'
+      - '.github/workflows/deploy-api.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v3
+
+    - name: 🔐 Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: 📤 Upload to Staging
+      run: |
+        rsync -avz -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+          --exclude 'node_modules' \
+          --exclude '.git' \
+          --exclude '.env' \
+          --exclude '.next' \
+          --delete \
+          ./api/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/ec2-user/apps/staging/api/
+
+    - name: 🚀 Execute Deployment Script
+      run: |
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+          'bash /home/ec2-user/apps/scripts/deploy-api.sh'
+
+    - name: ✅ Deployment Status
+      if: success()
+      run: |
+        echo "✅ API deployed successfully to production!"
+        echo "🕐 Deployment time: $(date)"
+
+    - name: ❌ Deployment Failed
+      if: failure()
+      run: |
+        echo "❌ Deployment failed! Check logs above."
+        echo "💡 You can rollback using: bash /home/ec2-user/apps/scripts/rollback-api.sh"

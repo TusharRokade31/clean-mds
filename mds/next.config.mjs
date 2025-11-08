@@ -9,6 +9,12 @@ const nextConfig = {
                 pathname: '/**',
             },
             {
+                protocol: 'http',
+                hostname: '65.1.45.115',  // Add your EC2 IP here
+                port: '',
+                pathname: '/**',
+            },
+            {
                 protocol: 'https',
                 hostname: 'my-divine-stay.onrender.com',
                 port: '',
@@ -22,7 +28,6 @@ const nextConfig = {
             },
         ]
     },
-    // Add this to handle font loading issues
     experimental: {
         optimizeCss: true,
     }

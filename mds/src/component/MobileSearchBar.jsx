@@ -24,8 +24,8 @@ export default function SearchComponent() {
   const [recentSearches, setRecentSearches] = useState([]);
   const [dateRange, setDateRange] = useState('Feb 06 - Feb 23');
   const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(1);
-  const [infants, setInfants] = useState(1);
+  const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
   const [step, setStep] = useState(0);
   const [isMobile, setIsMobile] = useState(true);
   
@@ -42,11 +42,7 @@ export default function SearchComponent() {
   const tabs = ['Stay', 'Experiences', 'Cars', 'Flights'];
   
   const popularDestinations = [
-    'Australia',
-    'Canada', 
-    'Germany',
-    'United Kingdom',
-    'United Arab Emirates'
+
   ];
 
   // Helper functions from main SearchBar

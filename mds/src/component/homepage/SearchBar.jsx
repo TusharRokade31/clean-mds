@@ -22,8 +22,8 @@ export default function SearchBar() {
   const [recentSearches, setRecentSearches] = useState([]);
   const [guests, setGuests] = useState({
     adults: 2,
-    children: 1,
-    infants: 1
+    children: 0,
+    infants: 0
   });
   const [selectedDates, setSelectedDates] = useState({
     checkin: '',
