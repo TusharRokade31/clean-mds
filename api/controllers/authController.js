@@ -70,6 +70,15 @@ export const getMe = asyncHandler(async (req, res, next) => {
 
 export const logout = async (req, res) => {
   try {
+
+  const deleteCookie = (name) => {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+  }
+};
+
+   deleteCookie('token');
+
     // Clear cookie with matching options
     res.clearCookie('token', {
       httpOnly: true,
