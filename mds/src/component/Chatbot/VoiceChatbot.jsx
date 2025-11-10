@@ -289,7 +289,7 @@ const VoiceChatbot = () => {
                             >
                               <div className="relative h-32">
                                 <img
-                                  src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${prop.media?.images[0]?.url || '/placeholder.jpg'}`}
+                                  src={`${prop.media?.images[0]?.url || '/placeholder.jpg'}`}
                                   alt={prop.placeName}
                                   className="w-full h-full object-cover"
                                   onError={(e) => { e.target.src = '/placeholder.jpg'; }}

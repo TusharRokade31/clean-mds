@@ -61,7 +61,7 @@ const TrendingDestinations = () => {
                 <div className="relative h-48 w-full">
                       <Link href={'/coming-soon'}>
                         <Image 
-                            overrideSrc={`${process.env.NEXT_PUBLIC_IMAGE_URL}${destination.image || ''}`}
+                            overrideSrc={`${destination.image || ''}`}
                             className="h-full w-full rounded-2xl object-cover"
                             alt={destination.name}
                             fill

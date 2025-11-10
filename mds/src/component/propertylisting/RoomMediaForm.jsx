@@ -273,7 +273,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
         {firstImage.type === 'image' ? (
           <CardMedia
             component="img"
-            image={`${process.env.NEXT_PUBLIC_IMAGE_URL}${firstImage.url}`}
+            image={`${firstImage.url}`}
             alt={firstImage.filename}
             sx={{
               width: '100%',
@@ -283,7 +283,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
           />
         ) : (
           <video
-            src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${firstImage.url}`}
+            src={`${firstImage.url}`}
             style={{
               width: '100%',
               height: '70%',
@@ -478,7 +478,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                           {mediaItem.type === 'image' ? (
                             <CardMedia
                               component="img"
-                              image={`${process.env.NEXT_PUBLIC_IMAGE_URL}${mediaItem.url}`}
+                              image={`${mediaItem.url}`}
                               alt={mediaItem.filename}
                               sx={{
                                 width: '100%',
@@ -488,7 +488,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                             />
                           ) : (
                             <video
-                              src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${mediaItem.url}`}
+                              src={`${mediaItem.url}`}
                               style={{
                                 width: '100%',
                                 height: '100%',
@@ -555,7 +555,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                 <Box sx={{ position: 'relative' }}>
                   {selectedTagGroup.mediaItems[selectedImageIndex]?.type === 'image' ? (
                     <img
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
+                      src={`${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
                       alt={selectedTagGroup.mediaItems[selectedImageIndex].filename}
                       style={{
                         width: '100%',
@@ -566,7 +566,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                     />
                   ) : (
                     <video
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
+                      src={`${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
                       style={{
                         width: '100%',
                         height: '500px',
@@ -674,7 +674,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                 <Box sx={{ position: 'relative' }}>
                   {editingMedia.type === 'image' ? (
                     <img
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${editingMedia.url}`}
+                      src={`${editingMedia.url}`}
                       alt={editingMedia.filename}
                       style={{
                         width: '100%',
@@ -685,7 +685,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                     />
                   ) : (
                     <video
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${editingMedia.url}`}
+                      src={`${editingMedia.url}`}
                       style={{
                         width: '100%',
                         height: '400px',

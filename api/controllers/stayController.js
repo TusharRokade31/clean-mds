@@ -4,6 +4,7 @@ import asyncHandler from '../middleware/async.js';
 import ErrorResponse from '../utils/errorResponse.js';
 import fs from 'fs';
 import Stay from '../models/Stay.js';
+import { deleteFromS3, extractS3Key } from '../services/s3Service.js';
 
 // @desc    Get all stays
 // @route   GET /api/stays
@@ -75,13 +76,14 @@ export const updateStay = asyncHandler(async (req, res, next) => {
   }
   
   // Handle file upload
-  if (req.file) {
-    // Delete old image if exists
-    if (stay.image && fs.existsSync(stay.image)) {
-      fs.unlinkSync(stay.image);
+    if (req.file) {
+      // Delete old image from S3
+      if (stay.image) {
+        const oldKey = extractS3Key(stay.image);
+        await deleteFromS3(oldKey);
+      }
+      req.body.image = req.file.location;
     }
-    req.body.image = req.file.path;
-  }
   
   stay = await Stay.findByIdAndUpdate(req.params.id, req.body, {
     new: true,

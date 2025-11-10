@@ -64,7 +64,7 @@ export default function BookingCard({ booking }) {
 const getPropertyImage = () => {
   // Check for first image in images array
   if (booking.property.media?.images && booking.property.media.images.length > 0) {
-    return `${process.env.NEXT_PUBLIC_IMAGE_URL}${booking.property.media.images[0].url}`;
+    return `${booking.property.media.images[0].url}`;
   }
   
   return null;

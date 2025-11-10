@@ -14,6 +14,12 @@ const nextConfig = {
                 port: '',
                 pathname: '/**',
             },
+             {
+                protocol: 'https',
+                hostname: 'mydivinestays-s3-bucket.s3.ap-south-1.amazonaws.com',  
+                port: '',
+                pathname: '/**',
+            },
             {
                 protocol: 'https',
                 hostname: 'my-divine-stay.onrender.com',

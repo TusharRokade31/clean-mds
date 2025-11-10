@@ -269,7 +269,7 @@ const RoomSelection = ({ property, bookingData, onNext, onDataChange }) => {
                   <CardMedia
                     component="img"
                     height="200"
-                    image={`${process.env.NEXT_PUBLIC_IMAGE_URL}${room.media.images[0].url}`}
+                    image={`${room.media.images[0].url}`}
                     alt={room.roomName}
                   />
                 )}

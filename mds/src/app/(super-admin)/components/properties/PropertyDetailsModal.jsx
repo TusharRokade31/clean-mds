@@ -205,7 +205,7 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
                       >
                         {image.url ? (
                           <img 
-                            src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${image.url}`} 
+                            src={`${image.url}`} 
                             alt={`Property ${index + 1}`}
                             className="w-full h-full object-cover"
                           />

@@ -176,7 +176,7 @@ const RoomDetailsModal = ({
                       <Grid item xs={6} key={index}>
                         <Box
                           component="img"
-                          src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${image.url}`}
+                          src={`${image.url}`}
                           alt={`Room ${index + 1}`}
                           sx={{
                             width: '100%',
