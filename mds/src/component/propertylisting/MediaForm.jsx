@@ -478,12 +478,12 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
 
       {/* Status Alerts */}
       <Alert
-        severity={allMedia.length >= 10 ? "success" : "info"}
+        severity={allMedia.length >= 3 ? "success" : "info"}
         sx={{ mb: 2 }}
       >
-        {allMedia.length >= 10
+        {allMedia.length >= 3
           ? `Great! You have ${allMedia.length} media items uploaded.`
-          : `You need at least 10 media items. Currently have ${allMedia.length}.`
+          : `You need at least 3 media items. Currently have ${allMedia.length}.`
         }
       </Alert>
 
@@ -786,7 +786,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
         <Button
           variant="contained"
           onClick={handleCompleteStep}
-          disabled={isLoading || allMedia.length < 10 || itemsWithoutTags.length > 0}
+          disabled={isLoading || allMedia.length < 3 || itemsWithoutTags.length > 0}
         >
           Save & Continue
         </Button>

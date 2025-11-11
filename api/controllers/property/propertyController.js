@@ -1454,7 +1454,7 @@ export const completeMediaStep = async (req, res) => {
     const totalMedia = property.media.images.length + property.media.videos.length;
     console.log(property);
     
-    if (totalMedia < 10) {
+    if (totalMedia < 3) {
       return errorResponse(res, 400, `Minimum 10 media items required. Currently have ${totalMedia} items.`);
     }
     

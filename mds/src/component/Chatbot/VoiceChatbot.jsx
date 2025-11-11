@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { useDispatch, useSelector } from 'react-redux';
 import { voiceSearchProperties, fetchPopularVoiceQueries } from '@/redux/features/property/propertySlice';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Mic, MicOff, X, Send, Trash2, MapPin, Star, Home } from 'lucide-react';
 
 const VoiceChatbot = () => {
@@ -12,6 +12,7 @@ const VoiceChatbot = () => {
   const [isActive, setIsActive] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+   const pathname = usePathname();
   const [textInput, setTextInput] = useState('');
   const [inputMode, setInputMode] = useState('voice'); // 'voice' or 'text'
   const messagesEndRef = useRef(null);
@@ -176,6 +177,10 @@ const VoiceChatbot = () => {
         </p>
       </div>
     );
+  }
+
+    if (pathname.startsWith("/admin") || pathname.startsWith("/host")) {
+    return null;
   }
 
   return (

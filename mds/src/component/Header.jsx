@@ -13,6 +13,7 @@ import AvatarDropdown from "./AvatarDropdown";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   if (pathname.startsWith("/admin") || pathname.startsWith("/host")) {
     return null;
@@ -22,11 +23,20 @@ const Header = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+
+    const handleListPropertyClick = () => {
+    if (!isAuthenticated) {
+      sessionStorage.setItem("redirectAfterLogin", "listProperty");
+      toggleMenu()
+    }
+    toggleMenu()
+  };
+
   return (
     <header className="border-b z-10 fixed top-0 right-0 left-0 bg-white/30 backdrop-blur-2xl border-[#e5e7eb]">
       <nav className="flex h-20 justify-between items-center mx-auto px-2 sm:px-4 lg:container">
         <div className="flex justify-center gap-x-3 sm:gap-x-8 lg:gap-x-10 items-center">
-          <Link href="/">
+          <Link href="/" onClick={() => sessionStorage.removeItem("redirectAfterLogin")}>
             <img src={logo.src} className="w-20 " />
           </Link>
           
@@ -90,10 +100,13 @@ const Header = () => {
         className="fixed top-0 right-0 h-screen w-64 bg-white shadow-lg z-40 lg:hidden overflow-y-auto"
       >
         <div className="flex flex-col pt-12 px-6 gap-6">
-          <Link href="/about" className="text-lg font-medium text-gray-800 hover:text-indigo-600 transition-colors">
+          <Link href="/about-us" className="text-lg font-medium  hover:text-indigo-600 transition-colors">
             About us
           </Link>
-          <Link href="/host" className="text-lg font-medium text-gray-800 hover:text-indigo-600 transition-colors">
+          <Link href="/about-us" onClick={toggleMenu} className="text-lg font-medium  hover:text-indigo-600 transition-colors">
+            About us
+          </Link>
+          <Link href="/host" onClick={handleListPropertyClick} className="text-lg font-medium text-gray-800 hover:text-indigo-600 transition-colors">
             List your property
           </Link>
         </div>

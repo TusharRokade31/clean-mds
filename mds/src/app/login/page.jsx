@@ -34,41 +34,44 @@ const PageLogin = ({}) => {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        console.log("Token response:", tokenResponse);
+const googleLogin = useGoogleLogin({
+  onSuccess: async (tokenResponse) => {
+    try {
+      console.log("Token response:", tokenResponse);
 
-        const result = await dispatch(
-          googleLoginUser(tokenResponse.access_token)
-        );
-        
-        if (result.meta.requestStatus === "fulfilled") {
-          // Wait a bit to ensure cookie is set
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-        // Check if there's a stored redirect path
-      const storedPath = localStorage.getItem("hoteldetailPath");
-      
-      if (storedPath) {
-        // Remove the stored path
-        localStorage.removeItem("hoteldetailPath");
-        // Redirect to the stored path
-        window.location.href = storedPath;
-      } else {
-        // Default redirect to home
-        window.location.href = "/";
-      }
+      const result = await dispatch(
+        googleLoginUser(tokenResponse.access_token)
+      );
+
+      if (result.meta.requestStatus === "fulfilled") {
+        // Wait briefly to ensure cookies or session data are set
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Check for stored redirect values
+        const storedPath = localStorage.getItem("hoteldetailPath");
+        const redirectAfterLogin = sessionStorage.getItem("redirectAfterLogin");
+
+        if (storedPath) {
+          localStorage.removeItem("hoteldetailPath");
+          router.push(storedPath);
+
+        } else if (redirectAfterLogin === "listProperty") {
+          sessionStorage.removeItem("redirectAfterLogin");
+          router.push("/host");
+
+        } else {
+          router.push("/");
         }
-      } catch (error) {
-        console.error("Google login failed:", error);
       }
-    },
-    scope: "email profile",
-    onError: () => {
-      console.error("Google login failed");
-    },
-  });
+    } catch (error) {
+      console.error("Google login failed:", error);
+    }
+  },
+  scope: "email profile",
+  onError: () => {
+    console.error("Google login failed");
+  },
+});
 
   const { isLoading, error, isAuthenticated } = useSelector(
     (state) => state.auth
@@ -88,24 +91,28 @@ const PageLogin = ({}) => {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
-  
+
   try {
     const result = await dispatch(loginUser(credentials));
-    
+
     if (result.meta.requestStatus === "fulfilled") {
       // Small delay to ensure cookie is properly set
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Check if there's a stored redirect path
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Check for stored redirect values
       const storedPath = localStorage.getItem("hoteldetailPath");
-      
+      const redirectAfterLogin = sessionStorage.getItem("redirectAfterLogin");
+
       if (storedPath) {
-        // Remove the stored path
         localStorage.removeItem("hoteldetailPath");
-        // Redirect to the stored path
         window.location.href = storedPath;
+
+      } else if (redirectAfterLogin === "listProperty") {
+        sessionStorage.removeItem("redirectAfterLogin");
+        window.location.href = "/host";
+
       } else {
-        // Default redirect to home
+        // Default redirect
         window.location.href = "/";
       }
     }
@@ -142,7 +149,7 @@ const handleSubmit = async (e) => {
           </div>
           {/* OR */}
           <div className="relative text-center">
-            <span className="relative z-10 inline-block bg-white px-4 text-sm font-medium   ">
+            <span className="relative z-2 inline-block bg-white px-4 text-sm font-medium   ">
               OR
             </span>
             <div className="absolute left-0 top-1/2 w-full -translate-y-1/2 border border-neutral-100 "></div>
