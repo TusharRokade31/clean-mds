@@ -222,7 +222,7 @@ router.post(
     // If all files are valid, proceed to the controller
     next();
   },
-  uploadRoomMedia,ev
+  uploadRoomMedia,
 );
 router.put('/:propertyId/rooms/:roomId/media/:mediaId', protect, updateRoomMediaItem);
 router.delete('/:propertyId/rooms/:roomId/media/:mediaId', protect, deleteRoomMediaItem);
