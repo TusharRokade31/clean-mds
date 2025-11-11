@@ -29,7 +29,7 @@ const ImageCarousel = ({ images, size = "small", room, handleRoomClick }) => {
     <div className={`relative w-full  ${size === "large" ? "aspect-video h-96" : "aspect-square"} overflow-hidden rounded-lg`}>
       <img
         onClick={() => handleRoomClick(room)}
-        src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${images[currentIndex].url}`}
+        src={`${images[currentIndex].url}`}
         alt={`Room image ${currentIndex + 1}`}
         className="w-full h-full object-cover"
       />

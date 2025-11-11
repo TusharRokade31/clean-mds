@@ -41,7 +41,7 @@ export function PropertyCard({
   }
   
   const currentImage = images[currentImageIndex]
-  const imageUrl = currentImage ? `${process.env.NEXT_PUBLIC_IMAGE_URL}${currentImage.url}` : null
+  const imageUrl = currentImage ? `${currentImage.url}` : null
   
   const thumbnailImages = images.slice(0, 4)
   const hasMoreImages = images.length > 4
@@ -213,7 +213,7 @@ export function PropertyCard({
             {thumbnailImages.length > 0 && (
               <div className="flex gap-1.5 p-3 bg-linear-to-r from-gray-50 to-blue-50 rounded-bl-2xl">
                 {thumbnailImages.map((image, index) => {
-                  const thumbUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL}${image.url}`
+                  const thumbUrl = `${image.url}`
                   const isLast = index === 3 && hasMoreImages
                   
                   return (

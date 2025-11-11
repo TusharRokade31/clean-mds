@@ -779,11 +779,17 @@ export const uploadPropertyMedia = async (req, res) => {
     const files = req.files;
     
     if (!files || files.length === 0) {
-      return errorResponse(res, 400, 'No files uploaded');
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded',
+      });
     }
     
     if (files.length > 20) {
-      return errorResponse(res, 400, 'Cannot upload more than 20 files at once');
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot upload more than 20 files at once',
+      });
     }
     
     const property = await Property.findOne({ 
@@ -792,34 +798,33 @@ export const uploadPropertyMedia = async (req, res) => {
     });
     
     if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found or unauthorized',
+      });
     }
 
-    // Check for changes if property is published (adding new media is a change)
     const hasChanges = property.status === 'published';
-
     if (hasChanges) {
       await markForReapproval(property, 5, req.user._id);
     }
     
     const uploadedMedia = [];
     
-    // Process each uploaded file
     for (const file of files) {
       const mediaType = file.mimetype.startsWith('video/') ? 'video' : 'image';
-      const mediaUrl = `/${file.path.replace(/\\/g, '/')}`; // Normalize path separators
       
       const mediaItem = {
-        url: mediaUrl,
+        url: file.location, // S3 URL
+        key: file.key, // S3 key for deletion
         type: mediaType,
-        filename: file.filename,
-        tags: [], // Will be updated separately
+        filename: file.originalname,
+        tags: [],
         isCover: false,
         displayOrder: mediaType === 'image' ? property.media.images.length : property.media.videos.length,
         uploadedAt: new Date(),
       };
       
-      // Add to appropriate array
       if (mediaType === 'image') {
         property.media.images.push(mediaItem);
       } else {
@@ -837,7 +842,7 @@ export const uploadPropertyMedia = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: hasChanges ? 
-        `${files.length} media files uploaded successfully. Property marked for admin review due to changes.` :
+        `${files.length} media files uploaded successfully. Property marked for admin review.` :
         `${files.length} media files uploaded successfully`,
       uploadedMedia,
       property,
@@ -845,7 +850,12 @@ export const uploadPropertyMedia = async (req, res) => {
     });
     
   } catch (error) {
-    return errorResponse(res, 500, 'Server error', error.message);
+    console.error('Upload media error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
   }
 };
 
@@ -1065,54 +1075,61 @@ export const uploadRoomMedia = async (req, res) => {
     const files = req.files;
     
     if (!files || files.length === 0) {
-      return errorResponse(res, 400, 'No files uploaded');
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded',
+      });
     }
     
     if (files.length > 20) {
-      return errorResponse(res, 400, 'Cannot upload more than 20 files at once');
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot upload more than 20 files at once',
+      });
     }
     
-    // Check if property exists and belongs to user
     const property = await Property.findOne({ 
       _id: propertyId,
       owner: req.user._id,
     });
     
     if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found or unauthorized',
+      });
     }
     
-    // Find the specific room
     const roomIndex = property.rooms.findIndex(room => room._id.toString() === roomId);
     
     if (roomIndex === -1) {
-      return errorResponse(res, 404, 'Room not found');
+      return res.status(404).json({
+        success: false,
+        message: 'Room not found',
+      });
     }
     
     const room = property.rooms[roomIndex];
     const uploadedMedia = [];
     
-    // Initialize media object if it doesn't exist
     if (!room.media) {
       room.media = { images: [], videos: [] };
     }
     
-    // Process each uploaded file
     for (const file of files) {
       const mediaType = file.mimetype.startsWith('video/') ? 'video' : 'image';
-      const mediaUrl = `/${file.path.replace(/\\/g, '/')}`; // Normalize path separators
       
       const mediaItem = {
-        url: mediaUrl,
+        url: file.location, // S3 URL
+        key: file.key, // S3 key
         type: mediaType,
-        filename: file.filename,
-        tags: [], // Will be updated separately
+        filename: file.originalname,
+        tags: [],
         isCover: false,
         displayOrder: mediaType === 'image' ? room.media.images.length : room.media.videos.length,
         uploadedAt: new Date(),
       };
       
-      // Add to appropriate array
       if (mediaType === 'image') {
         room.media.images.push(mediaItem);
       } else {
@@ -1136,7 +1153,12 @@ export const uploadRoomMedia = async (req, res) => {
     });
     
   } catch (error) {
-    return errorResponse(res, 500, 'Server error', error.message);
+    console.error('Upload room media error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
   }
 };
 
@@ -1432,7 +1454,7 @@ export const completeMediaStep = async (req, res) => {
     const totalMedia = property.media.images.length + property.media.videos.length;
     console.log(property);
     
-    if (totalMedia < 10) {
+    if (totalMedia < 3) {
       return errorResponse(res, 400, `Minimum 10 media items required. Currently have ${totalMedia} items.`);
     }
     

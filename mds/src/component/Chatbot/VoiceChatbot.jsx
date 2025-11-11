@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { useDispatch, useSelector } from 'react-redux';
 import { voiceSearchProperties, fetchPopularVoiceQueries } from '@/redux/features/property/propertySlice';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Mic, MicOff, X, Send, Trash2, MapPin, Star, Home } from 'lucide-react';
 
 const VoiceChatbot = () => {
@@ -12,6 +12,7 @@ const VoiceChatbot = () => {
   const [isActive, setIsActive] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+   const pathname = usePathname();
   const [textInput, setTextInput] = useState('');
   const [inputMode, setInputMode] = useState('voice'); // 'voice' or 'text'
   const messagesEndRef = useRef(null);
@@ -178,6 +179,10 @@ const VoiceChatbot = () => {
     );
   }
 
+    if (pathname.startsWith("/admin") || pathname.startsWith("/host")) {
+    return null;
+  }
+
   return (
     <div className="fixed bottom-0 right-0 z-[9999]">
       {/* Floating Toggle Button */}
@@ -289,7 +294,7 @@ const VoiceChatbot = () => {
                             >
                               <div className="relative h-32">
                                 <img
-                                  src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${prop.media?.images[0]?.url || '/placeholder.jpg'}`}
+                                  src={`${prop.media?.images[0]?.url || '/placeholder.jpg'}`}
                                   alt={prop.placeName}
                                   className="w-full h-full object-cover"
                                   onError={(e) => { e.target.src = '/placeholder.jpg'; }}

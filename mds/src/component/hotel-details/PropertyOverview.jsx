@@ -131,7 +131,7 @@ export default function PropertyOverview({ data, setActiveSection }) {
                 >
                   {coverImage ? (
                     <img
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${coverImage.url}`}
+                      src={`${coverImage.url}`}
                       alt="Property main image"
                       style={{
                         width: "100%",
@@ -190,7 +190,7 @@ export default function PropertyOverview({ data, setActiveSection }) {
                         onClick={() => handleImageClick(index + 1)}
                       >
                         <img
-                          src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${image.url}`}
+                          src={`${image.url}`}
                           alt={`Property image ${index + 2}`}
                           style={{
                             width: "100%",
@@ -439,7 +439,7 @@ export default function PropertyOverview({ data, setActiveSection }) {
                     {filteredImages.map((image, index) => (
                       <ImageListItem key={image._id || index}>
                         <img
-                          src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${image.url}`}
+                          src={`${image.url}`}
                           alt={`Property ${image.tags ? image.tags.join(', ') : 'image'}`}
                           loading="lazy"
                           style={{

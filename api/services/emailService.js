@@ -30,7 +30,7 @@ export const sendOTPEmail = async (email, otp, propertyName) => {
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Email Verification Required</h2>
-        <p>You are registering the property: <strong>${propertyName}</strong></p>
+        <p>You are registering the property</p>
         <p>Please use the following OTP to verify your email address:</p>
         <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0;">
           <h1 style="color: #1976d2; font-size: 32px; margin: 0;">${otp}</h1>

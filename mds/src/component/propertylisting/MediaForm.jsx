@@ -273,7 +273,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
         {firstImage.type === 'image' ? (
           <CardMedia
             component="img"
-            image={`${process.env.NEXT_PUBLIC_IMAGE_URL}${firstImage.url}`}
+            image={`${firstImage.url}`}
             alt={firstImage.filename}
             sx={{
               width: '100%',
@@ -283,7 +283,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
           />
         ) : (
           <video
-            src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${firstImage.url}`}
+            src={`${firstImage.url}`}
             style={{
               width: '100%',
               height: '70%',
@@ -435,7 +435,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
                   {mediaItem.type === 'image' ? (
                     <CardMedia
                       component="img"
-                      image={`${process.env.NEXT_PUBLIC_IMAGE_URL}${mediaItem.url}`}
+                      image={`${mediaItem.url}`}
                       alt={mediaItem.filename}
                       sx={{
                         width: '100%',
@@ -445,7 +445,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
                     />
                   ) : (
                     <video
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${mediaItem.url}`}
+                      src={`${mediaItem.url}`}
                       style={{
                         width: '100%',
                         height: '100%',
@@ -478,12 +478,12 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
 
       {/* Status Alerts */}
       <Alert
-        severity={allMedia.length >= 10 ? "success" : "info"}
+        severity={allMedia.length >= 3 ? "success" : "info"}
         sx={{ mb: 2 }}
       >
-        {allMedia.length >= 10
+        {allMedia.length >= 3
           ? `Great! You have ${allMedia.length} media items uploaded.`
-          : `You need at least 10 media items. Currently have ${allMedia.length}.`
+          : `You need at least 3 media items. Currently have ${allMedia.length}.`
         }
       </Alert>
 
@@ -512,7 +512,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
                 <Box sx={{ position: 'relative' }}>
                   {selectedTagGroup.mediaItems[selectedImageIndex]?.type === 'image' ? (
                     <img
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
+                      src={`${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
                       alt={selectedTagGroup.mediaItems[selectedImageIndex].filename}
                       style={{
                         width: '100%',
@@ -523,7 +523,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
                     />
                   ) : (
                     <video
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
+                      src={`${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
                       style={{
                         width: '100%',
                         height: '500px',
@@ -632,7 +632,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
                 <Box sx={{ position: 'relative' }}>
                   {editingMedia.type === 'image' ? (
                     <img
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${editingMedia.url}`}
+                      src={`${editingMedia.url}`}
                       alt={editingMedia.filename}
                       style={{
                         width: '100%',
@@ -643,7 +643,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
                     />
                   ) : (
                     <video
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${editingMedia.url}`}
+                      src={`${editingMedia.url}`}
                       style={{
                         width: '100%',
                         height: '400px',
@@ -786,7 +786,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
         <Button
           variant="contained"
           onClick={handleCompleteStep}
-          disabled={isLoading || allMedia.length < 10 || itemsWithoutTags.length > 0}
+          disabled={isLoading || allMedia.length < 3 || itemsWithoutTags.length > 0}
         >
           Save & Continue
         </Button>

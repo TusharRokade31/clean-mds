@@ -73,7 +73,8 @@ import {
 
 import { authorize, protect } from '../middleware/auth.js';
 import { check } from 'express-validator' ;
-import { upload, uploadMedia, validateImageSize } from '../middleware/uploadMiddleware.js';
+import { upload, uploadMedia } from '../middleware/s3UploadMiddleware.js';
+import { validateImageSize } from '../middleware/uploadMiddleware.js';
 import { validatePropertyQuery } from '../middleware/validatePropertyQuery.js';
 import { setDefaultLocation } from '../middleware/defaultLocation.js';
 import { validateFilterQuery } from '../middleware/validation.js';

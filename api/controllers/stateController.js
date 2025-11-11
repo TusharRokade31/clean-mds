@@ -6,6 +6,7 @@ import asyncHandler from '../middleware/async.js';
 import ErrorResponse from '../utils/errorResponse.js';
 import fs from 'fs';
 import path from 'path';
+import { deleteFromS3, extractS3Key } from '../services/s3Service.js';
 
 // @desc    Get all states
 // @route   GET /api/states
@@ -51,9 +52,10 @@ export const getState = asyncHandler(async (req, res, next) => {
 export const createState = asyncHandler(async (req, res, next) => {
   // Handle file upload
   let imagePath = null;
-  if (req.file) {
-    imagePath = req.file.path;
-  }
+   if (req.file) {
+      
+      imagePath = req.file.location;
+    }
   
   const state = await State.create({
     ...req.body,
@@ -69,32 +71,44 @@ export const createState = asyncHandler(async (req, res, next) => {
 // @desc    Update state
 // @route   PUT /api/states/:id
 // @access  Private/Admin
-export const updateState = asyncHandler(async (req, res, next) => {
-  let state = await State.findById(req.params.id);
-  
-  if (!state) {
-    return next(new ErrorResponse(`State not found with id of ${req.params.id}`, 404));
-  }
-  
-  // Handle file upload
-  if (req.file) {
-    // Delete old image if exists
-    if (state.image && fs.existsSync(state.image)) {
-      fs.unlinkSync(state.image);
+export const updateState = async (req, res, next) => {
+  try {
+    let state = await State.findById(req.params.id);
+    
+    if (!state) {
+      return res.status(404).json({
+        success: false,
+        message: `State not found with id of ${req.params.id}`,
+      });
     }
-    req.body.image = req.file.path;
+    
+    if (req.file) {
+      // Delete old image from S3
+      if (state.image) {
+        const oldKey = extractS3Key(state.image);
+        await deleteFromS3(oldKey);
+      }
+      req.body.image = req.file.location;
+    }
+    
+    state = await State.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: state,
+    });
+  } catch (error) {
+    console.error('Update state error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
   }
-  
-  state = await State.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-  
-  res.status(200).json({
-    success: true,
-    data: state,
-  });
-});
+};
 
 // @desc    Delete state
 // @route   DELETE /api/states/:id
@@ -117,7 +131,7 @@ export const deleteState = asyncHandler(async (req, res, next) => {
     fs.unlinkSync(state.image);
   }
   
-  await state.remove();
+  await state.deleteOne();
   
   res.status(200).json({
     success: true,
@@ -243,13 +257,14 @@ export const updateCity = asyncHandler(async (req, res, next) => {
   }
   
   // Handle file upload
-  if (req.file) {
-    // Delete old image if exists
-    if (city.image && fs.existsSync(city.image)) {
-      fs.unlinkSync(city.image);
+ if (req.file) {
+      // Delete old image from S3
+      if (city.image) {
+        const oldKey = extractS3Key(city.image);
+        await deleteFromS3(oldKey);
+      }
+      req.body.image = req.file.location;
     }
-    req.body.image = req.file.path;
-  }
   
   city = await City.findByIdAndUpdate(req.params.id, req.body, {
     new: true,

@@ -2,6 +2,7 @@
 import FinanceLegal from '../models/FinanceLegal.js';
 import Property from '../models/Property.js';
 import { validationResult } from 'express-validator';
+import { deleteFromS3, extractS3Key } from '../services/s3Service.js';
 
 // Get or create finance legal data for a property
 export const getFinanceLegal = async (req, res) => {
@@ -231,17 +232,22 @@ export const uploadRegistrationDocument = async (req, res) => {
       });
     }
 
-    // Update registration document with proper file path
+    // S3 file information
     const documentData = {
-      filename: req.file.filename,
+      filename: req.file.key, // S3 key
       originalName: req.file.originalname,
-      url: req.file.path.replace(/\\/g, '/'), // Normalize path separators
+      url: req.file.location, // S3 URL
       uploadedAt: new Date(),
     };
 
+    // Delete old document from S3 if exists
+    if (financeLegal.legal.ownershipDetails.registrationDocument?.url) {
+      const oldKey = extractS3Key(financeLegal.legal.ownershipDetails.registrationDocument.url);
+      await deleteFromS3(oldKey);
+    }
+
     financeLegal.legal.ownershipDetails.registrationDocument = documentData;
 
-    // Check if legal section is completed
     const legalComplete = Boolean(
       financeLegal.legal.ownershipDetails.ownershipType &&
       financeLegal.legal.ownershipDetails.propertyAddress &&
@@ -249,7 +255,6 @@ export const uploadRegistrationDocument = async (req, res) => {
     );
 
     financeLegal.legalCompleted = legalComplete;
-
     await financeLegal.save();
 
     res.status(200).json({

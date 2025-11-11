@@ -27,6 +27,30 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+
+				<meta
+					property="og:url"
+					content="https://staging.mydivinestays.com/"
+				/>
+				<meta
+					property="og:image"
+					content="/favicon.svg"
+				/>
+
+
+				<link rel="shortcut icon" href="/favicon.svg" />
+				<link rel="icon" type="image/x-icon" href="/favicon.svg" />
+				<link rel="icon" type="image/png" sizes="48x48" href="/favicon.svg" />
+				<link rel="icon" type="image/png" sizes="40x40" href="/favicon.svg" />
+				<meta
+					name="viewport"
+					content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
+			/>
+				{/* <title>
+					SCT Website
+				</title> */}
+			</head>
       <body className={`${leagueSpartan.variable} ${alice.variable} antialiased`}>
       <GoogleProvider>
       <ReduxProvider>
