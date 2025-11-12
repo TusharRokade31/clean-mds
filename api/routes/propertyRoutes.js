@@ -44,6 +44,7 @@ import {
   getPropertyChangeHistory,
   getPropertyStatus,
   getFilteredProperties,
+  changePropertyStatus,
 } from '../controllers/property/propertyController.js';
 
 
@@ -330,6 +331,9 @@ router.get('/view/:id',  getViewProperty);
 
 // Admin routes
 router.put('/:id/review', protect, reviewProperty);
+
+// property status routes
+router.put('/:id/status', protect, changePropertyStatus);
 
 // Delete property
 router.delete('/:id', protect, deleteProperty);

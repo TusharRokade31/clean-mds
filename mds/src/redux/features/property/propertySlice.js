@@ -495,6 +495,19 @@ export const reviewProperty = createAsyncThunk(
   }
 );
 
+export const changePropertyStatus = createAsyncThunk(
+  'property/changePropertyStatus',
+  async ({ id, status }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.changePropertyStatus(id, status);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update property status');
+    }
+  }
+);
+
+
 export const getPropertiesByState = createAsyncThunk(
   'property/getPropertiesByState',
   async (state, { rejectWithValue }) => {
@@ -1216,7 +1229,18 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
-
+    builder.addCase(changePropertyStatus.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(changePropertyStatus.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentProperty = action.payload;
+    });
+    builder.addCase(changePropertyStatus.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
     // Get properties by state
     builder.addCase(getPropertiesByState.pending, (state) => {
       state.isLoading = true;
