@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from 'react-redux'
-import { getAllProperties, getDraftProperties, deleteProperty, resetCurrentProperty, reviewProperty } from '@/redux/features/property/propertySlice'
+import { getAllProperties, getDraftProperties, deleteProperty, resetCurrentProperty, reviewProperty, changePropertyStatus } from '@/redux/features/property/propertySlice'
 import { useRouter } from 'next/navigation'
 import Link from "next/link"
-import { Edit, Trash2, Eye, Plus, Check, X } from "lucide-react"
+import { Edit, Trash2, Plus, Check, X } from "lucide-react"
 
 export default function Listing() {
   const dispatch = useDispatch()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('published')
   const [deleteLoading, setDeleteLoading] = useState(null)
+  const [statusLoading, setStatusLoading] = useState(null) // for dropdown updates
   const [reviewLoading, setReviewLoading] = useState(null)
   const [showReviewPopup, setShowReviewPopup] = useState(false)
   const [selectedProperty, setSelectedProperty] = useState(null)
@@ -24,9 +25,6 @@ export default function Listing() {
     error: state.property.error,
     user: state.auth.user
   }))
-
-
-  console.log(properties)
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin'
@@ -41,6 +39,7 @@ export default function Listing() {
   const draftProperties_filtered = properties?.filter(p => p.status === 'draft') || []
   const pendingProperties = properties?.filter(p => p.status === 'pending') || []
   const rejectedProperties = properties?.filter(p => p.status === 'rejected') || []
+  const pendingChangesProperties = properties?.filter(p => p.status === 'pending_changes') || []
 
   const handleCreateNew = () => {
     dispatch(resetCurrentProperty());
@@ -81,10 +80,8 @@ export default function Listing() {
       setReviewLoading(selectedProperty._id)
       const newStatus = reviewAction === 'approve' ? 'published' : 'rejected'
       
-      await dispatch(reviewProperty({ 
-        id: selectedProperty._id, 
-        status: { status: newStatus } 
-      })).unwrap()
+      await await dispatch(changePropertyStatus({ id: property._id, status: newStatus })).unwrap()
+
       
       dispatch(getAllProperties())
       dispatch(getDraftProperties())
@@ -107,6 +104,48 @@ export default function Listing() {
     setReviewAction('')
   }
 
+  // Status options for dropdown
+  const statusOptions = [
+    { value: 'draft', label: 'Draft' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'published', label: 'Published' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'pending_changes', label: 'Pending Changes' },
+  ]
+
+  // Helper to check permission to change status
+  const canChangeStatus = (property) => {
+    if (isAdmin) return true
+    const ownerId = property.owner?._id || property.owner
+    return ownerId === user?._id
+  }
+
+  // When status dropdown changes
+  const handleStatusChange = async (property, newStatus) => {
+    if (!property || !newStatus) return
+
+    // optional confirm
+    const confirmed = window.confirm(`Change status of "${property.placeName}" to "${newStatus}"?`)
+    if (!confirmed) return
+
+    try {
+      setStatusLoading(property._id)
+      await dispatch(changePropertyStatus({ id: property._id, status: newStatus })).unwrap()
+
+
+      // Refresh lists
+      dispatch(getAllProperties())
+      dispatch(getDraftProperties())
+
+      alert('Status updated successfully!')
+    } catch (error) {
+      console.error('Status update failed:', error)
+      alert('Failed to update status: ' + (error.message || 'Unknown error'))
+    } finally {
+      setStatusLoading(null)
+    }
+  }
+
   const renderPropertyTable = (propertyList) => (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -116,6 +155,7 @@ export default function Listing() {
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Location</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">status update</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
           </tr>
         </thead>
@@ -127,7 +167,8 @@ export default function Listing() {
               <td className="whitespace-nowrap px-6 py-4 text-sm">
                 {property.location?.city}, {property.location?.state}
               </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm">
+              
+              <td className="whitespace-nowrap px-6 py-4 text-sm flex space-x-2">
                 <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                   property.status === 'published' ? 'bg-green-100 text-green-800' : 
                   property.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 
@@ -137,15 +178,7 @@ export default function Listing() {
                 }`}>
                   {property.status}
                 </span>
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm flex space-x-2">
-                <Link 
-                  href={`/host/onboarding/${property._id}`} 
-                  className="text-green-600 hover:text-green-900"
-                  title="Edit Property"
-                >
-                  <Edit className="h-5 w-5" />
-                </Link>
+
                 
                 {/* Admin Review Actions - Only for pending properties */}
                 {isAdmin && property.status === 'pending' && (
@@ -177,21 +210,60 @@ export default function Listing() {
                   </>
                 )}
                 
-               {(isAdmin || property.status !== 'published') && (
-  <button 
-    className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-    title="Delete Property"
-    onClick={() => handleDelete(property._id)}
-    disabled={deleteLoading === property._id}
-  >
-    {deleteLoading === property._id ? (
-      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
-    ) : (
-      <Trash2 className="h-5 w-5" />
-    )}
-  </button>
-)}
+                {(isAdmin || property.status !== 'published') && (
+                  <button 
+                    className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Delete Property"
+                    onClick={() => handleDelete(property._id)}
+                    disabled={deleteLoading === property._id}
+                  >
+                    {deleteLoading === property._id ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
+                    ) : (
+                      <Trash2 className="h-5 w-5" />
+                    )}
+                  </button>
+                )}
               </td>
+
+
+                <td className="whitespace-nowrap px-6 py-4 text-sm space-x-2">
+
+                   
+              {canChangeStatus(property) && (
+                  <div>
+                    <select
+                      value={property.status}
+                      onChange={(e) => handleStatusChange(property, e.target.value)}
+                      disabled={statusLoading === property._id || reviewLoading === property._id}
+                      className="ml-2 rounded-md border px-2 py-1 text-sm"
+                      title="Change status"
+                    >
+                      {statusOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    {statusLoading === property._id && (
+                      <span className="ml-2 inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2"></span>
+                    )}
+                  </div>
+                )}
+              </td>
+
+                <td className="whitespace-nowrap px-6 py-4 text-sm space-x-2">
+
+                    <Link 
+                  href={`/host/onboarding/${property._id}`} 
+                  className="text-green-600 hover:text-green-900"
+                  title="Edit Property"
+                >
+                  <Edit className="h-5 w-5" />
+                </Link> 
+              
+              </td>
+              
+              
+             
             </tr>
           ))}
         </tbody>
@@ -204,7 +276,8 @@ export default function Listing() {
     { key: 'published', label: 'Published', count: publishedProperties.length },
     { key: 'draft', label: 'Draft', count: draftProperties_filtered.length },
     { key: 'pending', label: 'Pending Review', count: pendingProperties.length },
-    { key: 'rejected', label: 'Rejected', count: rejectedProperties.length }
+    { key: 'rejected', label: 'Rejected', count: rejectedProperties.length },
+    { key: 'pending_changes', label: 'pendingChanges', count: pendingChangesProperties.length }
   ]
 
   // Filter tabs based on user role
@@ -220,6 +293,8 @@ export default function Listing() {
         return pendingProperties
       case 'rejected':
         return rejectedProperties
+      case 'pending_changes':
+      return pendingChangesProperties
       default:
         return []
     }

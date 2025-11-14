@@ -230,14 +230,16 @@ export const sendEmailOTP = async (req, res) => {
     }
 
     // Check if property exists and belongs to user
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-        
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
 
     // Generate OTP
     const otp = generateOTP();
@@ -309,10 +311,16 @@ export const verifyEmailOTP = async (req, res) => {
     await otpRecord.save();
 
     // UPDATE: Mark email as verified in the property
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
 
     if (property) {
       property.emailVerified = true;
@@ -335,13 +343,15 @@ export const checkEmailVerificationStatus = async (req, res) => {
   try {
     const { propertyId } = req.params;
     
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
+    const property = await Property.findById(propertyId);
+
     if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
+      return errorResponse(res, 404, 'Property not found');
+    }
+
+    // Check ownership or admin access
+    if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return errorResponse(res, 403, 'Unauthorized access');
     }
     
     return res.status(200).json({
@@ -366,14 +376,16 @@ export const saveBasicInfo = async (req, res) => {
     const { propertyType, placeName, placeRating, propertyBuilt, bookingSince, rentalForm, email, mobileNumber, landline } = req.body;
     
     // Check if property exists and belongs to user
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
 
     // Check if email is verified (keep existing logic)
     if (email && email !== property.email) {
@@ -449,14 +461,16 @@ export const saveLocation = async (req, res) => {
     const { propertyId } = req.params;
     const { houseName, country, street, roomNumber, city, state, postalCode, coordinates } = req.body;
     
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
 
     // Find state by name
     let stateRef = null;
@@ -532,13 +546,15 @@ export const saveAmenities = async (req, res) => {
     const { propertyId } = req.params;
     const { amenities } = req.body;
     
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
+    const property = await Property.findById(propertyId);
+
     if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
+      return errorResponse(res, 404, 'Property not found');
+    }
+
+    // Check ownership or admin access
+    if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return errorResponse(res, 403, 'Unauthorized access');
     }
 
     // Check for changes if property is published
@@ -581,14 +597,16 @@ export const addRoom = async (req, res) => {
     const { propertyId } = req.params;
     const roomData = req.body;
     
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
 
     // Check for changes if property is published
     const currentRooms = [...property.rooms, roomData];
@@ -632,14 +650,16 @@ export const updateRoom = async (req, res) => {
     const { propertyId, roomId } = req.params;
     const roomData = req.body;
     
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
     
     // Find room index
     const roomIndex = property.rooms.findIndex(room => room._id.toString() === roomId);
@@ -690,14 +710,16 @@ export const deleteRoom = async (req, res) => {
   try {
     const { propertyId, roomId } = req.params;
     
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
     
     // Find room index
     const roomIndex = property.rooms.findIndex(room => room._id.toString() === roomId);
@@ -741,14 +763,16 @@ export const completeRoomsStep = async (req, res) => {
     const { propertyId } = req.params;
     
     // Check if property exists and belongs to user
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
     
     // Ensure at least one room has been added
     if (!Array.isArray(property.rooms) || property.rooms.length < 1) {
@@ -792,17 +816,16 @@ export const uploadPropertyMedia = async (req, res) => {
       });
     }
     
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        message: 'Property not found or unauthorized',
-      });
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
 
     const hasChanges = property.status === 'published';
     if (hasChanges) {
@@ -866,14 +889,16 @@ export const updateMediaItem = async (req, res) => {
     const { tags, isCover, displayOrder } = req.body;
     
     // Check if property exists and belongs to user
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
     
     // Find media item in images or videos
     let mediaItem = null;
@@ -954,14 +979,16 @@ export const validatePropertyMedia = async (req, res) => {
     const { propertyId } = req.params;
     
     // Check if property exists and belongs to user
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
     
     const allMedia = [...property.media.images, ...property.media.videos];
     const itemsWithoutTags = [];
@@ -1001,14 +1028,16 @@ export const deleteMediaItem = async (req, res) => {
   try {
     const { propertyId, mediaId } = req.params;
     
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
 
     // Check for changes if property is published (deleting media is a change)
     const hasChanges = property.status === 'published';
@@ -1088,17 +1117,16 @@ export const uploadRoomMedia = async (req, res) => {
       });
     }
     
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        message: 'Property not found or unauthorized',
-      });
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
     
     const roomIndex = property.rooms.findIndex(room => room._id.toString() === roomId);
     
@@ -1169,14 +1197,16 @@ export const updateRoomMediaItem = async (req, res) => {
     const { tags, isCover, displayOrder } = req.body;
     
     // Check if property exists and belongs to user
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
     
     // Find the specific room
     const roomIndex = property.rooms.findIndex(room => room._id.toString() === roomId);
@@ -1271,14 +1301,16 @@ export const deleteRoomMediaItem = async (req, res) => {
     const { propertyId, roomId, mediaId } = req.params;
     
     // Check if property exists and belongs to user
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
     
     // Find the specific room
     const roomIndex = property.rooms.findIndex(room => room._id.toString() === roomId);
@@ -1441,14 +1473,16 @@ export const completeMediaStep = async (req, res) => {
     const { propertyId } = req.params;
     
     // Check if property exists and belongs to user
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
     
     // Check if minimum requirements are met (at least 10 media items)
     const totalMedia = property.media.images.length + property.media.videos.length;
@@ -1489,14 +1523,16 @@ export const completePropertyListing = async (req, res) => {
     const { propertyId } = req.params;
     
     // Check if property exists and belongs to user
-    const property = await Property.findOne({ 
-      _id: propertyId,
-      owner: req.user._id,
-    });
-    
-    if (!property) {
-      return errorResponse(res, 404, 'Property not found or unauthorized');
-    }
+const property = await Property.findById(propertyId);
+
+if (!property) {
+  return errorResponse(res, 404, 'Property not found');
+}
+
+// Check ownership or admin access
+if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  return errorResponse(res, 403, 'Unauthorized access');
+}
     
     // Check if all steps are completed
     const { step1Completed, step2Completed, step3Completed, step4Completed, step5Completed, step6Completed, step7Completed  } = property.formProgress;
@@ -1606,6 +1642,98 @@ export const reviewProperty = async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message,
+    });
+  }
+};
+
+// Admin: Property status
+export const changePropertyStatus = async (req, res) => {
+  try {
+    const propertyId = req.params.id;
+    const { status, rejectionReason } = req.body;
+
+    // Allow only defined statuses
+    const allowedStatuses = ['draft', 'pending', 'published', 'rejected', 'pending_changes'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid status value',
+      });
+    }
+
+    // Find property by ID
+    const property = await Property.findById(propertyId);
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        error: 'Property not found',
+      });
+    }
+
+    // Only admin can change status
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized to change property status',
+      });
+    }
+
+    // Special handling when publishing
+    if (status === 'published') {
+      property.publishedVersion = {
+        propertyType: property.propertyType,
+        placeName: property.placeName,
+        placeRating: property.placeRating,
+        propertyBuilt: property.propertyBuilt,
+        bookingSince: property.bookingSince,
+        rentalForm: property.rentalForm,
+        email: property.email,
+        mobileNumber: property.mobileNumber,
+        landline: property.landline,
+        location: property.location,
+        amenities: property.amenities,
+        rooms: property.rooms,
+        media: property.media,
+      };
+
+      // Reset pending changes
+      property.pendingChanges = {
+        step1Changed: false,
+        step2Changed: false,
+        step3Changed: false,
+        step4Changed: false,
+        step5Changed: false,
+        step6Changed: false,
+        step7Changed: false,
+        changedAt: null,
+        changedBy: null,
+      };
+
+      property.lastApprovedAt = new Date();
+      property.rejectionReason = undefined;
+    }
+
+    // If rejected, optionally store reason
+    if (status === 'rejected' && rejectionReason) {
+      property.rejectionReason = rejectionReason;
+    }
+
+    // Update status
+    property.status = status;
+    property.updatedAt = Date.now();
+
+    await property.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Property status updated to "${status}" successfully`,
+      data: property,
+    });
+  } catch (error) {
+    console.error('Error updating property status:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Server error',
     });
   }
 };
@@ -1864,77 +1992,6 @@ export const checkPropertyAvailability = async (req, res) => {
   }
 };
 
-// Helper function to build location match for fallback
-const buildLocationMatch = (location) => {
-  const regex = new RegExp(location, 'i');
-  return {
-    $or: [
-      { placeName: regex },
-      { 'location.city': regex },
-      { 'location.state': regex },
-    ]
-  };
-};
-
-// Helper function for search with fallback
-const searchPropertiesByLocation = async (location, additionalMatch = {}) => {
-  try {
-    // Try Atlas Search first
-    const searchQuery = [
-      {
-        $search: {
-          index: 'suggestions',
-          compound: {
-            should: [
-              {
-                autocomplete: {
-                  query: location,
-                  path: 'placeName',
-                },
-              },
-              {
-                autocomplete: {
-                  query: location,
-                  path: 'location.city',
-                },
-              },
-              {
-                autocomplete: {
-                  query: location,
-                  path: 'location.state',
-                },
-              },
-            ],
-          },
-        },
-      },
-      {
-        $match: {
-          status: 'published',
-          ...additionalMatch
-        },
-      },
-    ];
-
-    return { pipeline: searchQuery, usingFallback: false };
-  } catch (error) {
-    console.warn('Search index not available, using fallback query');
-    
-    // Fallback to regular query
-    const fallbackQuery = [
-      {
-        $match: {
-          status: 'published',
-          ...buildLocationMatch(location),
-          ...additionalMatch
-        }
-      }
-    ];
-    
-    return { pipeline: fallbackQuery, usingFallback: true };
-  }
-};
-
 export const getSuggestions = async (req, res) => {
   try {
     const { q } = req.query;
@@ -2136,8 +2193,6 @@ export const getPropertiesByQuery = async (req, res) => {
   }
 };
 
-
-// controllers/propertyController.js
 
 export const getFilteredProperties = async (req, res) => {
   const errors = validationResult(req);
@@ -2674,29 +2729,6 @@ const calculateFilterStats = async (location, appliedFilters) => {
 };
 
 
-// Format price ranges for UI
-function formatPriceRanges(ranges) {
-  const formatted = {
-    'Under ₹10000': 0,
-    '₹10000 - ₹20000': 0,
-    '₹20000 - ₹30000': 0,
-    'Above ₹30000': 0
-  };
-
-  ranges.forEach(range => {
-    if (range._id < 10000) {
-      formatted['Under ₹10000'] += range.count;
-    } else if (range._id >= 10000 && range._id <= 20000) {
-      formatted['₹10000 - ₹20000'] += range.count;
-    } else if (range._id > 20000 && range._id <= 30000) {
-      formatted['₹20000 - ₹30000'] += range.count;
-    } else {
-      formatted['Above ₹30000'] += range.count;
-    }
-  });
-
-  return formatted;
-}
 
 
 export const getPropertiesPendingChanges = async (req, res) => {

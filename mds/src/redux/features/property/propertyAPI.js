@@ -205,6 +205,12 @@ export const propertyAPI = {
     return response.data;
   },
 
+  changePropertyStatus: async (id, status) => {
+    const response = await axiosInstance.put(`/properties/${id}/status`, {status:status});
+    return response.data;
+  },
+
+
   // Finalize property
   finalizeProperty: async (id) => {
     const response = await axiosInstance.put(`/properties/${id}/finalize`);

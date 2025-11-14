@@ -81,39 +81,37 @@ const Header = () => {
       </nav>
 
       {/* Mobile Menu Panel with Framer Motion */}
-<AnimatePresence>
-  {isMenuOpen && (
-    <>
-      <motion.div 
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-white/30  z-50 lg:hidden"
+        className="fixed inset-0 bg-white/30 z-40 lg:hidden"   // lowered to z-40
         onClick={toggleMenu}
       />
-      
+
       <motion.div 
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 20 }}
-        className="fixed top-0 right-0 h-screen w-64 bg-white shadow-lg z-40 lg:hidden overflow-y-auto"
+        className="fixed top-0 right-0 h-screen w-64 bg-white shadow-lg z-50 lg:hidden overflow-y-auto" // raised to z-50
       >
         <div className="flex flex-col pt-12 px-6 gap-6">
-          <Link href="/about-us" className="text-lg font-medium  hover:text-indigo-600 transition-colors">
+          <Link href="/about-us" onClick={toggleMenu} className="text-lg font-medium hover:text-indigo-600 transition-colors">
             About us
           </Link>
-          <Link href="/about-us" onClick={toggleMenu} className="text-lg font-medium  hover:text-indigo-600 transition-colors">
-            About us
-          </Link>
+
           <Link href="/host" onClick={handleListPropertyClick} className="text-lg font-medium text-gray-800 hover:text-indigo-600 transition-colors">
             List your property
           </Link>
         </div>
       </motion.div>
-    </>
-  )}
-</AnimatePresence>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 };
