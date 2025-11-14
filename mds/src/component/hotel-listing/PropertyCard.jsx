@@ -282,7 +282,7 @@ export function PropertyCard({
                     ₹{price.toLocaleString()}
                   </div>
                   <div className="text-sm text-gray-500 mb-1">per night</div>
-                  <div className="text-xs text-gray-400 mb-5">+ ₹{Math.round(price * 0.18)} taxes</div>
+                 
                 </div>
                 
                 <Link href={`/hotel-details/${id}`}>

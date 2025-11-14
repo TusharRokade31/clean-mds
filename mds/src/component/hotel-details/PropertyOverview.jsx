@@ -263,9 +263,7 @@ export default function PropertyOverview({ data, setActiveSection }) {
               <Typography variant="h4" fontWeight="bold">
                 ₹{data.rooms?.[0]?.pricing?.baseAdultsCharge || "N/A"}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                + ₹{data.rooms?.[0]?.pricing?.taxes || 0} taxes & fees
-              </Typography>
+              
             </Box>
 
             <Box sx={{ space: 1, mb: 2 }}>

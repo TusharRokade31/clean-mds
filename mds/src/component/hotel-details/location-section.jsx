@@ -44,7 +44,7 @@ export default function LocationSection({ location }) {
                 <p className="text-gray-600"></p>
               </div>
             </CardContent>
-        <CardContent>
+        {/* <CardContent>
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="text-sm text-gray-700">
               Guests rave about the property's prime location near Varca beach, emphasizing its beautiful surroundings
@@ -54,7 +54,7 @@ export default function LocationSection({ location }) {
               with numerous reviewers expressing an eagerness to return.
             </p>
           </div>
-        </CardContent>
+        </CardContent> */}
 
           </Card>
           

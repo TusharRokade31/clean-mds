@@ -9,10 +9,12 @@ import {
   LinearProgress, Badge, Accordion, AccordionSummary, AccordionDetails,
   CardMedia, List, ListItem, ListItemIcon, ListItemText
 } from '@mui/material';
+
 import {
   Delete as DeleteIcon, Add as AddIcon, Edit as EditIcon,
   CloudUpload, Star, StarBorder, Image as ImageIcon, VideoFile,
-  Close, Warning, ExpandMore, ArrowBack, ArrowForward, Search
+  Close, Warning, ExpandMore, ArrowBack, ArrowForward, Search,
+  ContentCopy
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import {
@@ -34,16 +36,9 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
   const [currentRoomData, setCurrentRoomData] = useState(getInitialRoomData());
   const [localRooms, setLocalRooms] = useState(rooms);
   const [selectedAmenityTab, setSelectedAmenityTab] = useState(0);
-
-  // Media related states
-  const [currentStep, setCurrentStep] = useState('room-details'); // 'room-details' or 'media-upload'
   const [currentRoomId, setCurrentRoomId] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [editingMedia, setEditingMedia] = useState(null);
   const [editDialog, setEditDialog] = useState(false);
-  const [tagGroupDialog, setTagGroupDialog] = useState(false);
-  const [selectedTagGroup, setSelectedTagGroup] = useState(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [customTag, setCustomTag] = useState('');
   const [validationError, setValidationError] = useState('');
 
@@ -406,7 +401,6 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
         // localStorage.setItem('roomID', roomID)
         // Room created successfully, now move to media upload step
         setCurrentRoomId(roomID);
-        setCurrentStep('media-upload');
 
         // Update local rooms
         const updatedRooms = [...localRooms, result.room];
@@ -619,7 +613,6 @@ const handleFileSelect = async (event) => {
     setCurrentRoomData(getInitialRoomData());
     setFormErrors({});
     setSelectedAmenityTab(0);
-    setCurrentStep('room-details');
     setCurrentRoomId(null);
     setValidationError('');
   };
@@ -649,11 +642,7 @@ const handleFileSelect = async (event) => {
             boxShadow: 3
           }
         }}
-        onClick={() => {
-          setSelectedTagGroup({ tag, mediaItems });
-          setSelectedImageIndex(0);
-          setTagGroupDialog(true);
-        }}
+       
       >
         {firstImage.type === 'image' ? (
           <CardMedia
@@ -887,20 +876,6 @@ const handleFileSelect = async (event) => {
   };
 
 
-  const handleSave = async () => {
-    onComplete?.()
-  };
-
-
-  const removeAvailabilityPeriod = (index) => {
-    if (currentRoomData.availability.length <= 1) return;
-
-    const updatedAvailability = currentRoomData.availability.filter((_, i) => i !== index);
-    setCurrentRoomData(prev => ({
-      ...prev,
-      availability: updatedAvailability
-    }));
-  };
 
 
   const handleRoomAmenityChange = (category, amenityName, updates) => {
@@ -970,6 +945,64 @@ const handleFileSelect = async (event) => {
       occupancy: updatedOccupancy
     }));
   };
+
+
+  const handleDuplicateRoom = async (index) => {
+    if (!window.confirm('Do you want to duplicate this room? Media will not be copied.')) {
+    return;
+  }
+  const roomToDuplicate = localRooms[index];
+  
+  // Create a deep copy of the room data, excluding the _id and media
+  const duplicatedRoomData = {
+    ...roomToDuplicate,
+    roomName: `${roomToDuplicate.roomName} (Copy)`,
+    numberRoom: roomToDuplicate.numberRoom,
+    roomSize: roomToDuplicate.roomSize,
+    sizeUnit: roomToDuplicate.sizeUnit,
+    description: roomToDuplicate.description,
+    beds: [...roomToDuplicate.beds],
+    FloorBedding: { ...roomToDuplicate.FloorBedding },
+    alternativeBeds: [...(roomToDuplicate.alternativeBeds || [])],
+    occupancy: { ...roomToDuplicate.occupancy },
+    bathrooms: { ...roomToDuplicate.bathrooms },
+    mealPlan: { ...roomToDuplicate.mealPlan },
+    pricing: { ...roomToDuplicate.pricing },
+    availability: roomToDuplicate.availability.map(avail => ({ ...avail })),
+    amenities: JSON.parse(JSON.stringify(roomToDuplicate.amenities)) // Deep copy
+  };
+
+  // Remove fields that shouldn't be duplicated
+  delete duplicatedRoomData._id;
+  delete duplicatedRoomData.id;
+  delete duplicatedRoomData.media;
+  delete duplicatedRoomData.createdAt;
+  delete duplicatedRoomData.updatedAt;
+
+  setIsSubmitting(true);
+  
+  try {
+    const result = await dispatch(addRooms({
+      id: propertyId,
+      data: duplicatedRoomData
+    })).unwrap();
+
+    if (result.room) {
+      // Update local rooms
+      const updatedRooms = [...localRooms, result.room];
+      setLocalRooms(updatedRooms);
+      onAddRoom(updatedRooms);
+      
+      // Optionally show success message
+      setValidationError('');
+    }
+  } catch (error) {
+    console.error('Failed to duplicate room:', error);
+    setValidationError('Failed to duplicate room. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
 
   // Main render logic
@@ -1836,6 +1869,8 @@ const handleFileSelect = async (event) => {
     );
   }
 
+
+
   // Room list view - your existing room list JSX
   return (
     <Box>
@@ -1853,20 +1888,31 @@ const handleFileSelect = async (event) => {
                   <div className="flex justify-between items-center mb-2">
                     <Typography variant="h6">{room.roomName}</Typography>
                     <div className="flex gap-1">
-                      <IconButton
-                        size="small"
-                        color="primary"
-                        onClick={() => handleEditRoom(index)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteRoom(index)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                       <IconButton
+            size="small"
+            color="primary"
+            onClick={() => handleEditRoom(index)}
+            title="Edit Room"
+          >
+            <EditIcon />
+          </IconButton>
+          <IconButton
+            size="small"
+            color="secondary"
+            onClick={() => handleDuplicateRoom(index)}
+            disabled={isSubmitting}
+            title="Duplicate Room"
+          >
+            <ContentCopy />
+          </IconButton>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => handleDeleteRoom(index)}
+            title="Delete Room"
+          >
+            <DeleteIcon />
+          </IconButton>
                     </div>
                   </div>
 
