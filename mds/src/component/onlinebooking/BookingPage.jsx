@@ -38,6 +38,7 @@ export default function BookingPage({ property, selectedRoom }) {
   useEffect(() => {
     // Get search details from localStorage
     const lastSearchQuery = JSON.parse(localStorage.getItem('lastSearchQuery') || '{}')
+    console.log(lastSearchQuery)
     if (lastSearchQuery && selectedRoom) {
       const checkinDate = new Date(lastSearchQuery.checkin)
       const checkoutDate = new Date(lastSearchQuery.checkout)
@@ -60,8 +61,15 @@ export default function BookingPage({ property, selectedRoom }) {
       })
       
       setPricingDetails(pricing)
+
+      
+  // console.log(pricing, "Princing ")
+  // console.log(pricingDetails, "pricingDetails ")
+console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calculated price")
+      
     }
   }, [selectedRoom])
+
 
   const calculatePricing = (room, adults, children, totalDays) => {
     const baseAdults = room.occupancy.baseAdults
@@ -87,6 +95,8 @@ export default function BookingPage({ property, selectedRoom }) {
       totalDays
     }
   }
+
+  
 
   const handleInputChange = (field, value, nested = null) => {
     if (nested) {
@@ -130,7 +140,6 @@ export default function BookingPage({ property, selectedRoom }) {
 
     try {
       const result = await dispatch(createBooking(bookingData)).unwrap()
-      console.log(result, "result")
       // Store booking details for payment processing
       localStorage.setItem('currentBooking', JSON.stringify(result))
       router.push(`/booking-confirmation/${result.bookingId}`)

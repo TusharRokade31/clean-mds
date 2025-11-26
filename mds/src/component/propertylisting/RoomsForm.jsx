@@ -14,7 +14,8 @@ import {
   Delete as DeleteIcon, Add as AddIcon, Edit as EditIcon,
   CloudUpload, Star, StarBorder, Image as ImageIcon, VideoFile,
   Close, Warning, ExpandMore, ArrowBack, ArrowForward, Search,
-  ContentCopy
+  ContentCopy,
+  Delete
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import {
@@ -27,7 +28,7 @@ import RoomsAmenities from './RoomsAmenities';
 
 
 export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, onComplete, onSave, onBack }) {
-  console.log(errors, "RoomForm Errors")
+  
   const dispatch = useDispatch();
   const [isAddingRoom, setIsAddingRoom] = useState(false);
   const [isEditingRoom, setIsEditingRoom] = useState(false);
@@ -396,7 +397,7 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
       console.log(result.room)
       setIsComplete(true);
 
-      if (result.room._id) {
+      if (result.room) {
         const roomID = result.room._id
         // localStorage.setItem('roomID', roomID)
         // Room created successfully, now move to media upload step
@@ -406,7 +407,9 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
         const updatedRooms = [...localRooms, result.room];
         setLocalRooms(updatedRooms);
         onAddRoom(updatedRooms);
+
       }
+      
     } catch (error) {
       console.error('Failed to add room:', error);
       setValidationError('Failed to create room. Please try again.');
@@ -553,6 +556,7 @@ const handleFileSelect = async (event) => {
       })).unwrap();
        setIsComplete(true);
       if (result.type.endsWith('/fulfilled')) {
+        console.log("in the condition....")
         const updatedRooms = [...localRooms];
         updatedRooms[editingRoomIndex] = currentRoomData;
         setLocalRooms(updatedRooms);
@@ -562,6 +566,7 @@ const handleFileSelect = async (event) => {
         setEditingRoomIndex(-1);
         setCurrentRoomData(getInitialRoomData());
         setFormErrors({});
+        
       }
     } catch (error) {
       console.error('Failed to update room:', error);
@@ -1051,6 +1056,14 @@ const handleFileSelect = async (event) => {
                       controls
                     />
                   )}
+                   <Button
+                                        variant="outlined"
+                                        color="error"
+                                        startIcon={<Delete />}
+                                        onClick={() => handleDeleteMedia(editingMedia._id)}
+                                      >
+                                        Delete
+                                      </Button>
                 </Grid>
 
                 <Grid item xs={12} md={6}>
@@ -1117,7 +1130,7 @@ const handleFileSelect = async (event) => {
                     border: '1px solid #e0e0e0',
                     borderRadius: 1
                   }}>
-                    <List dense>
+                    <List>
                       {availableRoomTags.map((tag) => (
                         <ListItem key={tag} dense button onClick={() => handleTagToggle(tag)}>
                           <ListItemIcon>
@@ -1131,13 +1144,18 @@ const handleFileSelect = async (event) => {
                         </ListItem>
                       ))}
                     </List>
+                    
                   </Box>
                 </Grid>
+                
               </Grid>
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setEditDialog(false)}>Back</Button>
+            <Button onClick={() => {
+              setEditDialog(false);
+             
+            }}>Back</Button>
             <Button
               onClick={handleSaveEdit}
               variant="contained"
@@ -1842,7 +1860,9 @@ const handleFileSelect = async (event) => {
         <div className="flex justify-end mt-4 gap-2">
           <Button
             variant="outlined"
-            onClick={handleCancelForm}
+            onClick={()=>{
+              handleCancelForm()
+            }}
           >
             Back
           </Button>
@@ -1859,7 +1879,7 @@ const handleFileSelect = async (event) => {
           <Button
           variant="contained"
           color="primary"
-          disabled={ !validateMandatoryAmenities() || isSubmitting || isCompleted }
+          disabled={ !validateMandatoryAmenities() || isSubmitting }
           onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
         >
           {isEditingRoom ? 'Update Room' : 'Save Room'}

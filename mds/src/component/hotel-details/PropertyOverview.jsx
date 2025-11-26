@@ -258,7 +258,7 @@ export default function PropertyOverview({ data, setActiveSection }) {
             
             <Box textAlign="left" mb={2}>
               <Typography variant="body2" color="text.secondary">
-                Per night for {data.rooms?.[0]?.occupancy?.maximumAdults || 2} Rooms:
+                Per night 
               </Typography>
               <Typography variant="h4" fontWeight="bold">
                 ₹{data.rooms?.[0]?.pricing?.baseAdultsCharge || "N/A"}

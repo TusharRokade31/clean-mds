@@ -205,14 +205,15 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
                 ref={suggestionsRef}
                 className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-2 mt-1"
               >
-                <h4 className="text-sm font-medium text-gray-600 mb-2">Suggestions</h4>
+                <h4 className="text-sm font-medium text-gray-600 mb-2">Suggestionss</h4>
                 {isSuggestionsLoading ? (
                   <div className="flex items-center justify-center py-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                   </div>
                 ) : suggestions.length > 0 ? (
                   <ul className="space-y-1">
-                    {suggestions.map((suggestion, index) => (
+                    {console.log(suggestions, "search suggestion")}
+                    {suggestions.slice(0, 3).map((suggestion, index) => (
                       <div key={index}>
                         <li 
                           className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"

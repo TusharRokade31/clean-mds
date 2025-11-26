@@ -481,7 +481,7 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
                           </div>
                         ) : suggestions.length > 0 ? (
                           <div className="space-y-2">
-                            {suggestions.map((suggestion, index) => (
+                            {suggestions.slice(0, 5).map((suggestion, index) => (
                               <div key={index}>
                               <div 
                                 className="flex items-center p-3 cursor-pointer hover:bg-gray-100 rounded-lg"

@@ -583,7 +583,7 @@ const handleSearch = async () => {
             </div>
           ) : suggestions.length > 0 ? (
             <ul className="space-y-2">
-               {suggestions.map((suggestion, index) => (
+               {suggestions.slice(0, 5).map((suggestion, index) => (
                       <div key={index}>
                       <li 
                         className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
