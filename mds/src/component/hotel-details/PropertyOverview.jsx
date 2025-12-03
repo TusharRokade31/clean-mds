@@ -241,10 +241,10 @@ export default function PropertyOverview({ data, setActiveSection }) {
               <Typography variant="h6">
                 {data.rooms?.[0]?.roomType || "Book Now"}
               </Typography>
-              <Box display="flex" alignItems="center" gap={0.5}>
+              {/* <Box display="flex" alignItems="center" gap={0.5}>
                 <Star sx={{ color: "gold", fontSize: 20 }} />
                 <Typography>{data.placeRating || "N/A"}</Typography>
-              </Box>
+              </Box> */}
             </Box>
             
             <Typography variant="body2" color="text.secondary" mb={1}>
@@ -327,7 +327,7 @@ export default function PropertyOverview({ data, setActiveSection }) {
                         Property Type
                       </Typography>
                       <Typography variant="body1" fontWeight="medium">
-                        {data.rentalForm || "N/A"}
+                        {data.propertyType || "N/A"}
                       </Typography>
                     </Box>
                   </Box>

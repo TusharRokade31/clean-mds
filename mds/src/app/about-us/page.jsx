@@ -63,7 +63,7 @@ function GetInTouch() {
 
   return (
     <>
-     {GetInTouch()}
+     {/* {GetInTouch()} */}
     <div className="min-h-screen  py-28 px-4 sm:px-6 lg:px-8">
       
       <div className="max-w-7xl mx-auto space-y-24">
@@ -71,8 +71,8 @@ function GetInTouch() {
         <section className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">👋</span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">About Us.</h2>
+              {/* <span className="text-3xl">👋</span> */}
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">About Us</h2>
             </div>
             <p className="text-lg text-gray-600 leading-relaxed">
               My Divine Stay (MDS) is an online booking and management platform created exclusively for Dharamshalas. It allows pilgrims and devotees to search, select, and book Dharamshala rooms easily from anywhere. With real-time availability, secure online payments, and complete transparency, MDS simplifies the entire accommodation process for both guests and Dharamshala management. It combines modern technology with the traditional purpose of Dharamshalas, making spiritual stays more organized, accessible, and efficient.
@@ -182,7 +182,7 @@ function GetInTouch() {
         </section> */}
 
         {/* Fast Facts Section */}
-        <section className="space-y-12">
+        {/* <section className="space-y-12">
           <div className="max-w-5xl">
             <div className="flex items-center gap-3 mb-6">
               <span className="text-3xl">🚀</span>
@@ -213,7 +213,7 @@ function GetInTouch() {
               </p>
             </div>
           </div>
-        </section>
+        </section> */}
       </div>
      
     </div>

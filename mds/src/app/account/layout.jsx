@@ -41,7 +41,7 @@ export default function AccountLayout({ children }) {
             </motion.div>
           </div> */}
 
-          <div className="relative">
+          {/* <div className="relative">
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -54,7 +54,7 @@ export default function AccountLayout({ children }) {
                 Account Password
               </Link>
             </motion.div>
-          </div>
+          </div> */}
 
           <div className="relative">
             <motion.div

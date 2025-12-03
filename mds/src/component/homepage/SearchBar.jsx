@@ -587,24 +587,24 @@ const handleSearch = async () => {
                       <div key={index}>
                       <li 
                         className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                        onClick={() => handleSuggestionClick(suggestion?.location?.city)}
+                        onClick={() => handleSuggestionClick(suggestion?.city)}
                       >
                         <FiMapPin className="text-gray-400 mr-2 w-4 h-4" />
                         <div>
-                          <div className="font-medium text-sm">{suggestion.location.city}</div>
+                          <div className="font-medium text-sm">{suggestion.city}</div>
                         </div>
                       </li>
                        <li 
                         
                         className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                        onClick={() => handleSuggestionClick(suggestion?.location?.state)}
+                        onClick={() => handleSuggestionClick(suggestion?.state)}
                       >
                         <FiMapPin className="text-gray-400 mr-2 w-4 h-4" />
                         <div>
-                          <div className="font-medium text-sm">{suggestion.location.state}</div>
+                          <div className="font-medium text-sm">{suggestion.state}</div>
                         </div>
                       </li>
-                      <li 
+                      {/* <li 
                         className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
                         onClick={() => handleSuggestionClick(suggestion.placeName, 'placeName', suggestion.location)}
                       >
@@ -615,7 +615,7 @@ const handleSearch = async () => {
                             {suggestion.location.city}, {suggestion.location.state}
                           </div>
                         </div>
-                      </li>
+                      </li> */}
                       </div>
                     ))}
             </ul>

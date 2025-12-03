@@ -4,28 +4,20 @@ import Logo from "../../public/assets/mds.png";
 import { usePathname } from 'next/navigation';
 
 const navigation = {
-	solutions: [
-		{ name: 'Marketing', href: '#' },
-		{ name: 'Analytics', href: '#' },
-		{ name: 'Automation', href: '#' },
-		{ name: 'Commerce', href: '#' },
-	],
 	support: [
 		{ name: 'Submit ticket', href: '#' },
-		{ name: 'Documentation', href: '#' },
-		{ name: 'Guides', href: '#' },
 	],
-	company: [
+	quickLinks: [
 		{ name: 'About', href: '#' },
 		{ name: 'Blogs', href: '/blogs' },
-		{ name: 'Jobs', href: '#' },
 		{ name: 'Press', href: '#' },
+		{ name: 'Customer Support', href: '#' },
 	],
 	legal: [
-		{ name: 'Terms of service', href: '#' },
+		{ name: 'Payment Security', href: '#' },
 		{ name: 'Privacy policy', href: '#' },
-		{ name: 'License', href: '#' },
-		{ name: 'Insights', href: '#' },
+		{ name: 'User Agreement', href: '#' },
+		{ name: 'Terms of service', href: '#' },
 	],
 	social: [
 		{
@@ -64,45 +56,16 @@ const navigation = {
 			),
 		},
 		{
-			name: 'LinkdIN',
+			name: 'LinkedIn',
 			href: 'https://www.linkedin.com/authwall?trk=bf&trkInfo=AQGyDBzk2lcBBAAAAZo_dzeoAr0Hr5fB_Xpd-6QuUveoL0QgCt634my4ZFZpFfSrYfbcaoj3VmDeGK-_TdgcbeEvmBDzoYYnqxLt6TOEevc-UiTPw2-ZUqcugSTlqvZ_eDnDwOM=&original_referer=&sessionRedirect=https%3A%2F%2Fwww.linkedin.com%2Fcompany%2Fmydivinestays%2F%3FviewAsMember%3Dtrue',
 			icon: (props) => (
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-linkedin" viewBox="0 0 16 16">
-  <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
-</svg>
+					<path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
+				</svg>
 			),
 		},
-		
-		// {
-		// 	name: 'GitHub',
-		// 	href: '#',
-		// 	icon: (props) => (
-		// 		<svg fill="currentColor" viewBox="0 0 24 24" {...props}>
-		// 			<path
-		// 				fillRule="evenodd"
-		// 				d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-		// 				clipRule="evenodd"
-		// 			/>
-		// 		</svg>
-		// 	),
-		// },
-		// {
-		// 	name: 'YouTube',
-		// 	href: '#',
-		// 	icon: (props) => (
-		// 		<svg fill="currentColor" viewBox="0 0 24 24" {...props}>
-		// 			<path
-		// 				fillRule="evenodd"
-		// 				d="M19.812 5.418c.861.23 1.538.907 1.768 1.768C21.998 8.746 22 12 22 12s0 3.255-.418 4.814a2.504 2.504 0 0 1-1.768 1.768c-1.56.419-7.814.419-7.814.419s-6.255 0-7.814-.419a2.505 2.505 0 0 1-1.768-1.768C2 15.255 2 12 2 12s0-3.255.417-4.814a2.507 2.507 0 0 1 1.768-1.768C5.744 5 11.998 5 11.998 5s6.255 0 7.814.418ZM15.194 12 10 15V9l5.194 3Z"
-		// 				clipRule="evenodd"
-		// 			/>
-		// 		</svg>
-		// 	),
-		// },
 	],
 }
-
-
 
 export default function Footer() {
 	const pathname = usePathname()
@@ -111,110 +74,97 @@ export default function Footer() {
 		return null
 	}
 
-	
 	return (
-		 <footer className="border-t border-neutral-200 ">
-			<div className="mx-auto max-w-7xl px-6 pb-8 pt-16 sm:pt-24 lg:px-8 lg:pt-32">
-				<div className="xl:grid xl:grid-cols-3 xl:gap-8">
-					<div className="space-y-8">
-                    <Link href="/">
-                        <img src={Logo.src} className="w-32" />
-                    </Link>
-						<p className="text-balance mt-5 text-sm/6 text-gray-600  ">
+		<footer className="border-t border-neutral-200">
+			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-8 pt-12 sm:pt-16 lg:pt-20">
+				{/* Main Footer Content */}
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-8">
+					{/* Brand Section */}
+					<div className="space-y-6 md:col-span-2 lg:col-span-1">
+						<Link href="/">
+							<img src={Logo.src} alt="My Divine Stays" className="w-32 h-auto" />
+						</Link>
+						<p className="text-sm leading-6 mt-5 text-gray-600 max-w-xs">
 							Making spiritual journeys more accessible through seamless accommodation solutions.
 						</p>
-						<div className="flex gap-x-6">
+						<div className="flex gap-x-4">
 							{navigation.social.map((item) => (
-								<a
+								<Link
 									key={item.name}
 									href={item.href}
 									target='_blank'
-									className="text-gray-600 hover:text-gray-800  "
+									rel="noopener noreferrer"
+									className="text-gray-600 hover:text-gray-800 transition-colors"
 								>
 									<span className="sr-only">{item.name}</span>
-									<item.icon aria-hidden="true" className="size-6" />
-								</a>
+									<item.icon aria-hidden="true" className="h-6 w-6" />
+								</Link>
 							))}
 						</div>
 					</div>
-					<div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
-						<div className="md:grid md:grid-cols-2 md:gap-8">
-							<div>
-								<h3 className="text-sm/6 font-semibold text-gray-900 ">
-									Solutions
-								</h3>
-								<ul role="list" className="mt-6 space-y-4">
-									{navigation.solutions.map((item) => (
-										<li key={item.name}>
-											<a
-												href={item.href}
-												className="text-sm/6 text-gray-600 hover:text-gray-900  "
-											>
-												{item.name}
-											</a>
-										</li>
-									))}
-								</ul>
-							</div>
-							<div className="mt-10 md:mt-0">
-								<h3 className="text-sm/6 font-semibold text-gray-900 ">
-									Support
-								</h3>
-								<ul role="list" className="mt-6 space-y-4">
-									{navigation.support.map((item) => (
-										<li key={item.name}>
-											<a
-												href={item.href}
-												className="text-sm/6 text-gray-600 hover:text-gray-900  "
-											>
-												{item.name}
-											</a>
-										</li>
-									))}
-								</ul>
-							</div>
-						</div>
-						<div className="md:grid md:grid-cols-2 md:gap-8">
-							<div>
-								<h3 className="text-sm/6 font-semibold text-gray-900 ">
-									Company
-								</h3>
-								<ul role="list" className="mt-6 space-y-4">
-									{navigation.company.map((item) => (
-										<li key={item.name}>
-											<a
-												href={item.href}
-												className="text-sm/6 text-gray-600 hover:text-gray-900  "
-											>
-												{item.name}
-											</a>
-										</li>
-									))}
-								</ul>
-							</div>
-							<div className="mt-10 md:mt-0">
-								<h3 className="text-sm/6 font-semibold text-gray-900 ">
-									Legal
-								</h3>
-								<ul role="list" className="mt-6 space-y-4">
-									{navigation.legal.map((item) => (
-										<li key={item.name}>
-											<a
-												href={item.href}
-												className="text-sm/6 text-gray-600 hover:text-gray-900  "
-											>
-												{item.name}
-											</a>
-										</li>
-									))}
-								</ul>
-							</div>
-						</div>
+
+					{/* Support Section */}
+					<div>
+						<h3 className="text-sm font-semibold text-gray-900 mb-4">
+							Support
+						</h3>
+						<ul role="list" className="space-y-3">
+							{navigation.support.map((item) => (
+								<li key={item.name}>
+									<Link
+										href={item.href}
+										className="text-sm text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap"
+									>
+										{item.name}
+									</Link>
+								</li>
+							))}
+						</ul>
+					</div>
+
+					{/* Quick Links Section */}
+					<div>
+						<h3 className="text-sm font-semibold text-gray-900 mb-4">
+							Quick Links
+						</h3>
+						<ul role="list" className="space-y-3">
+							{navigation.quickLinks.map((item) => (
+								<li key={item.name}>
+									<Link
+										href={item.href}
+										className="text-sm text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap"
+									>
+										{item.name}
+									</Link>
+								</li>
+							))}
+						</ul>
+					</div>
+
+					{/* Legal Section */}
+					<div>
+						<h3 className="text-sm font-semibold text-gray-900 mb-4">
+							About the Site
+						</h3>
+						<ul role="list" className="space-y-3">
+							{navigation.legal.map((item) => (
+								<li key={item.name}>
+									<Link
+										href={item.href}
+										className="text-sm text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap"
+									>
+										{item.name}
+									</Link>
+								</li>
+							))}
+						</ul>
 					</div>
 				</div>
-				<div className="mt-16 border-t border-gray-900/10 pt-8  sm:mt-20 lg:mt-24">
-					<p className="text-sm/6 text-gray-600  ">
-						&copy; 2024 Your Company, Inc. All rights reserved.
+
+				{/* Copyright Section */}
+				<div className="mt-12 pt-8 border-t border-gray-900/10">
+					<p className="text-sm text-gray-600">
+						&copy; 2025 PILGRIM CONNECT PVT. LTD
 					</p>
 				</div>
 			</div>

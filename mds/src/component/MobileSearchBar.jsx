@@ -483,39 +483,28 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
                           <div className="space-y-2">
                             {suggestions.slice(0, 5).map((suggestion, index) => (
                               <div key={index}>
-                              <div 
-                                className="flex items-center p-3 cursor-pointer hover:bg-gray-100 rounded-lg"
-                                onClick={() => handleSuggestionClick(suggestion.placeName, 'placeName', suggestion.location)}
-                              >
-                                <IoLocationOutline className="text-gray-500 mr-3" />
-                                <div>
-                                  <div className="font-medium">{suggestion.placeName}</div>
-                                  <div className="text-sm text-gray-500">
-                                    {suggestion.location.city}, {suggestion.location.state}
-                                  </div>
-                                </div>
-                              </div>
+                              
                                <div 
                                 className="flex items-center p-3 cursor-pointer hover:bg-gray-100 rounded-lg"
-                                onClick={() => handleSuggestionClick(suggestion.location.city)}
+                                onClick={() => handleSuggestionClick(suggestion.city)}
                               >
                                 <IoLocationOutline className="text-gray-500 mr-3" />
                                 <div>
-                                  <div className="font-medium">{suggestion.location.city}</div>
+                                  <div className="font-medium">{suggestion.city}</div>
                                   <div className="text-sm text-gray-500">
-                                    {suggestion.location.city}
+                                    {suggestion.city}
                                   </div>
                                 </div>
                               </div>
                               <div 
                                 className="flex items-center p-3 cursor-pointer hover:bg-gray-100 rounded-lg"
-                                onClick={() => handleSuggestionClick(suggestion.location.state)}
+                                onClick={() => handleSuggestionClick(suggestion.state)}
                               >
                                 <IoLocationOutline className="text-gray-500 mr-3" />
                                 <div>
-                                  <div className="font-medium">{suggestion.location.state}</div>
+                                  <div className="font-medium">{suggestion.state}</div>
                                   <div className="text-sm text-gray-500">
-                                    {suggestion.location.state}
+                                    {suggestion.state}
                                   </div>
                                 </div>
                               </div>

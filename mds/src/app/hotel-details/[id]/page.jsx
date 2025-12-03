@@ -122,12 +122,12 @@ export default function PropertyDetailsPage() {
             <Typography variant="h4" component="h1" fontWeight="bold">
               {ViewProperty.placeName}
             </Typography>
-            <Box display="flex" alignItems="center" gap={0.5}>
+            {/* <Box display="flex" alignItems="center" gap={0.5}>
               <Star sx={{ color: "gold", fontSize: 20 }} />
               <Typography variant="body1" fontWeight="semibold">
                 {ViewProperty.placeRating}
               </Typography>
-            </Box>
+            </Box> */}
           </Box>
           
           <Box display="flex" alignItems="center" gap={1} mb={2} color="text.secondary">

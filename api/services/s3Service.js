@@ -2,11 +2,32 @@ import {
   DeleteObjectCommand, 
   GetObjectCommand,
   HeadObjectCommand,
+  PutObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import s3Client from '../config/s3Config.js';
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
+
+// Upload file to S3
+export const uploadToS3 = async (file, key) => {
+  try {
+    const command = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    });
+    
+    await s3Client.send(command);
+    
+    // Return the S3 URL
+    return `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+  } catch (error) {
+    console.error('Error uploading to S3:', error);
+    throw error;
+  }
+};
 
 // Delete file from S3
 export const deleteFromS3 = async (key) => {

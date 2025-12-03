@@ -277,7 +277,7 @@ export default function Listing() {
     { key: 'draft', label: 'Draft', count: draftProperties_filtered.length },
     { key: 'pending', label: 'Pending Review', count: pendingProperties.length },
     { key: 'rejected', label: 'Rejected', count: rejectedProperties.length },
-    { key: 'pending_changes', label: 'pendingChanges', count: pendingChangesProperties.length }
+    { key: 'pending_changes', label: 'Pending Changes', count: pendingChangesProperties.length }
   ]
 
   // Filter tabs based on user role

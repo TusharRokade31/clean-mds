@@ -47,7 +47,7 @@ export default function BlogDetail() {
   return (
     <div className="min-h-screen  w-full bg-white">
       {/* Hero Header */}
-      <div className="bg-gradient-to-r from-[#5d5fef] flex   items-center mx-auto h-[300px] w-6/12 mt-20 to-[#af4fe4] text-white px-6 py-12 ">
+      <div className="bg-linear-to-r from-[#5d5fef] flex   items-center mx-auto h-[300px] w-6/12 mt-20 to-[#af4fe4] text-white px-6 py-12 ">
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center space-y-4">
           <div className="text-6xl">🏨</div>
           <div className="flex items-start text-sm space-x-4 opacity-90">

@@ -19,7 +19,7 @@ export default function Home() {
     <SpiritualDestinations />
     <SectionBecomeAnAuthor/>
     <StaysType />  
-    <SectionClientSay/>
+    {/* <SectionClientSay/> */}
     </div>
    </>
   );

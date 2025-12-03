@@ -217,25 +217,25 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
                       <div key={index}>
                         <li 
                           className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                          onClick={() => handleSuggestionClick(suggestion.location.city, 'city')}
+                          onClick={() => handleSuggestionClick(suggestion.city, 'city')}
                         >
                           <MapPin className="text-gray-400 mr-2 w-4 h-4" />
                           <div>
-                            <div className="font-medium text-sm">{suggestion.location.city}</div>
+                            <div className="font-medium text-sm">{suggestion.city}</div>
                           </div>
                         </li>
                         
                         <li 
                           className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                          onClick={() => handleSuggestionClick(suggestion.location.state, 'state')}
+                          onClick={() => handleSuggestionClick(suggestion.state, 'state')}
                         >
                           <MapPin className="text-gray-400 mr-2 w-4 h-4" />
                           <div>
-                            <div className="font-medium text-sm">{suggestion.location.state}</div>
+                            <div className="font-medium text-sm">{suggestion.state}</div>
                           </div>
                         </li>
                         
-                        <li 
+                        {/* <li 
                           className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
                           onClick={() => handleSuggestionClick(suggestion.placeName, 'placeName', suggestion.location)}
                         >
@@ -246,7 +246,7 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
                               {suggestion.location.city}, {suggestion.location.state}
                             </div>
                           </div>
-                        </li>
+                        </li> */}
                       </div>
                     ))}
 

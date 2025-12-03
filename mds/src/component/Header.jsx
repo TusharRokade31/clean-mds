@@ -104,9 +104,9 @@ const Header = () => {
             About us
           </Link>
 
-          <Link href="/host" onClick={handleListPropertyClick} className="text-lg font-medium text-gray-800 hover:text-indigo-600 transition-colors">
+          {/* <Link href="/host" onClick={handleListPropertyClick} className="text-lg font-medium text-gray-800 hover:text-indigo-600 transition-colors">
             List your property
-          </Link>
+          </Link> */}
         </div>
       </motion.div>
           </>

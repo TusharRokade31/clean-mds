@@ -74,9 +74,9 @@ export default function PropertyRules() {
       id.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
     ).join(', ')}`,
     petPolicy.petsAllowed ? "Pets are allowed" : "Pets are not allowed",
-    propertyRestrictions.nonVegetarianFood.allowed 
-      ? "Non-vegetarian food is allowed" 
-      : "Outside food is not allowed",
+    // propertyRestrictions.nonVegetarianFood.allowed 
+    //   ? "Non-vegetarian food is allowed" 
+    //   : "Outside food is not allowed",
     propertyRestrictions.alcoholSmoking.smokingAllowed 
       ? "Smoking is allowed in designated areas" 
       : "Smoking is prohibited in rooms",
@@ -184,7 +184,7 @@ export default function PropertyRules() {
               <ul className="space-y-2">
                 {checkInRules.map((rule, index) => (
                   <li key={index} className="flex items-start gap-2">
-                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
+                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 shrink-0"></span>
                     <span className="text-sm text-gray-700">{rule}</span>
                   </li>
                 ))}
@@ -204,7 +204,7 @@ export default function PropertyRules() {
               <ul className="space-y-2">
                 {coupleRules.map((rule, index) => (
                   <li key={index} className="flex items-start gap-2">
-                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
+                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 shrink-0"></span>
                     <span className="text-sm text-gray-700">{rule}</span>
                   </li>
                 ))}
@@ -219,7 +219,7 @@ export default function PropertyRules() {
               <ul className="space-y-2">
                 {generalRules.map((rule, index) => (
                   <li key={index} className="flex items-start gap-2">
-                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
+                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 shrink-0"></span>
                     <span className="text-sm text-gray-700">{rule}</span>
                   </li>
                 ))}
@@ -234,7 +234,7 @@ export default function PropertyRules() {
             <ul className="space-y-2">
               {guestProfileRules.map((rule, index) => (
                 <li key={index} className="flex items-start gap-2">
-                  <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
+                  <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 shrink-0"></span>
                   <span className="text-sm text-gray-700">{rule}</span>
                 </li>
               ))}
@@ -248,7 +248,7 @@ export default function PropertyRules() {
             <ul className="space-y-2">
               {idProofRules.map((rule, index) => (
                 <li key={index} className="flex items-start gap-2">
-                  <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
+                  <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 shrink-0"></span>
                   <span className="text-sm text-gray-700">{rule}</span>
                 </li>
               ))}

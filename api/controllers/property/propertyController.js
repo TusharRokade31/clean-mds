@@ -1992,90 +1992,101 @@ export const checkPropertyAvailability = async (req, res) => {
   }
 };
 
-export const getSuggestions = async (req, res) => {
-  try {
-    const { q } = req.query;
-    console.log(q);
-
-    if (!q) return res.status(200).json([]);
-
+  export const getSuggestions = async (req, res) => {
     try {
-      // Try Atlas Search first
-      const searchQuery = [
-        {
-          $search: {
-            index: 'suggestions',
-            compound: {
-              should: [
-                {
-                  autocomplete: {
-                    query: q,
-                    path: 'placeName',
+      const { q } = req.query;
+      console.log(q);
+
+      if (!q) return res.status(200).json([]);
+
+      try {
+        // Try Atlas Search first
+        const searchQuery = [
+          {
+            $search: {
+              index: 'suggestions',
+              compound: {
+                should: [
+                  {
+                    autocomplete: {
+                      query: q,
+                      path: 'location.city',
+                    },
                   },
-                },
-                {
-                  autocomplete: {
-                    query: q,
-                    path: 'location.city',
+                  {
+                    autocomplete: {
+                      query: q,
+                      path: 'location.state',
+                    },
                   },
-                },
-                {
-                  autocomplete: {
-                    query: q,
-                    path: 'location.state',
-                  },
-                },
-              ],
+                ],
+              },
             },
           },
-        },
-        {
-          $match: {
-            status: 'published',
+          {
+            $match: {
+              status: 'published',
+            },
           },
-        },
-        {
-          $project: {
-            _id: 0,
-            placeName: 1,
-            'location.city': 1,
-            'location.state': 1,
-            score: { $meta: 'searchScore' },
+          {
+            $group: {
+              _id: {
+                city: '$location.city',
+                state: '$location.state',
+              },
+              score: { $max: { $meta: 'searchScore' } },
+            },
           },
-        },
-        { $limit: 10 },
-      ];
+          {
+            $project: {
+              _id: 0,
+              city: '$_id.city',
+              state: '$_id.state',
+              score: 1,
+            },
+          },
+          { $sort: { score: -1 } },
+          { $limit: 10 },
+        ];
 
-      const suggestions = await Property.aggregate(searchQuery);
-      console.log(suggestions);
-      return res.status(200).json(suggestions);
-      
-    } catch (searchError) {
-      // Fallback to regular query if search index doesn't exist
-      console.warn('Search index not available, using fallback query');
-      
-      const regex = new RegExp(q, 'i');
-      
-      const suggestions = await Property.find({
-        status: 'published',
-        $or: [
-          { placeName: regex },
-          { 'location.city': regex },
-          { 'location.state': regex },
-        ],
-      })
-        .select('placeName location.city location.state -_id')
-        .limit(10)
-        .lean();
+        const suggestions = await Property.aggregate(searchQuery);
+        console.log(suggestions);
+        return res.status(200).json(suggestions);
+        
+      } catch (searchError) {
+        // Fallback to regular query if search index doesn't exist
+        console.warn('Search index not available, using fallback query');
+        
+        const regex = new RegExp(q, 'i');
+        
+        const suggestions = await Property.find({
+          status: 'published',
+          $or: [
+            { 'location.city': regex },
+            { 'location.state': regex },
+          ],
+        })
+          .select('location.city location.state -_id')
+          .lean();
 
-      return res.status(200).json(suggestions);
+        // Remove duplicates
+        const uniqueLocations = Array.from(
+          new Map(
+            suggestions.map(item => [
+              `${item.location.city}-${item.location.state}`,
+              { city: item.location.city, state: item.location.state }
+            ])
+          ).values()
+        ).slice(0, 10);
+
+        return res.status(200).json(uniqueLocations);
+      }
+      
+    } catch (err) {
+      console.error('Search suggestion error:', err);
+      res.status(500).json({ error: 'Server error' });
     }
-    
-  } catch (err) {
-    console.error('Search suggestion error:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-};
+  };
 
 
 export const getPropertiesByQuery = async (req, res) => {
@@ -2727,8 +2738,6 @@ const calculateFilterStats = async (location, appliedFilters) => {
     };
   }
 };
-
-
 
 
 export const getPropertiesPendingChanges = async (req, res) => {

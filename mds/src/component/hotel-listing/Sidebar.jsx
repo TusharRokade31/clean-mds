@@ -286,10 +286,10 @@ const handleFilterChange = (category, value) => {
         </div>
       </div> */}
 
-      <Divider />
+      {/* <Divider /> */}
 
       {/* Distance from Temple */}
-      <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+      {/* <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-6 bg-linear-to-b from-blue-600 to-purple-600 rounded-full"></div>
           <Typography variant="h6" sx={{ fontWeight: 700, color: '#1f2937' }}>
@@ -346,9 +346,9 @@ const handleFilterChange = (category, value) => {
             />
           ))}
         </div>
-      </div>
+      </div> */}
 
-      <Divider />
+      {/* <Divider /> */}
 
       {/* Amenities */}
       <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
