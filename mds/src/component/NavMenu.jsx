@@ -21,11 +21,11 @@ const NavMenu = () => {
         </h3>
       </Link>
 
-      <Link href={`/host`} onClick={handleListPropertyClick}>
+      {/* <Link href={`/host`} onClick={handleListPropertyClick}>
         <h3 className="border border-[#9ca3af5b] cursor-pointer hover:border-[#9ca3af] rounded-full py-1.5 px-4">
           List your property
         </h3>
-      </Link>
+      </Link> */}
 
       {!isAuthenticated ? (
         <Link href="/login">

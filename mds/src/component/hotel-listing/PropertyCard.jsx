@@ -1,7 +1,11 @@
+// components/PropertyCard.jsx
 import { Button } from "@mui/material"
 import { Star, Wifi, Car, Utensils, Shield, Droplets, MapPin, Heart } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { toggleWishlist, selectIsInWishlist, selectIsActionLoading, checkWishlistStatus } from "@/redux/features/wishlist/wishlistSlice"
+import { toast } from "react-hot-toast" // or your toast library
 
 export function PropertyCard({
   id,
@@ -16,8 +20,16 @@ export function PropertyCard({
   tags,
   images = [],
 }) {
+  const dispatch = useDispatch();
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isWishlisted, setIsWishlisted] = useState(false)
+  
+  // Get wishlist status from Redux
+  const isWishlisted = useSelector(selectIsInWishlist(id))
+  const isActionLoading = useSelector(selectIsActionLoading(id))
+
+  useEffect(() => {
+  dispatch(checkWishlistStatus(id));
+}, [dispatch, id]);
 
   const getAmenityIcon = (amenity) => {
     switch (amenity.toLowerCase()) {
@@ -39,9 +51,25 @@ export function PropertyCard({
   const handleThumbnailClick = (index) => {
     setCurrentImageIndex(index)
   }
+
+  const handleWishlistToggle = async () => {
+    try {
+      const result = await dispatch(toggleWishlist(id)).unwrap();
+      
+      if (result.data.action === 'added') {
+        toast.success('Added to wishlist!');
+      } else {
+        toast.success('Removed from wishlist!');
+      }
+    } catch (error) {
+      toast.error(error || 'Failed to update wishlist');
+    }
+  }
   
   const currentImage = images[currentImageIndex]
   const imageUrl = currentImage ? `${currentImage.url}` : null
+
+  console.log(isWishlisted)
   
   const thumbnailImages = images.slice(0, 4)
   const hasMoreImages = images.length > 4
@@ -55,19 +83,24 @@ export function PropertyCard({
           <div className="relative w-full">
             {/* Verified Badge */}
             {verified && (
-              <div className="absolute top-3 left-3 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-2 shadow-lg">
+              <div className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-2 shadow-lg">
                 <span className="text-sm">✓</span> Verified
               </div>
             )}
             
             {/* Wishlist Heart */}
             <button
-              onClick={() => setIsWishlisted(!isWishlisted)}
-              className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full z-10 shadow-lg hover:scale-110 transition-transform"
+              onClick={handleWishlistToggle}
+              disabled={isActionLoading}
+              className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full z-2 shadow-lg hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Heart 
-                className={`w-5 h-5 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
-              />
+     <Heart 
+      className={`w-5 h-5 transition-all ${
+        isWishlisted 
+          ? 'fill-red-500 text-red-500'  // Active state - filled red heart
+          : 'text-gray-600'                // Inactive state - outline only
+      } ${isActionLoading ? 'animate-pulse' : ''}`}
+    />
             </button>
             
             {/* Main Image */}
@@ -79,9 +112,9 @@ export function PropertyCard({
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-100 to-purple-100">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
                   <div className="text-center">
-                    <div className="w-20 h-20 bg-linear-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
                       <span className="text-3xl">🏨</span>
                     </div>
                     <div className="text-sm text-gray-500 font-medium">Hotel Image</div>
@@ -105,21 +138,10 @@ export function PropertyCard({
               <p>{location}</p>
             </div>
 
-            {/* Rating */}
-            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
-              <div className="flex items-center bg-linear-to-r from-yellow-400 to-orange-400 px-3 py-1.5 rounded-lg shadow-md">
-                <Star className="w-4 h-4 text-white fill-white mr-1" />
-                <span className="font-bold text-white text-sm">{rating}</span>
-              </div>
-              <span className="text-sm text-gray-600">
-                <span className="font-semibold text-gray-800">{reviews}</span> reviews
-              </span>
-            </div>
-
             {/* Amenities */}
             <div className="flex flex-wrap gap-2 mb-5">
               {amenities.slice(0, 4).map((amenity) => (
-                <div key={amenity} className="bg-linear-to-r from-blue-50 to-purple-50 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 flex items-center gap-1">
+                <div key={amenity} className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 flex items-center gap-1">
                   {getAmenityIcon(amenity)}
                   <span>{amenity}</span>
                 </div>
@@ -130,7 +152,7 @@ export function PropertyCard({
             <div className="flex justify-between items-center pt-4 border-t border-gray-100">
               <div>
                 <div className="text-sm text-gray-400 line-through">₹{Math.round(price * 1.2).toLocaleString()}</div>
-                <div className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   ₹{price.toLocaleString()}
                 </div>
                 <div className="text-xs text-gray-500">per night + taxes</div>
@@ -168,26 +190,25 @@ export function PropertyCard({
           {/* Image Section */}
           <div className="relative w-80 bg-gray-200">
             {verified && (
-              <div className="absolute top-3 left-3 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-10 shadow-lg">
+              <div className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 z-2 shadow-lg">
                 <span className="text-sm">✓</span> Verified
               </div>
             )}
             
             {/* Wishlist Heart */}
             <button
-              onClick={() => setIsWishlisted(!isWishlisted)}
-              className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full z-10 shadow-lg hover:scale-110 transition-transform"
+              onClick={handleWishlistToggle}
+              disabled={isActionLoading}
+              className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full z-2 shadow-lg hover:scale-110 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Heart 
-                className={`w-5 h-5 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
+                className={`w-5 h-5 transition-all ${
+                  isWishlisted 
+                    ? 'fill-red-500 text-red-500' 
+                    : 'text-gray-600'
+                } ${isActionLoading ? 'animate-pulse' : ''}`}
               />
             </button>
-            
-            {distance && (
-              <div className="absolute top-3 right-14 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold z-10 shadow-md">
-                {distance}
-              </div>
-            )}
             
             {/* Main Image */}
             <div className="h-52 relative overflow-hidden rounded-tl-2xl">
@@ -198,9 +219,9 @@ export function PropertyCard({
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-linear-to-r from-blue-100 to-purple-100">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-100 to-purple-100">
                   <div className="text-center">
-                    <div className="w-20 h-20 bg-linear-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+                    <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
                       <span className="text-3xl">🏨</span>
                     </div>
                     <div className="text-sm text-gray-500 font-medium">Hotel Image</div>
@@ -211,7 +232,7 @@ export function PropertyCard({
 
             {/* Thumbnails */}
             {thumbnailImages.length > 0 && (
-              <div className="flex gap-1.5 p-3 bg-linear-to-r from-gray-50 to-blue-50 rounded-bl-2xl">
+              <div className="flex gap-1.5 p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-bl-2xl">
                 {thumbnailImages.map((image, index) => {
                   const thumbUrl = `${image.url}`
                   const isLast = index === 3 && hasMoreImages
@@ -255,19 +276,9 @@ export function PropertyCard({
                   <p className="font-medium">{location}</p>
                 </div>
 
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="flex items-center bg-linear-to-r from-yellow-400 to-orange-400 px-3 py-1.5 rounded-lg shadow-md">
-                    <Star className="w-4 h-4 text-white fill-white mr-1" />
-                    <span className="font-bold text-white">{rating}</span>
-                  </div>
-                  <span className="text-gray-600">
-                    <span className="font-semibold text-gray-800">{reviews}</span> reviews
-                  </span>
-                </div>
-
                 <div className="flex flex-wrap gap-2 mb-4">
                   {amenities.slice(0, 6).map((amenity) => (
-                    <div key={amenity} className="bg-linear-to-r from-blue-50 to-purple-50 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 flex items-center gap-1">
+                    <div key={amenity} className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 flex items-center gap-1">
                       {getAmenityIcon(amenity)}
                       <span>{amenity}</span>
                     </div>
@@ -278,11 +289,10 @@ export function PropertyCard({
               <div className="text-right lg:ml-6 flex flex-col justify-between h-full">
                 <div>
                   <div className="text-sm text-gray-400 line-through mb-1">₹{Math.round(price * 1.2).toLocaleString()}</div>
-                  <div className="text-3xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1">
                     ₹{price.toLocaleString()}
                   </div>
                   <div className="text-sm text-gray-500 mb-1">per night</div>
-                 
                 </div>
                 
                 <Link href={`/hotel-details/${id}`}>

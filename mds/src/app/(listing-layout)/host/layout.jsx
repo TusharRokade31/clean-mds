@@ -144,10 +144,10 @@ export default function HotelDashboardLayout({ children }) {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative rounded-full p-1 hover:bg-gray-100">
+            {/* <button className="relative rounded-full p-1 hover:bg-gray-100">
               <Bell className="h-6 w-6" />
               <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500"></span>
-            </button>
+            </button> */}
             <div className="flex items-center gap-2">
               <AvatarDropdown />
             </div>

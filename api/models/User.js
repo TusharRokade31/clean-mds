@@ -1,8 +1,7 @@
-// models/User.js - Updated User model with new fields
+// models/User.js - Updated User model with profile photo field
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import config from '../config/config.js';
-
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -29,7 +28,11 @@ const UserSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
-  // New fields added
+  // Profile photo field
+  profilePhoto: {
+    type: String,
+    default: null,
+  },
   gender: {
     type: String,
     enum: ['Male', 'Female', 'Other', 'Prefer not to say'],

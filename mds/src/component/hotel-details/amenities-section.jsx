@@ -106,9 +106,9 @@ export default function AmenitiesSection({ amenities }) {
         </Title>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {displayedAmenities.map(([name, amenity]) => renderAmenityItem(name, amenity))}
-        </div>
+        </div> */}
 
         {mandatoryAmenities.length > 8 && (
           <div className="mt-4 text-center">
@@ -124,7 +124,7 @@ export default function AmenitiesSection({ amenities }) {
         )}
 
         {/* Popular Amenities Quick View */}
-        <div className="mt-6 pt-4 border-t">
+        <div className="">
           <h4 className="font-medium mb-3">Popular Amenities</h4>
           <div className="flex flex-wrap gap-2">
             {mandatoryAmenities.slice(0, 6).map(([name]) => (

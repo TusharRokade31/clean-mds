@@ -37,7 +37,7 @@ export default function ArticleCard({ article }) {
 
   return (
     <div className="overflow-hidden hover:shadow-lg hover:-translate-2 border border-[#1034ac23] transition-shadow duration-300">
-      <div className={`h-32 bg-gradient-to-br ${getCategoryColor(article.category)} flex items-center justify-center`}>
+      <div className={`h-32 bg-linear-to-br ${getCategoryColor(article.category)} flex items-center justify-center`}>
         {article.image ? (
           // <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
           <img src={`${staticImg.src}`} alt={article.title} className="w-full h-full object-cover" />

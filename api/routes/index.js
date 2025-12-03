@@ -9,6 +9,8 @@ import dashboardRoutes from './dashboardRoutes.js';
 import roomRoutes from './roomRoutes.js';
 import blogRoutes from './blogRoutes.js';
 import voiceSearchRoutes from './voiceSearch.routes.js';
+import reviewRoutes from './reviewRoute.js';
+import wishlistRoutes from './wishlistRoute.js';
 
 
 const registerRoutes = (app) => {
@@ -16,6 +18,8 @@ const registerRoutes = (app) => {
   app.use('/api/users', userRoutes);
   app.use('/api/admin', adminRoutes);
   app.use('/api/properties', propertyRoutes);
+  app.use('/api/reviews', reviewRoutes);
+  app.use('/api/wishlist', wishlistRoutes);
   app.use('/api/states', stateRoutes);
   app.use('/api/stays', stayRoutes);
   app.use('/api/bookings', bookingRoutes);

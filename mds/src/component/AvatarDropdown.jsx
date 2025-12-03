@@ -17,6 +17,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCurrentUser, logoutUser } from "@/redux/features/auth/authSlice";
+import Image from "next/image";
 
 export default function AvatarDropdown() {
   const { isAuthenticated, isLoading, user, token } = useSelector(
@@ -82,9 +83,22 @@ const handleLogout = async () => {
               className={`flex h-8 w-8 items-center ms-2 justify-center self-center rounded-full text-slate-700 md:bg-slate-100 focus:outline-none   sm:h-12 sm:w-12`}
             >
               <div className="flex -space-x-2 overflow-hidden">
-                <div className=" flex items-center justify-center rounded-full">
-                  <span className=" text-3xl">👤</span>
-                </div>
+                  <div className="flex w-12 h-12 -space-x-2 items-center justify-center md:bg-slate-100 rounded-full overflow-hidden">
+                       {user?.profilePhoto ? (
+                                         <img
+                                           src={user.profilePhoto}
+                                           alt="Profile"
+                                           fill
+                                           
+
+                                         />
+                                       ) : (
+                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-400 to-cyan-500">
+                                           <span className="text-5xl text-white">👤</span>
+                                         </div>
+                                       )}
+                      </div>
+               
               </div>
               {/* <Avatar sizeClass="w-8 h-8 sm:w-9 sm:h-9" /> */}
             </PopoverButton>
@@ -103,9 +117,19 @@ const handleLogout = async () => {
                     <div className="flex items-center gap-x-3">
                       {/* <Avatar sizeClass="w-12 h-12" /> */}
                       <div className="flex w-12 h-12 -space-x-2 items-center justify-center md:bg-slate-100 rounded-full overflow-hidden">
-                       <div className=" flex items-center justify-center rounded-full">
-                  <span className=" text-3xl">👤</span>
-                </div>
+                       {user?.profilePhoto ? (
+                                         <img
+                                           src={user.profilePhoto}
+                                           alt="Profile"
+                                           fill
+                                           
+
+                                         />
+                                       ) : (
+                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-400 to-cyan-500">
+                                           <span className="text-5xl text-white">👤</span>
+                                         </div>
+                                       )}
                       </div>
 
                       <div className="flex-grow">
@@ -164,7 +188,7 @@ const handleLogout = async () => {
 
                     {/* ------------------ 2 --------------------- */}
                     <Link
-                      href={"/#"}
+                      href={"/mydivestays-support"}
                       className="-m-3 flex items-center rounded-lg p-2 hover:bg-neutral-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500 focus-visible:ring-opacity-50 "
                       onClick={() => close()}
                     >

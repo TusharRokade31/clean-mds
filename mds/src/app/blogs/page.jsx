@@ -169,11 +169,11 @@ export default function Home() {
           error={categoriesError}
         />
 
-        <PopularTags
+        {/* <PopularTags
           tags={allTags}
           selectedTag={selectedTag}
           onTagChange={handleTagChange}
-        />
+        /> */}
 
         <ArticleGrid articles={blogs} isLoading={isLoading} />
 

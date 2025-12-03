@@ -3,7 +3,7 @@ import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import config from '../config/config.js';
-import fetch from 'node-fetch'; // Make sure to install this if not already available
+import fetch from 'node-fetch';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -32,7 +32,7 @@ export const googleLogin = async (req, res, next) => {
       user = await User.create({
         name: userData.name,
         email: userData.email,
-        password: Math.random().toString(36).slice(-8), // Random password
+        password: Math.random().toString(36).slice(-8),
         profileImage: userData.picture,
         isGoogleAccount: true,
       });
@@ -45,7 +45,7 @@ export const googleLogin = async (req, res, next) => {
       { expiresIn: config.jwt.expiresIn },
     );
     
-    // Set cookie
+    // Set cookie options
     const cookieOptions = {
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       httpOnly: true,
@@ -54,7 +54,8 @@ export const googleLogin = async (req, res, next) => {
     
     if (process.env.NODE_ENV === 'production') {
       cookieOptions.secure = true;
-      cookieOptions.sameSite = 'none'; // Important for cross-origin
+      cookieOptions.sameSite = 'lax'; // Changed from 'none'
+      cookieOptions.domain = '.mydivinestays.com'; // Added domain
     }
     
     res.cookie('token', jwtToken, cookieOptions);
@@ -64,6 +65,13 @@ export const googleLogin = async (req, res, next) => {
       message: 'Google login successful',
       token: jwtToken,
       userId: user._id,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        profileImage: user.profileImage,
+        role: user.role,
+      }
     });
   } catch (error) {
     console.error('Google login error:', error);

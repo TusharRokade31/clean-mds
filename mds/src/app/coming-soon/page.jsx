@@ -8,7 +8,7 @@ export default function ComingSoonRental() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 mb-6 relative">
         {/* Main Image */}
         <div className="lg:col-span-3 lg:row-span-2 relative">
-          <div className="aspect-[4/3] lg:aspect-[3/2] rounded-l-xl lg:rounded-l-2xl overflow-hidden relative group">
+          <div className="aspect-4/3 lg:aspect-3/2 rounded-l-xl lg:rounded-l-2xl overflow-hidden relative group">
             <Image
               src={comingSoon.src}
               alt="coming soon"

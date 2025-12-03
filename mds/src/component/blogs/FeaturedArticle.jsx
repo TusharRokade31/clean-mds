@@ -11,7 +11,7 @@ export default function FeaturedArticle({ article }) {
     <section className=" ">
       <div className="container mx-auto rounded-3xl">
         <div className="grid lg:grid-cols-2 gap-8  shadow-2xl rounded-3xl  items-center">
-          <div className="bg-gradient-to-br from-purple-500 rounded-tl-3xl rounded-bl-3xl to-purple-700 p-8 flex items-center justify-center h-full">
+          <div className="bg-linear-to-br from-purple-500 rounded-tl-3xl rounded-bl-3xl to-purple-700 p-8 flex items-center justify-center h-full">
             <div className="text-6xl">🕉️</div>
           </div>
 

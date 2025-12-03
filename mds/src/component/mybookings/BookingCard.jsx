@@ -128,7 +128,7 @@ console.log(booking.property.media)
             </div>
           ) : (
             // Fallback to gradient if no image or image failed to load
-            <div className={`w-full h-full bg-gradient-to-br ${getGradientColor(booking.status)} p-6 flex flex-col justify-between relative`}>
+            <div className={`w-full h-full bg-linear-to-br ${getGradientColor(booking.status)} p-6 flex flex-col justify-between relative`}>
               {/* Status badge */}
               <div className="flex justify-between items-start">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)} bg-white/90`}>

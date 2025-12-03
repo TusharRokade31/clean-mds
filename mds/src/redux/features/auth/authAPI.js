@@ -26,6 +26,20 @@ export const authAPI = {
     const response = await axiosInstance.put('/users/update-profile', userData);
     return response.data;
   },
+
+  uploadProfilePhoto: async (formData) => {
+    const response = await axiosInstance.post('/users/upload-profile-photo', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteProfilePhoto: async () => {
+    const response = await axiosInstance.delete('/users/delete-profile-photo');
+    return response.data;
+  },
   
   logout: async () => {
     await axiosInstance.post('/auth/logout');

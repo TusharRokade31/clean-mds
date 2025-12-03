@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { PropertyCard } from "./PropertyCard";
 import { Button, Modal, Box, Typography, Radio, RadioGroup, FormControlLabel } from "@mui/material";
-import { TrendingUp, DollarSign, Star, MapPin } from "lucide-react";
+import { TrendingUp, DollarSign, Star, MapPin, IndianRupee } from "lucide-react";
+
 
 const sortModalStyle = {
   position: 'absolute',
@@ -40,8 +41,8 @@ export function PropertyList({
 
   const sortOptions = [
     { value: "relevance", label: "Most Popular", icon: <TrendingUp className="w-4 h-4" /> },
-    { value: "price-low", label: "Price (Low to High)", icon: <DollarSign className="w-4 h-4" /> },
-    { value: "price-high", label: "Price (High to Low)", icon: <DollarSign className="w-4 h-4" /> },
+    { value: "price-low", label: "Price (Low to High)", icon: <IndianRupee className="w-4 h-4" /> },
+    { value: "price-high", label: "Price (High to Low)", icon: <IndianRupee className="w-4 h-4" /> },
     { value: "rating", label: "Guest Rating", icon: <Star className="w-4 h-4" /> },
     { value: "star-rating", label: "Star Rating", icon: <Star className="w-4 h-4" /> },
     { value: "distance", label: "Distance", icon: <MapPin className="w-4 h-4" /> }

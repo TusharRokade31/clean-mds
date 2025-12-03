@@ -509,11 +509,11 @@ const handleCreateNew = () => {
           options: [],
           Suboptions: [],
         },
-        {
-          name: "Carbon Monoxide Detector",
-          options: [],
-          Suboptions: [],
-        },
+        // {
+        //   name: "Carbon Monoxide Detector",
+        //   options: [],
+        //   Suboptions: [],
+        // },
       ],
     },
     mediaTechnology: {

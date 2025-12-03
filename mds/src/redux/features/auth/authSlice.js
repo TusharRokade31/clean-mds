@@ -9,6 +9,8 @@ const initialState = {
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  uploadingPhoto: false, // New state for photo upload
+  uploadPhotoError: null, // New state for photo upload errors
 };
 
 // Helper function to set cookie
@@ -66,7 +68,6 @@ export const fetchCurrentUser = createAsyncThunk(
   }
 );
 
-
 export const updateUserProfile = createAsyncThunk(
   'auth/updateProfile',
   async (userData, { rejectWithValue }) => {
@@ -79,6 +80,34 @@ export const updateUserProfile = createAsyncThunk(
   }
 );
 
+// New: Upload profile photo
+export const uploadProfilePhoto = createAsyncThunk(
+  'auth/uploadProfilePhoto',
+  async (file, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append('profilePhoto', file);
+      
+      const response = await authAPI.uploadProfilePhoto(formData);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Photo upload failed');
+    }
+  }
+);
+
+// New: Delete profile photo
+export const deleteProfilePhoto = createAsyncThunk(
+  'auth/deleteProfilePhoto',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await authAPI.deleteProfilePhoto();
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Photo deletion failed');
+    }
+  }
+);
 
 export const logoutUser = createAsyncThunk(
   'auth/logout',
@@ -116,6 +145,7 @@ const authSlice = createSlice({
   reducers: {
     clearError: (state) => {
       state.error = null;
+      state.uploadPhotoError = null;
     },
   },
   extraReducers: (builder) => {
@@ -129,7 +159,6 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.user = action.payload.data;
       state.token = action.payload.token;
-      // Set cookie immediately
       if (action.payload.token) {
         setCookie('token', action.payload.token, 7);
       }
@@ -149,7 +178,6 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.user = action.payload.data;
       state.token = action.payload.token;
-      // Set cookie immediately
       if (action.payload.token) {
         setCookie('token', action.payload.token, 7);
       }
@@ -159,7 +187,7 @@ const authSlice = createSlice({
       state.error = action.payload;
     });
     
-    //google Auth
+    // Google Auth
     builder.addCase(googleLoginUser.pending, (state) => {
       state.isLoading = true;
       state.error = null;
@@ -169,7 +197,6 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.user = action.payload.data;
       state.token = action.payload.token;
-      // Set cookie immediately
       if (action.payload.token) {
         setCookie('token', action.payload.token, 7);
       }
@@ -199,8 +226,8 @@ const authSlice = createSlice({
       localStorage.removeItem('token');
     });
 
-    //update profile 
-     builder.addCase(updateUserProfile.pending, (state) => {
+    // Update profile
+    builder.addCase(updateUserProfile.pending, (state) => {
       state.isLoading = true;
       state.error = null;
     });
@@ -211,6 +238,40 @@ const authSlice = createSlice({
     builder.addCase(updateUserProfile.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
+    });
+
+    // Upload profile photo
+    builder.addCase(uploadProfilePhoto.pending, (state) => {
+      state.uploadingPhoto = true;
+      state.uploadPhotoError = null;
+    });
+    builder.addCase(uploadProfilePhoto.fulfilled, (state, action) => {
+      state.uploadingPhoto = false;
+      // Update user's profile photo in state
+      if (state.user) {
+        state.user.profilePhoto = action.payload.data.profilePhoto;
+      }
+    });
+    builder.addCase(uploadProfilePhoto.rejected, (state, action) => {
+      state.uploadingPhoto = false;
+      state.uploadPhotoError = action.payload;
+    });
+
+    // Delete profile photo
+    builder.addCase(deleteProfilePhoto.pending, (state) => {
+      state.uploadingPhoto = true;
+      state.uploadPhotoError = null;
+    });
+    builder.addCase(deleteProfilePhoto.fulfilled, (state) => {
+      state.uploadingPhoto = false;
+      // Remove profile photo from state
+      if (state.user) {
+        state.user.profilePhoto = null;
+      }
+    });
+    builder.addCase(deleteProfilePhoto.rejected, (state, action) => {
+      state.uploadingPhoto = false;
+      state.uploadPhotoError = action.payload;
     });
 
     // Logout cases
