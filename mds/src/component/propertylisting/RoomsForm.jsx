@@ -62,223 +62,73 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
     'Amenities', 'Decor', 'Lighting', 'Storage', 'Window View', 'Others'
   ];
 
-
-      // Your existing room amenity categories and other constants remain the same...
-      const roomAmenityCategories = {
-          mandatory: {
-              title: 'Mandatory',
-              items: [
-                  {
-                      name: 'Air Conditioning',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Wifi',
-                      options: [],
-                      Suboptions: []
-                  },
-  
-                  {
-                      name: 'TV',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Hairdryer',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Hot Water',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Toiletries',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Mineral Water',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Telephone',
-                      options: [],
-                      Suboptions: []
-                  },
-              ]
-          },
-          basicFacilities: {
-              title: 'Basic Facilities',
-              items: [
-                  {
-                      name: 'Refrigerator',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Kitchen',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Safe',
-                      options: ['Digital', 'Key lock'],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Closet',
-                      options: [],
-                      Suboptions: []
-                  }
-              ]
-          },
-          bathroom: {
-              title: 'Bathroom',
-              items: [
-                  {
-                      name: 'Dental Kit',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Toiletries',
-                      options: [],
-                      Suboptions: ['Shampoo', 'Soap', 'Towels',]
-                  },
-                  {
-                      name: 'Western Toilet Seat',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Jetspray',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Geyser/Water Heater',
-                      options: ['24 Hours', 'Limited duration'],
-                      Suboptions: []
-                  }
-              ]
-          },
-          roomFeatures: {
-              title: 'Room Features',
-              items: [
-  
-  
-                  {
-                      name: 'Wardrobe',
-                      options: [],
-                      Suboptions: ['Hangers', 'Safe inside']
-                  },
-                  {
-                      name: 'Charging points',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Dining Table',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Sofa',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Seating Area',
-                      options: [],
-                      Suboptions: []
-                  },
-  
-              ]
-          },
-          kitchenAppliances: {
-              title: 'Kitchen and Appliances',
-              items: [
-                  {
-                      name: 'Induction',
-                      options: [],
-                      Suboptions: []
-                  },
-  
-                  {
-                      name: 'Kitchenette',
-                      options: ['Private', 'Shared'],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Refrigerator',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Cook/Chef',
-                      options: ['Free', 'Paid'],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Dishes and Silverware',
-                      options: [],
-                      Suboptions: []
-                  },
-                  {
-                      name: 'Microwave',
-                      options: [],
-                      Suboptions: []
-                  },
-  
-  
-              ]
-          },
-          otherFacilities: {
-              title: 'Other Facilities',
-              items: [
-                  {
-                      name: 'Mosquito Net',
-                      options: [],
-                      Suboptions: []
-                  },
-  
-                  {
-                      name: 'Newspaper',
-                      options: [],
-                      Suboptions: []
-                  },
-  
-                  {
-                      name: 'Fan',
-                      options: [],
-                      Suboptions: []
-                  },
-  
-  
-  
-              ]
-          }
-      };
-
-
-  const validateMandatoryAmenities = () => {
-  const mandatoryItems = roomAmenityCategories.mandatory.items;
-  const mandatoryData = currentRoomData?.amenities?.mandatory || {}; // Ensure the data is being passed correctly
-
-  const unselectedMandatory = mandatoryItems.filter(amenity => {
-    const key = amenity.name.replace(/[^a-zA-Z0-9]/g, ''); // Clean the name to match the key
-    const amenityValue = mandatoryData[key];
-    return !amenityValue || amenityValue.available === undefined || amenityValue.available === null;
-  });
-
-  return unselectedMandatory.length === 0; // True if all mandatory items are selected
+  const roomAmenityCategories = {
+  basicFacilities: {
+    title: "Basic Facilities",
+    items: [
+      {
+        name: "Air Conditioning",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Wifi",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Television",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Hair Dryer",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Intercom",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Safe/Locker",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Geyser/Water Heater",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Wardrobe",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Charging Points",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Mosquito Net",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Kitchen",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Balcony/Terrace",
+        options: [],
+        Suboptions: [],
+      },
+    ],
+  },
 };
-
-
 
 
   // Update local rooms when props change
@@ -370,17 +220,179 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
 
 
   // Room creation/editing functions (keeping your original logic)
-  const validateRoomData = () => {
-    const errors = {};
-    if (!currentRoomData.roomName) errors.roomName = 'Room name is required';
-    if (!currentRoomData.roomSize || currentRoomData.roomSize <= 0) errors.roomSize = 'Valid room size is required';
-    if (!currentRoomData.numberRoom || currentRoomData.numberRoom <= 0) errors.numberRoom = 'Valid number of rooms is required';
+const validateRoomData = () => {
+  const errors = {};
+  
+  // Basic Room Details
+  if (!currentRoomData.roomName || !currentRoomData.roomName.trim()) {
+    errors.roomName = 'Room name is required';
+  }
+  
+  if (!currentRoomData.roomSize || currentRoomData.roomSize <= 0) {
+    errors.roomSize = 'Valid room size is required';
+  }
+  
+  if (!currentRoomData.numberRoom || currentRoomData.numberRoom <= 0) {
+    errors.numberRoom = 'Number of rooms must be at least 1';
+  }
+  
+  // Bed Configuration Validation
+  if (!currentRoomData.beds || currentRoomData.beds.length === 0) {
+    errors.beds = 'At least one bed configuration is required';
+  } else {
+    const bedErrors = [];
+    currentRoomData.beds.forEach((bed, index) => {
+      const bedError = {};
+      
+      if (!bed.bedType || !bed.bedType.trim()) {
+        bedError.bedType = 'Bed type is required';
+      }
+      
+      if (!bed.count || bed.count < 1) {
+        bedError.count = 'Number of beds must be at least 1';
+      }
+      
+      if (!bed.accommodates || bed.accommodates < 1) {
+        bedError.accommodates = 'Accommodates must be at least 1';
+      }
+      
+      if (Object.keys(bedError).length > 0) {
+        bedErrors[index] = bedError;
+      }
+    });
+    
+    if (bedErrors.length > 0) {
+      errors.beds = bedErrors;
+    }
+  }
+  
+  // Floor Bedding Validation
+  if (currentRoomData.FloorBedding?.available) {
+    if (!currentRoomData.FloorBedding.count || currentRoomData.FloorBedding.count < 1) {
+      errors.floorBedding = 'Floor bedding count must be at least 1';
+    }
+  }
+  
+  // Occupancy Validation
+  if (!currentRoomData.occupancy?.baseAdults || currentRoomData.occupancy.baseAdults < 1) {
+    errors.baseAdults = 'Base adults must be at least 1';
+  }
+  
+  if (!currentRoomData.occupancy?.maximumAdults || currentRoomData.occupancy.maximumAdults < 1) {
+    errors.maximumAdults = 'Maximum adults must be at least 1';
+  }
+  
+  if (currentRoomData.occupancy?.maximumAdults < currentRoomData.occupancy?.baseAdults) {
+    errors.maximumAdults = 'Maximum adults cannot be less than base adults';
+  }
+  
+  if (currentRoomData.occupancy?.maximumChildren < 0) {
+    errors.maximumChildren = 'Maximum children cannot be negative';
+  }
+  
+  // Bathroom Validation
+  if (!currentRoomData.bathrooms?.count || currentRoomData.bathrooms.count < 0) {
+    errors.bathroomCount = 'Bathroom count is required';
+  }
+  
+  if (!currentRoomData.bathrooms?.private && !currentRoomData.bathrooms?.shared) {
+    errors.bathroomType = 'Please select either private or shared bathroom';
+  }
+  
+  // Meal Plan Validation
+  if (currentRoomData.mealPlan?.available && !currentRoomData.mealPlan?.planType) {
+    errors.mealPlan = 'Please select a meal plan type';
+  }
+  
+  // Pricing Validation
+  if (!currentRoomData.pricing?.baseAdultsCharge || currentRoomData.pricing.baseAdultsCharge <= 0) {
+    errors.baseAdultsCharge = 'Base price is required and must be greater than 0';
+  }
+  
+  if (!currentRoomData.pricing?.extraAdultsCharge || currentRoomData.pricing.extraAdultsCharge < 0) {
+    errors.extraAdultsCharge = 'Extra adult charge cannot be negative';
+  }
+  
+  if (!currentRoomData.pricing?.childCharge || currentRoomData.pricing.childCharge < 0) {
+    errors.childCharge = 'Child charge cannot be negative';
+  }
+  
+  // Availability Validation
+ 
+  setFormErrors(errors);
+  
+  // Scroll to first error
+  if (Object.keys(errors).length > 0) {
+    scrollToFirstError(errors);
+    return false;
+  }
+  
+  return true;
+};
 
-    // Add other validations as needed...
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+// Function to scroll to the first error
+const scrollToFirstError = (errors) => {
+  const errorFieldMap = {
+    roomName: 'roomName',
+    roomSize: 'roomSize',
+    numberRoom: 'numberRoom',
+    beds: 'beds',
+    floorBedding: 'FloorBedding',
+    baseAdults: 'baseAdults',
+    maximumAdults: 'maximumAdults',
+    maximumChildren: 'maximumChildren',
+    bathroomCount: 'bathroomCount',
+    bathroomType: 'bathroomType',
+    mealPlan: 'mealPlan',
+    baseAdultsCharge: 'baseAdultsCharge',
+    extraAdultsCharge: 'extraAdultsCharge',
+    childCharge: 'childCharge',
+    availability: 'availability'
   };
+  
+  // Find the first error key
+  const firstErrorKey = Object.keys(errors)[0];
+  
+  // Try to find the element by various methods
+  let errorElement = null;
+  
+  // Try finding by label text
+  const fieldName = errorFieldMap[firstErrorKey] || firstErrorKey;
+  errorElement = document.querySelector(`input[name="${fieldName}"]`) ||
+                 document.querySelector(`[name="${fieldName}"]`) ||
+                 document.querySelector(`label:contains("${firstErrorKey}")`);
+  
+  // If not found, try finding by error message
+  if (!errorElement) {
+    const errorTexts = document.querySelectorAll('.MuiFormHelperText-root.Mui-error');
+    if (errorTexts.length > 0) {
+      errorElement = errorTexts[0].closest('.MuiFormControl-root') || errorTexts[0];
+    }
+  }
+  
+  // Scroll to element
+  if (errorElement) {
+    errorElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+    
+    // Focus the input if possible
+    const inputElement = errorElement.querySelector('input, textarea, select');
+    if (inputElement) {
+      setTimeout(() => inputElement.focus(), 300);
+    }
+  } else {
+    // Fallback: scroll to top of form
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+  
+  // Show validation error message
+  setValidationError('Please fill in all required fields correctly.');
+};
 
   const handleAddRoom = async () => {
     if (!validateRoomData()) return;
@@ -622,8 +634,6 @@ const handleFileSelect = async (event) => {
     setValidationError('');
   };
 
-
-  
 
   // Tag Group Card Component
   const TagGroupCard = ({ tag, mediaItems }) => {
@@ -870,15 +880,26 @@ const handleFileSelect = async (event) => {
     // If unchecking, we don't allow it (at least one must be selected)
   };
 
-  const handleNestedChange = (section, field, value) => {
-    setCurrentRoomData(prev => ({
+const handleNestedChange = (section, field, value) => {
+  setCurrentRoomData(prev => {
+    const updated = {
       ...prev,
       [section]: {
         ...prev[section],
         [field]: value
       }
-    }));
-  };
+    };
+
+    // If updating occupancy fields, recalculate maximumOccupancy
+    if (section === 'occupancy' && ['maximumAdults', 'maximumChildren'].includes(field)) {
+      updated.occupancy.maximumOccupancy = 
+        (field === 'maximumAdults' ? value : updated.occupancy.maximumAdults) + 
+        (field === 'maximumChildren' ? value : updated.occupancy.maximumChildren);
+    }
+
+    return updated;
+  });
+};
 
 
 
@@ -899,27 +920,16 @@ const handleFileSelect = async (event) => {
   };
 
 
-  const handleBedChange = (index, field, value) => {
-    const updatedBeds = [...currentRoomData.beds];
-    updatedBeds[index] = { ...updatedBeds[index], [field]: value };
+const handleBedChange = (index, field, value) => {
+  const updatedBeds = [...currentRoomData.beds];
+  updatedBeds[index] = { ...updatedBeds[index], [field]: value };
 
-    // Update maximum occupancy based on beds
-    let totalAccommodates = 0;
-    updatedBeds.forEach(bed => {
-      totalAccommodates += (bed.count * bed.accommodates);
-    });
-
-    const updatedOccupancy = {
-      ...currentRoomData.occupancy,
-      maximumOccupancy: totalAccommodates
-    };
-
-    setCurrentRoomData(prev => ({
-      ...prev,
-      beds: updatedBeds,
-      occupancy: updatedOccupancy
-    }));
-  };
+  setCurrentRoomData(prev => ({
+    ...prev,
+    beds: updatedBeds
+    // No occupancy update needed here anymore
+  }));
+};
 
   const addBed = () => {
     setCurrentRoomData(prev => ({
@@ -928,28 +938,17 @@ const handleFileSelect = async (event) => {
     }));
   };
 
-  const removeBed = (index) => {
-    if (currentRoomData.beds.length <= 1) return;
+const removeBed = (index) => {
+  if (currentRoomData.beds.length <= 1) return;
 
-    const updatedBeds = currentRoomData.beds.filter((_, i) => i !== index);
+  const updatedBeds = currentRoomData.beds.filter((_, i) => i !== index);
 
-    // Recalculate maximum occupancy
-    let totalAccommodates = 0;
-    updatedBeds.forEach(bed => {
-      totalAccommodates += (bed.count * bed.accommodates);
-    });
-
-    const updatedOccupancy = {
-      ...currentRoomData.occupancy,
-      maximumOccupancy: totalAccommodates
-    };
-
-    setCurrentRoomData(prev => ({
-      ...prev,
-      beds: updatedBeds,
-      occupancy: updatedOccupancy
-    }));
-  };
+  setCurrentRoomData(prev => ({
+    ...prev,
+    beds: updatedBeds
+    // No occupancy update needed here anymore
+  }));
+};
 
 
   const handleDuplicateRoom = async (index) => {
@@ -1172,6 +1171,7 @@ const handleFileSelect = async (event) => {
           {/* Basic Room Details - Same as before */}
           <Grid item size={{ xs: 12, md: 6 }}>
             <TextField
+            name="roomName"
               sx={{
                 "& .MuiOutlinedInput-root": {
 
@@ -1204,6 +1204,7 @@ const handleFileSelect = async (event) => {
             <Grid container spacing={2}>
               <Grid item size={{ xs: 8 }}>
                 <TextField
+                name="roomSize"
                   sx={{
                     "& .MuiOutlinedInput-root": {
 
@@ -1329,6 +1330,7 @@ const handleFileSelect = async (event) => {
                   }} fullWidth error={!!formErrors.beds?.[index]?.bedType}>
                     <InputLabel>Bed Type *</InputLabel>
                     <Select
+                     name='beds'
                       value={bed.bedType}
                       onChange={(e) => handleBedChange(index, 'bedType', e.target.value)}
                       label="Bed Type *"
@@ -1364,6 +1366,7 @@ const handleFileSelect = async (event) => {
                       },
                     },
                   }}
+                    name='beds'
                     fullWidth
                     label="Number of Beds(of this type) *"
                     type="number"
@@ -1435,6 +1438,7 @@ const handleFileSelect = async (event) => {
 
             <Grid item size={{ xs: 4 }}>
               <TextField
+              name="numberRoom"
                 sx={{
                   "& .MuiOutlinedInput-root": {
 
@@ -1629,7 +1633,7 @@ const handleFileSelect = async (event) => {
                   type="number"
                   value={currentRoomData.occupancy?.maximumOccupancy}
                   InputProps={{ readOnly: true }}
-                  helperText="Calculated from beds"
+                  helperText=""
                 />
               </Grid>
             </Grid>
@@ -1682,6 +1686,11 @@ const handleFileSelect = async (event) => {
                     }
                     label="Private Bathroom"
                   />
+                  {formErrors.bathroomType && (
+                      <FormHelperText error>{formErrors.bathroomType}</FormHelperText>
+                    )}
+
+
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -1709,6 +1718,10 @@ const handleFileSelect = async (event) => {
               }
               label="Meal Plan Available"
             />
+            {formErrors.mealPlan && (
+        <FormHelperText error>{formErrors.mealPlan}</FormHelperText>
+      )}
+
 
             {currentRoomData.mealPlan.available && (
               <FormControl sx={{
@@ -1780,6 +1793,7 @@ const handleFileSelect = async (event) => {
                     },
                   },
                 }}
+                  name='baseAdultsCharge'
                   fullWidth
                   label="Base Price (per night) *"
                   type="number"
@@ -1811,12 +1825,15 @@ const handleFileSelect = async (event) => {
                     },
                   },
                 }}
+                 name='extraAdultsCharge'
                   fullWidth
                   label="Extra Adult Charge"
                   type="number"
                   value={currentRoomData.pricing?.extraAdultsCharge}
                   onChange={(e) => handleNestedChange('pricing', 'extraAdultsCharge', parseFloat(e.target.value))}
                   InputProps={{ startAdornment: '₹' }}
+                  error={!!formErrors.extraAdultsCharge}
+                  helperText={formErrors.extraAdultsCharge}
                 />
               </Grid>
 
@@ -1840,12 +1857,15 @@ const handleFileSelect = async (event) => {
                     },
                   },
                 }}
+                name='childCharge'
                   fullWidth
                   label="Child Charge"
                   type="number"
                   value={currentRoomData.pricing?.childCharge}
                   onChange={(e) => handleNestedChange('pricing', 'childCharge', parseFloat(e.target.value))}
                   InputProps={{ startAdornment: '₹' }}
+                  error={!!formErrors.childCharge}
+                  helperText={formErrors.childCharge}
                 />
               </Grid>
             </Grid>
@@ -1879,7 +1899,7 @@ const handleFileSelect = async (event) => {
           <Button
           variant="contained"
           color="primary"
-          disabled={ !validateMandatoryAmenities() || isSubmitting }
+          disabled={ isSubmitting }
           onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
         >
           {isEditingRoom ? 'Update Room' : 'Save Room'}

@@ -333,7 +333,7 @@ export default function RoomsSection({data, rooms }) {
                   </div>
                 )}
 
-                <Button className="w-full" size="lg" onClick={() => handleBookRoom(room)}>
+                <Button variant="contained"  className="w-full" size="lg" onClick={() => handleBookRoom(room)}>
                   Book This Room
                 </Button>
 

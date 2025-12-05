@@ -295,253 +295,317 @@ const handleCreateNew = () => {
   }, [currentProperty]);
 
   // Updated amenity data structure
+  // const amenityCategories = {
+  //   mandatory: {
+  //     title: "Mandatory",
+  //     items: [
+  //       {
+  //         name: "Air Conditioning",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Laundry",
+  //         options: ["Free", "Paid"],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Newspaper",
+  //         options: [],
+  //         Suboptions: ["Local Language", "English"],
+  //       },
+  //       {
+  //         name: "Parking",
+  //         options: ["Free", "Paid"],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Room service",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Smoke detector",
+  //         options: [],
+  //         Suboptions: ["In Room", "Lobby"],
+  //       },
+  //       {
+  //         name: "Wifi",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Restaurant/Bhojnalay",
+  //         options: [],
+  //         Suboptions: ["Jain food available"],
+  //       },
+  //       {
+  //         name: "CCTV",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Fire extinguishers",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Luggage assistance",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //     ],
+  //   },
+  //   basicFacilities: {
+  //     title: "Basic Facilities",
+  //     items: [
+  //       {
+  //         name: "Elevator/ Lift",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Housekeeping",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Kitchen",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Power backup",
+  //         options: ["Genset", "Inverter"],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Refrigerator",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Washing Machine",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //     ],
+  //   },
+  //   generalServices: {
+  //     title: "General Services",
+  //     items: [
+  //       {
+  //         name: "Bellboy service",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Caretaker",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Luggage storage",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Wheelchair",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //     ],
+  //   },
+  //   commonArea: {
+  //     title: "Common Area",
+  //     items: [
+  //       {
+  //         name: "Balcony/ Terrace",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Fireplace",
+  //         options: ["Indoor", "Outdoor", "Common"],
+  //         Suboptions: ["Free", "Paid"],
+  //       },
+  //       {
+  //         name: "Lawn",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Seating Area",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Prayer Room",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Sitout Area",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Bonfire Pit",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //     ],
+  //   },
+  //   foodBeverages: {
+  //     title: "Food and Beverages",
+  //     items: [
+  //       {
+  //         name: "Dining Area/Bhojnalay",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Food Options Available",
+  //         options: [],
+  //         Suboptions: ["Veg", "Jain"],
+  //       },
+  //       {
+  //         name: "Breakfast",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //     ],
+  //   },
+  //   healthWellness: {
+  //     title: "Health and Wellness",
+  //     items: [
+  //       {
+  //         name: "Activity Centre",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Yoga",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Meditation Room",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //     ],
+  //   },
+  //   security: {
+  //     title: "Security",
+  //     items: [
+  //       {
+  //         name: "Security alarms",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "Security Guard",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       // {
+  //       //   name: "Carbon Monoxide Detector",
+  //       //   options: [],
+  //       //   Suboptions: [],
+  //       // },
+  //     ],
+  //   },
+  //   mediaTechnology: {
+  //     title: "Media Technology",
+  //     items: [
+  //       {
+  //         name: "TV",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //     ],
+  //   },
+  //   paymentServices: {
+  //     title: "Payment Services",
+  //     items: [
+  //       {
+  //         name: "ATM",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //       {
+  //         name: "UPI",
+  //         options: [],
+  //         Suboptions: [],
+  //       },
+  //     ],
+  //   },
+  // };
+
   const amenityCategories = {
-    mandatory: {
-      title: "Mandatory",
-      items: [
-        {
-          name: "Air Conditioning",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Laundry",
-          options: ["Free", "Paid"],
-          Suboptions: [],
-        },
-        {
-          name: "Newspaper",
-          options: [],
-          Suboptions: ["Local Language", "English"],
-        },
-        {
-          name: "Parking",
-          options: ["Free", "Paid"],
-          Suboptions: [],
-        },
-        {
-          name: "Room service",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Smoke detector",
-          options: [],
-          Suboptions: ["In Room", "Lobby"],
-        },
-        {
-          name: "Wifi",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Restaurant/Bhojnalay",
-          options: [],
-          Suboptions: ["Jain food available"],
-        },
-        {
-          name: "CCTV",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Fire extinguishers",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Luggage assistance",
-          options: [],
-          Suboptions: [],
-        },
-      ],
-    },
-    basicFacilities: {
-      title: "Basic Facilities",
-      items: [
-        {
-          name: "Elevator/ Lift",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Housekeeping",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Kitchen",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Power backup",
-          options: ["Genset", "Inverter"],
-          Suboptions: [],
-        },
-        {
-          name: "Refrigerator",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Washing Machine",
-          options: [],
-          Suboptions: [],
-        },
-      ],
-    },
-    generalServices: {
-      title: "General Services",
-      items: [
-        {
-          name: "Bellboy service",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Caretaker",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Luggage storage",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Wheelchair",
-          options: [],
-          Suboptions: [],
-        },
-      ],
-    },
-    commonArea: {
-      title: "Common Area",
-      items: [
-        {
-          name: "Balcony/ Terrace",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Fireplace",
-          options: ["Indoor", "Outdoor", "Common"],
-          Suboptions: ["Free", "Paid"],
-        },
-        {
-          name: "Lawn",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Seating Area",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Prayer Room",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Sitout Area",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Bonfire Pit",
-          options: [],
-          Suboptions: [],
-        },
-      ],
-    },
-    foodBeverages: {
-      title: "Food and Beverages",
-      items: [
-        {
-          name: "Dining Area/Bhojnalay",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Food Options Available",
-          options: [],
-          Suboptions: ["Veg", "Jain"],
-        },
-        {
-          name: "Breakfast",
-          options: [],
-          Suboptions: [],
-        },
-      ],
-    },
-    healthWellness: {
-      title: "Health and Wellness",
-      items: [
-        {
-          name: "Activity Centre",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Yoga",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Meditation Room",
-          options: [],
-          Suboptions: [],
-        },
-      ],
-    },
-    security: {
-      title: "Security",
-      items: [
-        {
-          name: "Security alarms",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "Security Guard",
-          options: [],
-          Suboptions: [],
-        },
-        // {
-        //   name: "Carbon Monoxide Detector",
-        //   options: [],
-        //   Suboptions: [],
-        // },
-      ],
-    },
-    mediaTechnology: {
-      title: "Media Technology",
-      items: [
-        {
-          name: "TV",
-          options: [],
-          Suboptions: [],
-        },
-      ],
-    },
-    paymentServices: {
-      title: "Payment Services",
-      items: [
-        {
-          name: "ATM",
-          options: [],
-          Suboptions: [],
-        },
-        {
-          name: "UPI",
-          options: [],
-          Suboptions: [],
-        },
-      ],
-    },
-  };
+  basicFacilities: {
+    title: "Basic Facilities",
+    items: [
+      {
+        name: "Laundry",
+        options: [],
+        Suboptions: ["Free", "Paid"], // Show only if "Yes" is selected
+      },
+      {
+        name: "Parking",
+        options: [],
+        Suboptions: ["Free", "Paid"], // Show only if "Yes" is selected
+      },
+      {
+        name: "Room Service",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Smoke Detector",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Restaurant/Bhojnalay",
+        options: ["Veg", "Jain"],
+        Suboptions: ["Breakfast", "Lunch", "Dinner"], // Show only if "Yes" is selected
+
+      },
+      {
+        name: "Elevator/Lift",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Housekeeping",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Caretaker",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Wheelchair",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Common Area",
+        options: [],
+        Suboptions: [],
+      },
+      {
+        name: "Kids Play Area",
+        options: [],
+        Suboptions: [],
+      },
+    ],
+  },
+};
 
 const validateMandatoryAmenities = () => {
   const mandatoryItems = amenityCategories.mandatory.items;
@@ -718,15 +782,15 @@ const validateMandatoryAmenities = () => {
           );
           break;
         case 2:
-          const mandatoryErrors = validateMandatoryAmenities();
-          if (mandatoryErrors.length > 0) {
-            // Convert array of error objects to a format that can be displayed
-            const errorMessages = mandatoryErrors
-              .map((err) => err.message)
-              .join("; ");
-            setValidationErrors({ mandatoryAmenities: errorMessages });
-            return false;
-          }
+          // const mandatoryErrors = validateMandatoryAmenities();
+          // if (mandatoryErrors.length > 0) {
+          //   // Convert array of error objects to a format that can be displayed
+          //   const errorMessages = mandatoryErrors
+          //     .map((err) => err.message)
+          //     .join("; ");
+          //   setValidationErrors({ mandatoryAmenities: errorMessages });
+          //   return false;
+          // }
 
           result = await dispatch(
             updateAmenities({
@@ -927,7 +991,7 @@ const validateMandatoryAmenities = () => {
                 }));
               }}
               errors={validationErrors}
-              mandatoryErrors={validateMandatoryAmenities()}
+              // mandatoryErrors={validateMandatoryAmenities()}
             />
           </TabPanel>
 
@@ -983,8 +1047,7 @@ const validateMandatoryAmenities = () => {
               variant="contained"
               onClick={handleNext}
               disabled={
-                isLoading ||
-                (activeTab === 2 && validateMandatoryAmenities().length > 0)
+                isLoading
               }
             >
               {isLoading ? "Saving..." : "Save & Continue"}

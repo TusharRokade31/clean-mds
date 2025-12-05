@@ -32,8 +32,8 @@ export function middleware(request) {
     return response
   }
   
-  // Check for dashboard paths
-  const isDashboardPath = path.startsWith('/admin')
+  // Check for dashboard paths - BUT exclude admin-login
+  const isDashboardPath = path.startsWith('/admin') && path !== '/admin-login'
   const isHostPath = path.startsWith('/host')
   
   // All protected paths including booking routes

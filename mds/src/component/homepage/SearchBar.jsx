@@ -109,8 +109,8 @@ export default function SearchBar() {
 
   // Fetch suggestions when debounced query changes
   useEffect(() => {
-    if (debouncedSearchQuery.trim().length >= 2) {
-      dispatch(fetchSuggestions(debouncedSearchQuery.trim()));
+    if (debouncedSearchQuery?.trim().length >= 2) {
+      dispatch(fetchSuggestions(debouncedSearchQuery?.trim()));
       setShowSuggestions(true);
       setShowRecentSearches(false);
     } else {
@@ -144,7 +144,7 @@ export default function SearchBar() {
     setShowCalendar(false);
     setShowGuests(false);
     
-    if (searchQuery.trim().length >= 2) {
+    if (searchQuery?.trim().length >= 2) {
       setShowSuggestions(true);
       setShowRecentSearches(false);
     } else {
@@ -206,7 +206,7 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
     setSearchQuery(value);
     setSelectedLocation(null);
     
-    if (value.trim().length < 2) {
+    if (value?.trim().length < 2) {
       setShowSuggestions(false);
       setShowRecentSearches(true);
     }

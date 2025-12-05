@@ -63,12 +63,12 @@ export default function HotelDashboardLayout({ children }) {
         
         <nav className="space-y-1 px-2">
           <NavItem icon={<MapPinHouse className="h-5 w-5" />} label="Properties" />
-          <NavItem icon={<MapPinPlus className="h-5 w-5" />} label="onboarding" />
-          <NavItem icon={<NotebookText className="h-5 w-5" />} label="allbookings" />
-          <NavItem icon={<BedDouble className="h-5 w-5" />} label="occupancy" />
+          <NavItem icon={<MapPinPlus className="h-5 w-5" />} label="Onboarding" />
+          <NavItem icon={<NotebookText className="h-5 w-5" />} label="All Bookings" />
+          <NavItem icon={<BedDouble className="h-5 w-5" />} label="Occupancy" />
           
           {/* Booking Dropdown */}
-          <div className="relative">
+          {/* <div className="relative">
             <button
               onClick={() => setBookingDropdownOpen(!bookingDropdownOpen)}
               className={`flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-blue-800 ${pathname.includes('/bookings') ? 'bg-blue-800' : ''}`}
@@ -107,7 +107,7 @@ export default function HotelDashboardLayout({ children }) {
                 )}
               </div>
             )}
-          </div>
+          </div> */}
         </nav>
 
         {/* Selected Property Display */}
