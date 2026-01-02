@@ -272,6 +272,8 @@ const handleSearch = async () => {
   // Save to cache
   saveSearchToCache(searchData);
 
+  console.log(searchData)
+
   console.log(selectedLocation, "selected location");
 
   try {

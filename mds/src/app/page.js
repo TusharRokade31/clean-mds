@@ -7,14 +7,16 @@ import SectionHowItWork from "../component/homepage/HowitWork";
 import SectionBecomeAnAuthor from "../component/homepage/SectionBecomeAnAuthor";
 import SectionClientSay from "../component/homepage/SectionClientSay";
 import StaysType from "../component/homepage/StaysType";
+import FeaturedStays2 from "@/component/homepage/FeaturedStays2";
 
 export default function Home() {
   return (
    <>
    <div className="">
     <HomeBanner/>
-    <TrendingDestinations />
-    <FeaturedStays />
+    {/* <TrendingDestinations /> */}
+    {/* <FeaturedStays /> */}
+    <FeaturedStays2 />
     <SectionHowItWork/>
     <SpiritualDestinations />
     <SectionBecomeAnAuthor/>
