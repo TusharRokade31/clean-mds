@@ -173,7 +173,7 @@ const getSelectedCount = (category) => {
             }}  fullWidth>
               <InputLabel>Select Options</InputLabel>
               <Select
-                
+                multiple
                 value={amenityValue.option || []}
                 label="Select Options"
                 onChange={(e) => {

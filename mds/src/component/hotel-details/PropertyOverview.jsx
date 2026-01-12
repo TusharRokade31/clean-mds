@@ -266,7 +266,7 @@ export default function PropertyOverview({ data, setActiveSection }) {
               
             </Box>
 
-            <Box sx={{ space: 1, mb: 2 }}>
+            {/* <Box sx={{ space: 1, mb: 2 }}>
               <Box display="flex" justifyContent="space-between">
                 <Typography variant="body2">Max Adults:</Typography>
                 <Typography variant="body2" fontWeight="medium">
@@ -279,7 +279,7 @@ export default function PropertyOverview({ data, setActiveSection }) {
                   {data.rooms?.[0]?.occupancy?.maximumChildren || "N/A"}
                 </Typography>
               </Box>
-            </Box>
+            </Box> */}
 
             <Button 
               variant="contained" 
@@ -327,7 +327,8 @@ export default function PropertyOverview({ data, setActiveSection }) {
                         Property Type
                       </Typography>
                       <Typography variant="body1" fontWeight="medium">
-                        {data.propertyType || "N/A"}
+                        {/* {data.propertyType || "N/A"} */}
+                        {data.propertyType == "Dharamshala (Basic spiritual lodging run by religious trusts or communities)" ? "Dharamshala" : data.propertyType || "N/A"}
                       </Typography>
                     </Box>
                   </Box>

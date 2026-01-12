@@ -75,6 +75,7 @@ export function PropertyCard({
   const hasMoreImages = images.length > 4
 
   return (
+    <Link href={`/hotel-details/${id}`}>
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-blue-200 group">
       <div className="flex flex-col">
         {/* Mobile Layout */}
@@ -323,5 +324,6 @@ export function PropertyCard({
         </div>
       </div>
     </div>
+    </Link>
   )
 }

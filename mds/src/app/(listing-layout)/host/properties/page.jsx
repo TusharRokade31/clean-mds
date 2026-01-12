@@ -2,23 +2,26 @@
 
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from 'react-redux'
-import { getAllProperties, getDraftProperties, deleteProperty, resetCurrentProperty, reviewProperty, changePropertyStatus } from '@/redux/features/property/propertySlice'
+import { getAllProperties, getDraftProperties, deleteProperty, resetCurrentProperty, changePropertyStatus } from '@/redux/features/property/propertySlice'
 import { useRouter } from 'next/navigation'
 import Link from "next/link"
-import { Edit, Trash2, Plus, Check, X } from "lucide-react"
+import { Edit, Trash2, Plus, Check, X, Search } from "lucide-react"
 
 export default function Listing() {
   const dispatch = useDispatch()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('published')
   const [deleteLoading, setDeleteLoading] = useState(null)
-  const [statusLoading, setStatusLoading] = useState(null) // for dropdown updates
+  const [statusLoading, setStatusLoading] = useState(null)
   const [reviewLoading, setReviewLoading] = useState(null)
   const [showReviewPopup, setShowReviewPopup] = useState(false)
   const [selectedProperty, setSelectedProperty] = useState(null)
   const [reviewAction, setReviewAction] = useState('')
   
-  const { properties, draftProperties, isLoading, error, user } = useSelector((state) => ({
+  // 1. Add Search State
+  const [searchQuery, setSearchQuery] = useState('')
+  
+  const { properties, isLoading, error, user } = useSelector((state) => ({
     properties: state.property.properties,
     draftProperties: state.property.draftProperties,
     isLoading: state.property.isLoading,
@@ -26,7 +29,6 @@ export default function Listing() {
     user: state.auth.user
   }))
 
-  // Check if user is admin
   const isAdmin = user?.role === 'admin'
 
   useEffect(() => {
@@ -34,7 +36,6 @@ export default function Listing() {
     dispatch(getDraftProperties())
   }, [dispatch])
 
-  // Separate properties by status
   const publishedProperties = properties?.filter(p => p.status === 'published') || []
   const draftProperties_filtered = properties?.filter(p => p.status === 'draft') || []
   const pendingProperties = properties?.filter(p => p.status === 'pending') || []
@@ -51,12 +52,9 @@ export default function Listing() {
     if (window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
       try {
         setDeleteLoading(id)
-        const result = await dispatch(deleteProperty(id)).unwrap()
-        console.log(result)
-        
+        await dispatch(deleteProperty(id)).unwrap()
         dispatch(getAllProperties())
         dispatch(getDraftProperties())
-        
         alert('Property deleted successfully!')
       } catch (error) {
         console.error('Delete failed:', error)
@@ -75,17 +73,12 @@ export default function Listing() {
 
   const handleReviewConfirm = async () => {
     if (!selectedProperty || !reviewAction) return
-
     try {
       setReviewLoading(selectedProperty._id)
       const newStatus = reviewAction === 'approve' ? 'published' : 'rejected'
-      
-      await await dispatch(changePropertyStatus({ id: property._id, status: newStatus })).unwrap()
-
-      
+      await dispatch(changePropertyStatus({ id: selectedProperty._id, status: newStatus })).unwrap()
       dispatch(getAllProperties())
       dispatch(getDraftProperties())
-      
       alert(`Property ${reviewAction === 'approve' ? 'approved' : 'rejected'} successfully!`)
     } catch (error) {
       console.error('Review failed:', error)
@@ -104,7 +97,6 @@ export default function Listing() {
     setReviewAction('')
   }
 
-  // Status options for dropdown
   const statusOptions = [
     { value: 'draft', label: 'Draft' },
     { value: 'pending', label: 'Pending' },
@@ -113,36 +105,73 @@ export default function Listing() {
     { value: 'pending_changes', label: 'Pending Changes' },
   ]
 
-  // Helper to check permission to change status
   const canChangeStatus = (property) => {
     if (isAdmin) return true
     const ownerId = property.owner?._id || property.owner
     return ownerId === user?._id
   }
 
-  // When status dropdown changes
   const handleStatusChange = async (property, newStatus) => {
     if (!property || !newStatus) return
-
-    // optional confirm
     const confirmed = window.confirm(`Change status of "${property.placeName}" to "${newStatus}"?`)
     if (!confirmed) return
-
     try {
       setStatusLoading(property._id)
       await dispatch(changePropertyStatus({ id: property._id, status: newStatus })).unwrap()
-
-
-      // Refresh lists
       dispatch(getAllProperties())
       dispatch(getDraftProperties())
-
       alert('Status updated successfully!')
     } catch (error) {
       console.error('Status update failed:', error)
       alert('Failed to update status: ' + (error.message || 'Unknown error'))
     } finally {
       setStatusLoading(null)
+    }
+  }
+
+  const tabs = [
+    { key: 'published', label: 'Published', count: publishedProperties.length },
+    { key: 'draft', label: 'Draft', count: draftProperties_filtered.length },
+    { key: 'pending', label: 'Pending Review', count: pendingProperties.length },
+    { key: 'rejected', label: 'Rejected', count: rejectedProperties.length },
+    { key: 'pending_changes', label: 'Pending Changes', count: pendingChangesProperties.length }
+  ]
+
+  const getCurrentProperties = () => {
+    switch (activeTab) {
+      case 'published': return publishedProperties
+      case 'draft': return draftProperties_filtered
+      case 'pending': return pendingProperties
+      case 'rejected': return rejectedProperties
+      case 'pending_changes': return pendingChangesProperties
+      default: return []
+    }
+  }
+
+  // 2. Logic to filter properties based on search query
+  const getFilteredProperties = () => {
+    const currentList = getCurrentProperties()
+    if (!searchQuery) return currentList
+
+    return currentList.filter(property => {
+      const query = searchQuery.toLowerCase()
+      const name = property.placeName?.toLowerCase() || ''
+      const type = property.propertyType?.toLowerCase() || ''
+      const city = property.location?.city?.toLowerCase() || ''
+      const state = property.location?.state?.toLowerCase() || ''
+
+      return name.includes(query) || type.includes(query) || city.includes(query) || state.includes(query)
+    })
+  }
+
+  const getEmptyMessage = () => {
+    if (searchQuery) return 'No properties match your search.'
+    switch (activeTab) {
+      case 'published': return 'No published properties found.'
+      case 'draft': return 'No draft properties found.'
+      case 'pending': return 'No properties pending review.'
+      case 'rejected': return 'No rejected properties found.'
+      default: return 'No properties found.'
     }
   }
 
@@ -155,7 +184,7 @@ export default function Listing() {
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Location</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">status update</th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status Update</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
           </tr>
         </thead>
@@ -167,7 +196,6 @@ export default function Listing() {
               <td className="whitespace-nowrap px-6 py-4 text-sm">
                 {property.location?.city}, {property.location?.state}
               </td>
-              
               <td className="whitespace-nowrap px-6 py-4 text-sm flex space-x-2">
                 <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                   property.status === 'published' ? 'bg-green-100 text-green-800' : 
@@ -179,8 +207,6 @@ export default function Listing() {
                   {property.status}
                 </span>
 
-                
-                {/* Admin Review Actions - Only for pending properties */}
                 {isAdmin && property.status === 'pending' && (
                   <>
                     <button 
@@ -191,9 +217,7 @@ export default function Listing() {
                     >
                       {reviewLoading === property._id ? (
                         <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-green-600"></div>
-                      ) : (
-                        <Check className="h-5 w-5" />
-                      )}
+                      ) : <Check className="h-5 w-5" />}
                     </button>
                     <button 
                       className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -203,9 +227,7 @@ export default function Listing() {
                     >
                       {reviewLoading === property._id ? (
                         <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
-                      ) : (
-                        <X className="h-5 w-5" />
-                      )}
+                      ) : <X className="h-5 w-5" />}
                     </button>
                   </>
                 )}
@@ -219,18 +241,12 @@ export default function Listing() {
                   >
                     {deleteLoading === property._id ? (
                       <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
-                    ) : (
-                      <Trash2 className="h-5 w-5" />
-                    )}
+                    ) : <Trash2 className="h-5 w-5" />}
                   </button>
                 )}
               </td>
-
-
-                <td className="whitespace-nowrap px-6 py-4 text-sm space-x-2">
-
-                   
-              {canChangeStatus(property) && (
+              <td className="whitespace-nowrap px-6 py-4 text-sm space-x-2">
+                {canChangeStatus(property) && (
                   <div>
                     <select
                       value={property.status}
@@ -249,71 +265,21 @@ export default function Listing() {
                   </div>
                 )}
               </td>
-
-                <td className="whitespace-nowrap px-6 py-4 text-sm space-x-2">
-
-                    <Link 
+              <td className="whitespace-nowrap px-6 py-4 text-sm space-x-2">
+                <Link 
                   href={`/host/onboarding/${property._id}`} 
                   className="text-green-600 hover:text-green-900"
                   title="Edit Property"
                 >
                   <Edit className="h-5 w-5" />
                 </Link> 
-              
               </td>
-              
-              
-             
             </tr>
           ))}
         </tbody>
       </table>
     </div>
   )
-
-  // Updated tabs with proper counts
-  const tabs = [
-    { key: 'published', label: 'Published', count: publishedProperties.length },
-    { key: 'draft', label: 'Draft', count: draftProperties_filtered.length },
-    { key: 'pending', label: 'Pending Review', count: pendingProperties.length },
-    { key: 'rejected', label: 'Rejected', count: rejectedProperties.length },
-    { key: 'pending_changes', label: 'Pending Changes', count: pendingChangesProperties.length }
-  ]
-
-  // Filter tabs based on user role
-  const availableTabs =  tabs
-
-  const getCurrentProperties = () => {
-    switch (activeTab) {
-      case 'published':
-        return publishedProperties
-      case 'draft':
-        return draftProperties_filtered
-      case 'pending':
-        return pendingProperties
-      case 'rejected':
-        return rejectedProperties
-      case 'pending_changes':
-      return pendingChangesProperties
-      default:
-        return []
-    }
-  }
-
-  const getEmptyMessage = () => {
-    switch (activeTab) {
-      case 'published':
-        return 'No published properties found.'
-      case 'draft':
-        return 'No draft properties found.'
-      case 'pending':
-        return 'No properties pending review.'
-      case 'rejected':
-        return 'No rejected properties found.'
-      default:
-        return 'No properties found.'
-    }
-  }
 
   return (
     <>
@@ -331,20 +297,40 @@ export default function Listing() {
         </div>
       </div>
 
-      <div className="mb-4 flex space-x-2 flex-wrap">
-        {availableTabs.map(tab => (
-          <button 
-            key={tab.key}
-            className={`rounded-md px-3 py-1.5 text-sm mb-2 ${
-              activeTab === tab.key 
-                ? 'bg-[#1035ac] text-white' 
-                : 'bg-gray-100 hover:bg-gray-200'
-            }`}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.label} ({tab.count})
-          </button>
-        ))}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+        {/* Tabs */}
+        <div className="flex space-x-2 flex-wrap">
+          {tabs.map(tab => (
+            <button 
+              key={tab.key}
+              className={`rounded-md px-3 py-1.5 text-sm mb-2 ${
+                activeTab === tab.key 
+                  ? 'bg-[#1035ac] text-white' 
+                  : 'bg-gray-100 hover:bg-gray-200'
+              }`}
+              onClick={() => {
+                setActiveTab(tab.key)
+                setSearchQuery('') // Clear search when switching tabs
+              }}
+            >
+              {tab.label} ({tab.count})
+            </button>
+          ))}
+        </div>
+
+        {/* 3. Search Input UI */}
+        <div className="relative w-full sm:w-64">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <Search className="h-4 w-4 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:border-[#1035ac] focus:outline-none focus:ring-1 focus:ring-[#1035ac]"
+            placeholder="Search properties..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="rounded-lg border bg-white p-4 shadow-sm lg:p-6">
@@ -354,12 +340,13 @@ export default function Listing() {
           </div>
         ) : error ? (
           <p className="text-red-500">Error: {error}</p>
-        ) : getCurrentProperties().length > 0 ? (
-          renderPropertyTable(getCurrentProperties())
+        ) : getFilteredProperties().length > 0 ? (
+          // 4. Use the filtered properties here
+          renderPropertyTable(getFilteredProperties())
         ) : (
           <div className="text-center text-gray-500 py-8">
             <p>{getEmptyMessage()}</p>
-            {activeTab === 'draft' && (
+            {activeTab === 'draft' && !searchQuery && (
               <Link 
                 href="/host/onboarding"
                 className="inline-flex items-center gap-2 mt-4 rounded-md bg-[#1035ac] px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
@@ -372,7 +359,6 @@ export default function Listing() {
         )}
       </div>
 
-      {/* Review Confirmation Popup */}
       {showReviewPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">

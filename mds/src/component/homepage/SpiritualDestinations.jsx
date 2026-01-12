@@ -69,7 +69,7 @@ const SpiritualDestinations = () => {
                     fill
                     className="object-cover"
                   /> */}
-                  <Link href={'/coming-soon'}>
+                  {/* <Link href={'/coming-soon'}> */}
                    <Image 
           overrideSrc={`${destination.image || ''}`}
           className="h-full w-full rounded-2xl object-cover"
@@ -77,7 +77,7 @@ const SpiritualDestinations = () => {
           fill
           sizes="(max-width: 400px) 100vw, 300px"
         />
-        </Link>
+        {/* </Link> */}
                 </div>
                 <div className="p-4">
                   <h3 className="font-medium">{destination.name}</h3>

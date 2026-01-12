@@ -68,7 +68,7 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
   };
 
   const propertyTypes = [
-    'Dharamshala (Basic spiritual lodging run by religious trusts or communities)', 'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)'
+    'Dharamshala', 'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)'
   ];
   
   // const rentalForms = ['Entire place', 'Private room', 'Share room'];

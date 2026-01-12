@@ -40,23 +40,24 @@ import Rudranath from "../../../public/featured-places/Rudranath.png"
 import Link from 'next/link';
 
 const FeaturedStays = () => {
-  const [activeTab, setActiveTab] = useState('Uttar Pradesh');
+  const [activeTab, setActiveTab] = useState('Gujarat');
   const [favorites, setFavorites] = useState([]);
   
-  const tabs = ['Uttar Pradesh', 'Gujarat', 'Maharashtra', 'Uttarakhand'];
+  // const tabs = ['Uttar Pradesh', 'Gujarat', 'Maharashtra', 'Uttarakhand'];
+  const tabs = [ 'Gujarat'];
   
   // Define images for each tab
   const tabImages = {
-    'Uttar Pradesh': [
-      Ayodhya.src,
-      Chitrakoot.src,
-      Gorakhpur.src,
-      Kushinagar.src,
-      Mathura.src,
-      Prayagraj.src,
-      Varanasi.src,
-      Vrindavan.src,
-    ],
+    // 'Uttar Pradesh': [
+    //   Ayodhya.src,
+    //   Chitrakoot.src,
+    //   Gorakhpur.src,
+    //   Kushinagar.src,
+    //   Mathura.src,
+    //   Prayagraj.src,
+    //   Varanasi.src,
+    //   Vrindavan.src,
+    // ],
     'Gujarat': [
       Somnath.src,
       Dwarka.src,
@@ -67,40 +68,40 @@ const FeaturedStays = () => {
       Kutch.src,
       Patan.src,
     ],
-    'Maharashtra': [
-      Shirdi.src,
-      ElloraCaves.src,
-      Trimbakeshwar.src,
-      Pandharpur.src,
-      Shanishingnapur.src,
-      Mahabaleshwar.src,
-      Ganpatipule.src,
-      Bhimashankar.src,
-    ],
-    'Uttarakhand': [
-        Haridwar.src,
-        Rishikesh.src,
-        Badrinath.src,
-        Kedarnath.src,
-        Yamunotri.src,
-        Gangotri.src,
-        NainaDeviTemple.src,
-        Rudranath.src,
-    ],
+    // 'Maharashtra': [
+    //   Shirdi.src,
+    //   ElloraCaves.src,
+    //   Trimbakeshwar.src,
+    //   Pandharpur.src,
+    //   Shanishingnapur.src,
+    //   Mahabaleshwar.src,
+    //   Ganpatipule.src,
+    //   Bhimashankar.src,
+    // ],
+    // 'Uttarakhand': [
+    //     Haridwar.src,
+    //     Rishikesh.src,
+    //     Badrinath.src,
+    //     Kedarnath.src,
+    //     Yamunotri.src,
+    //     Gangotri.src,
+    //     NainaDeviTemple.src,
+    //     Rudranath.src,
+    // ],
   };
 
   // Define titles/names for each location
   const tabTitles = {
-    'Uttar Pradesh': [
-      'Ayodhya',
-      'Chitrakoot',
-      'Gorakhpur',
-      'Kushinagar',
-      'Mathura',
-      'Prayagraj',
-      'Varanasi',
-      'Vrindavan',
-    ],
+    // 'Uttar Pradesh': [
+    //   'Ayodhya',
+    //   'Chitrakoot',
+    //   'Gorakhpur',
+    //   'Kushinagar',
+    //   'Mathura',
+    //   'Prayagraj',
+    //   'Varanasi',
+    //   'Vrindavan',
+    // ],
     'Gujarat': [
       'Somnath',
       'Dwarka',
@@ -111,26 +112,26 @@ const FeaturedStays = () => {
       'Kutch',
       'Patan',
     ],
-    'Maharashtra': [
-      'Shirdi',
-      'Ellora Caves (Aurangabad)',
-      'Trimbakeshwar',
-      'Pandharpur',
-      'Shanishingnapur',
-      'Mahabaleshwar',
-      'Ganpatipule',
-      'Bhimashankar',
-    ],
-    'Uttarakhand': [
-      'Haridwar',
-      'Rishikesh',
-      'Badrinath',
-      'Kedarnath',
-      'Yamunotri',
-      'Gangotri',
-      'Naina Devi Temple',
-      'Rudranath'
-    ],
+    // 'Maharashtra': [
+    //   'Shirdi',
+    //   'Ellora Caves (Aurangabad)',
+    //   'Trimbakeshwar',
+    //   'Pandharpur',
+    //   'Shanishingnapur',
+    //   'Mahabaleshwar',
+    //   'Ganpatipule',
+    //   'Bhimashankar',
+    // ],
+    // 'Uttarakhand': [
+    //   'Haridwar',
+    //   'Rishikesh',
+    //   'Badrinath',
+    //   'Kedarnath',
+    //   'Yamunotri',
+    //   'Gangotri',
+    //   'Naina Devi Temple',
+    //   'Rudranath'
+    // ],
   };
   
   const toggleFavorite = (id) => {

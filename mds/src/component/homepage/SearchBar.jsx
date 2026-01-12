@@ -109,8 +109,8 @@ export default function SearchBar() {
 
   // Fetch suggestions when debounced query changes
   useEffect(() => {
-    if (debouncedSearchQuery.trim().length >= 2) {
-      dispatch(fetchSuggestions(debouncedSearchQuery.trim()));
+    if (debouncedSearchQuery?.trim().length >= 2) {
+      dispatch(fetchSuggestions(debouncedSearchQuery?.trim()));
       setShowSuggestions(true);
       setShowRecentSearches(false);
     } else {
@@ -144,7 +144,7 @@ export default function SearchBar() {
     setShowCalendar(false);
     setShowGuests(false);
     
-    if (searchQuery.trim().length >= 2) {
+    if (searchQuery?.trim().length >= 2) {
       setShowSuggestions(true);
       setShowRecentSearches(false);
     } else {
@@ -206,7 +206,7 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
     setSearchQuery(value);
     setSelectedLocation(null);
     
-    if (value.trim().length < 2) {
+    if (value?.trim().length < 2) {
       setShowSuggestions(false);
       setShowRecentSearches(true);
     }
@@ -272,6 +272,8 @@ const handleSearch = async () => {
   // Save to cache
   saveSearchToCache(searchData);
 
+  console.log(searchData)
+
   console.log(selectedLocation, "selected location");
 
   try {
@@ -314,9 +316,8 @@ const handleSearch = async () => {
     setCurrentMonth(prevMonthDate);
   };
 
-  const renderCalendar = () => {
+const renderCalendar = () => {
     const currentDate = new Date(currentMonth);
-    const nextMonthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1);
     const today = getTodayDate();
     
     const renderMonthCalendar = (date) => {
@@ -371,11 +372,12 @@ const handleSearch = async () => {
       };
     };
     
-    const currentMonthData = renderMonthCalendar(currentDate);
-    const nextMonthData = renderMonthCalendar(nextMonthDate);
+    // Only generate data for the current month
+    const monthData = renderMonthCalendar(currentDate);
     
     return (
-      <div ref={calendarRef} className="absolute top-22 max-w-5xl left-20 right-0 bg-white rounded-2xl shadow-lg p-6 z-2">
+      // Changed width to w-[360px] (or similar) to fit a single calendar nicely
+      <div ref={calendarRef} className="absolute top-22 left-50 bg-white rounded-2xl shadow-lg p-6 z-2 w-[360px]">
         <div className="flex justify-between items-center mb-4">
           <button 
             onClick={prevMonth} 
@@ -384,69 +386,65 @@ const handleSearch = async () => {
           >
             <FiChevronLeft className="text-gray-600" />
           </button>
-          <div className="flex-1 flex justify-center text-xl font-semibold">
-            {currentMonthData.monthName} {currentMonthData.year}
+          
+          {/* Single centered title */}
+          <div className="font-semibold text-lg">
+            {monthData.monthName} {monthData.year}
           </div>
-          <div className="flex-1 flex justify-center text-xl font-semibold">
-            {nextMonthData.monthName} {nextMonthData.year}
-          </div>
+
           <button onClick={nextMonth} className="p-2 rounded-full hover:bg-gray-100">
             <FiChevronRight className="text-gray-600" />
           </button>
         </div>
         
-        <div className="flex gap-8">
-          {[currentMonthData, nextMonthData].map((monthData, monthIndex) => (
-            <div key={monthIndex} className="flex-1">
-              <div className="grid grid-cols-7 mb-2">
-                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                  <div key={day} className="text-center text-lg text-gray-500">{day}</div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 gap-1">
-                {monthData.days.map((day, index) => {
-                  const dateStr = formatDateToLocalString(day.date);
-                  const isCheckin = selectedDates.checkin === dateStr;
-                  const isCheckout = selectedDates.checkout === dateStr;
-                  const isInRange = selectedDates.checkin && selectedDates.checkout && 
-                    day.date > createDateFromString(selectedDates.checkin) && 
-                    day.date < createDateFromString(selectedDates.checkout);
-                  const isToday = formatDateToLocalString(day.date) === formatDateToLocalString(today);
-                  
-                  return (
-                    <div 
-                      key={`${monthIndex}-${index}`} 
-                      className={`h-9 w-9 flex items-center justify-center rounded-full cursor-pointer
-                        ${day.isCurrentMonth && !day.isPast ? 'hover:bg-gray-100' : ''}
-                        ${day.isPast ? 'text-gray-300 cursor-not-allowed' : ''}
-                        ${!day.isCurrentMonth && !day.isPast ? 'text-gray-400 hover:bg-gray-100' : ''}
-                        ${!day.isCurrentMonth && day.isPast ? 'text-gray-200 cursor-not-allowed' : ''}
-                        ${isCheckin || isCheckout ? 'bg-indigo-600 text-white' : ''}
-                        ${isInRange ? 'bg-indigo-100' : ''}
-                        ${isToday && !isCheckin && !isCheckout ? 'bg-gray-200 font-bold' : ''}
-                      `}
-                      onClick={() => !day.isPast && handleDateSelect(day.date)}
-                    >
-                      {day.day}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        {/* Single Grid View */}
+        <div>
+          <div className="grid grid-cols-7 mb-2">
+            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+              <div key={day} className="text-center text-sm font-medium text-gray-500">{day}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {monthData.days.map((day, index) => {
+              const dateStr = formatDateToLocalString(day.date);
+              const isCheckin = selectedDates.checkin === dateStr;
+              const isCheckout = selectedDates.checkout === dateStr;
+              const isInRange = selectedDates.checkin && selectedDates.checkout && 
+                day.date > createDateFromString(selectedDates.checkin) && 
+                day.date < createDateFromString(selectedDates.checkout);
+              const isToday = formatDateToLocalString(day.date) === formatDateToLocalString(today);
+              
+              return (
+                <div 
+                  key={index} 
+                  className={`h-10 w-10 flex items-center justify-center rounded-full cursor-pointer text-sm
+                    ${day.isCurrentMonth && !day.isPast ? 'hover:bg-gray-100' : ''}
+                    ${day.isPast ? 'text-gray-300 cursor-not-allowed' : ''}
+                    ${!day.isCurrentMonth && !day.isPast ? 'text-gray-400 hover:bg-gray-100' : ''}
+                    ${!day.isCurrentMonth && day.isPast ? 'text-gray-200 cursor-not-allowed' : ''}
+                    ${isCheckin || isCheckout ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''}
+                    ${isInRange ? 'bg-indigo-50 text-indigo-900' : ''}
+                    ${isToday && !isCheckin && !isCheckout ? 'border border-gray-300 font-bold' : ''}
+                  `}
+                  onClick={() => !day.isPast && handleDateSelect(day.date)}
+                >
+                  {day.day}
+                </div>
+              );
+            })}
+          </div>
         </div>
         
-        <div className="mt-4 flex justify-center">
-          <div className="bg-gray-50 rounded-lg p-2 text-sm">
+        <div className="mt-4 flex justify-center border-t border-gray-100 pt-3">
+          <div className="text-sm text-gray-600">
             {selectedDates.checkin && selectedDates.checkout ? (
               <span>
-                Check-in: {createDateFromString(selectedDates.checkin).toLocaleDateString()} - 
-                Check-out: {createDateFromString(selectedDates.checkout).toLocaleDateString()}
+                {createDateFromString(selectedDates.checkin).toLocaleDateString()} - {createDateFromString(selectedDates.checkout).toLocaleDateString()}
               </span>
             ) : selectedDates.checkin ? (
-              <span>Check-in: {createDateFromString(selectedDates.checkin).toLocaleDateString()} (Select check-out date)</span>
+              <span>Select check-out date</span>
             ) : (
-              <span>Select your dates</span>
+              <span>Select check-in date</span>
             )}
           </div>
         </div>
@@ -571,8 +569,9 @@ const handleSearch = async () => {
       )}
 
     {/* Suggestions Dropdown */}
+     {/* Suggestions Dropdown */}
       {showSuggestions && (
-        <div 
+        <div
           ref={suggestionsRef}
           className="absolute top-22 left-20 bg-white rounded-2xl shadow-lg p-6 w-96 z-2"
         >
@@ -583,46 +582,44 @@ const handleSearch = async () => {
             </div>
           ) : suggestions.length > 0 ? (
             <ul className="space-y-2">
-               {suggestions.slice(0, 5).map((suggestion, index) => (
-                      <div key={index}>
-                      <li 
-                        className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                        onClick={() => handleSuggestionClick(suggestion?.city)}
-                      >
-                        <FiMapPin className="text-gray-400 mr-2 w-4 h-4" />
-                        <div>
-                          <div className="font-medium text-sm">{suggestion.city}</div>
-                        </div>
-                      </li>
-                       <li 
-                        
-                        className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                        onClick={() => handleSuggestionClick(suggestion?.state)}
-                      >
-                        <FiMapPin className="text-gray-400 mr-2 w-4 h-4" />
-                        <div>
-                          <div className="font-medium text-sm">{suggestion.state}</div>
-                        </div>
-                      </li>
-                      {/* <li 
-                        className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
-                        onClick={() => handleSuggestionClick(suggestion.placeName, 'placeName', suggestion.location)}
-                      >
-                        <FiMapPin className="text-gray-400 mr-2 w-4 h-4" />
-                        <div>
-                          <div className="font-medium text-sm">{suggestion.placeName}</div>
-                          <div className="text-xs text-gray-500">
-                            {suggestion.location.city}, {suggestion.location.state}
-                          </div>
-                        </div>
-                      </li> */}
-                      </div>
-                    ))}
+              {(() => {
+                // --- START OF LOGIC CHANGE ---
+                const uniqueItems = [];
+                const seenValues = new Set();
+
+                suggestions.forEach((item) => {
+                  // Process City
+                  if (item?.city && !seenValues.has(item.city.toLowerCase())) {
+                    seenValues.add(item.city.toLowerCase());
+                    uniqueItems.push({ value: item.city, type: "city" });
+                  }
+                  
+                  // Process State
+                  if (item?.state && !seenValues.has(item.state.toLowerCase())) {
+                    seenValues.add(item.state.toLowerCase());
+                    uniqueItems.push({ value: item.state, type: "state" });
+                  }
+                });
+
+                // Render the unique list (Limited to first 5 unique items)
+                return uniqueItems.slice(0, 5).map((uniqueItem, index) => (
+                  <li
+                    key={`${uniqueItem.type}-${index}`}
+                    className="flex items-center text-gray-700 hover:bg-gray-50 p-2 rounded-lg cursor-pointer"
+                    onClick={() => handleSuggestionClick(uniqueItem.value)}
+                  >
+                    <FiMapPin className="text-gray-400 mr-2 w-4 h-4" />
+                    <div>
+                      <div className="font-medium text-sm">{uniqueItem.value}</div>
+                      {/* Optional: You can add a small label like 'State' or 'City' here if needed */}
+                    </div>
+                  </li>
+                ));
+                // --- END OF LOGIC CHANGE ---
+              })()}
             </ul>
           ) : (
-            <div className="text-gray-500 text-center py-4">
-              No suggestions found
-            </div>
+            <div className="text-gray-500 text-center py-4">No suggestions found</div>
           )}
         </div>
       )}

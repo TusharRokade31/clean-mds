@@ -8,16 +8,16 @@ const navigation = {
 		{ name: 'Submit ticket', href: '#' },
 	],
 	quickLinks: [
-		{ name: 'About', href: '#' },
+		{ name: 'About', href: '/about-us' },
 		{ name: 'Blogs', href: '/blogs' },
-		{ name: 'Press', href: '#' },
-		{ name: 'Customer Support', href: '#' },
+		// { name: 'Press', href: '#' },
+		// { name: 'Customer Support', href: '#' },
 	],
 	legal: [
-		{ name: 'Payment Security', href: '#' },
-		{ name: 'Privacy policy', href: '#' },
-		{ name: 'User Agreement', href: '#' },
-		{ name: 'Terms of service', href: '#' },
+		{ name: 'Payment Security', href: '/payment-security' },
+		{ name: 'Privacy policy', href: '/privacy-policy' },
+		{ name: 'User Agreement', href: '/user-agreement' },
+		{ name: 'Terms of service', href: '/terms-service' },
 	],
 	social: [
 		{
@@ -104,7 +104,7 @@ export default function Footer() {
 					</div>
 
 					{/* Support Section */}
-					<div>
+					{/* <div>
 						<h3 className="text-sm font-semibold text-gray-900 mb-4">
 							Support
 						</h3>
@@ -120,7 +120,7 @@ export default function Footer() {
 								</li>
 							))}
 						</ul>
-					</div>
+					</div> */}
 
 					{/* Quick Links Section */}
 					<div>

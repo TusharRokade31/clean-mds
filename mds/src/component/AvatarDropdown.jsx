@@ -89,8 +89,6 @@ const handleLogout = async () => {
                                            src={user.profilePhoto}
                                            alt="Profile"
                                            fill
-                                           
-
                                          />
                                        ) : (
                                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-400 to-cyan-500">
@@ -187,7 +185,7 @@ const handleLogout = async () => {
                     <div className="w-full border-b border-neutral-200 " />
 
                     {/* ------------------ 2 --------------------- */}
-                    <Link
+                    {/* <Link
                       href={"/mydivestays-support"}
                       className="-m-3 flex items-center rounded-lg p-2 hover:bg-neutral-100 focus:outline-none focus-visible:ring focus-visible:ring-orange-500 focus-visible:ring-opacity-50 "
                       onClick={() => close()}
@@ -198,7 +196,7 @@ const handleLogout = async () => {
                       <div className="ms-4">
                         <p className="text-sm font-medium">{"Help"}</p>
                       </div>
-                    </Link>
+                    </Link> */}
 
                     {/* ------------------ 2 --------------------- */}
                     <button
