@@ -161,7 +161,7 @@ export default function HotelDashboardLayout({ children }) {
 
         {/* Footer */}
         <footer className="border-t bg-white p-4 text-center text-sm text-gray-500 lg:p-4">
-          © 2025 Hotel Management System. All rights reserved.
+          © 2025 PILGRIM CONNECT PVT. LTD
         </footer>
       </div>
     </div>

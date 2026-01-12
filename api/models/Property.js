@@ -227,7 +227,7 @@ const PropertySchema = new Schema({
     type: String,
     required: [true, 'Property type is required'],
     enum: [
-      'Dharamshala (Basic spiritual lodging run by religious trusts or communities)', 
+      
       'Dharamshala', 
       'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 
       'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 

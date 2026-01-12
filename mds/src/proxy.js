@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server'
 import { jwtDecode } from 'jwt-decode'
 
-export function middleware(request) {
+export function proxy(request) {
   const path = request.nextUrl.pathname
   console.log('Middleware executing for path:', path)
 
