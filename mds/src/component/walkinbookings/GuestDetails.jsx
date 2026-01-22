@@ -334,6 +334,11 @@ const GuestDetails = ({ bookingData, onNext, onBack, onDataChange }) => {
                         fullWidth
                         label="Age"
                         type="number"
+                       slotProps={{
+                       htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                       },
+                      }}
                         value={guest.age}
                         onChange={(e) => handleAdditionalGuestChange(index, 'age', e.target.value)}
                         error={!!errors[`additionalGuest${index}Age`]}

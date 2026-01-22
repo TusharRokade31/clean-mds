@@ -37,14 +37,15 @@ const RoomsAmenities = ({roomAmenityCategories, currentRoomData, handleRoomAmeni
 
 
       // Count selected amenities for each category
-  const getRoomSelectedCount = (category) => {
+const getRoomSelectedCount = (category) => {
     const categoryData = currentRoomData?.amenities?.[category];
     if (!categoryData) return 0;
 
+    // Only count as "selected" if the user explicitly chose 'Yes'
     return Object.values(categoryData).filter(amenity => 
-    amenity.available !== undefined && amenity.available !== null
-  ).length;
-  };
+        amenity && amenity.available === true
+    ).length;
+};
 
 
     // Handle room amenity changes

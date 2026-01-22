@@ -460,6 +460,11 @@ const BookingModals = ({
               <TextField
                 fullWidth
                 type="number"
+                slotProps={{
+                htmlInput: {
+                  onWheel: (e) => e.currentTarget.blur(),
+                },
+              }}
                 label="Adults"
                 value={editForm.guestCount?.adults || ''}
                 onChange={(e) => setEditForm({
@@ -472,6 +477,11 @@ const BookingModals = ({
               <TextField
                 fullWidth
                 type="number"
+                slotProps={{
+                htmlInput: {
+                  onWheel: (e) => e.currentTarget.blur(),
+                },
+              }}
                 label="Children"
                 value={editForm.guestCount?.children || ''}
                 onChange={(e) => setEditForm({
@@ -509,6 +519,11 @@ const BookingModals = ({
               <TextField
                 fullWidth
                 type="number"
+                slotProps={{
+                htmlInput: {
+                  onWheel: (e) => e.currentTarget.blur(),
+                },
+              }}
                 label="Payment Amount"
                 value={paymentForm.amount}
                 onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
@@ -569,6 +584,11 @@ const BookingModals = ({
               <TextField
                 fullWidth
                 type="number"
+                slotProps={{
+                htmlInput: {
+                  onWheel: (e) => e.currentTarget.blur(),
+                },
+              }}
                 label="Refund Amount"
                 value={cancelForm.refundAmount}
                 onChange={(e) => setCancelForm({ ...cancelForm, refundAmount: e.target.value })}

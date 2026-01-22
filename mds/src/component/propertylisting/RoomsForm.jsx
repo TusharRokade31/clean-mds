@@ -146,7 +146,8 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
       beds: [{ bedType: '', count: 1, accommodates: 1 }],
       FloorBedding: {
         available: false,
-        count: ''
+        count: '',
+        peoplePerFloorBedding: 1 // Added as requested
       },
       alternativeBeds: [],
       occupancy: {
@@ -166,8 +167,9 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
       },
       pricing: {
         baseAdultsCharge: '',
-        extraAdultsCharge: '',
-        childCharge: ''
+        extraFloorBeddingCharge: '',
+        extraAdultsCharge: '0',
+        childCharge: '0'
       },
       availability: [{
         startDate: new Date().toISOString().split('T')[0],
@@ -217,8 +219,17 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
     const allMedia = getRoomMediaItems(room);
     return allMedia.filter(item => !item.tags || item.tags.length === 0);
   };
-
-
+const calculateMaxOccupancy = (beds, floorBedding) => {
+    // Formula: (bed accommodates * number of beds) + (number of gaddi * people per gaddi)
+    const bedOccupancy = beds.reduce((acc, bed) => 
+      acc + (parseInt(bed.count || 0) * parseInt(bed.accommodates || 0)), 0);
+    
+    const floorOccupancy = floorBedding.available 
+      ? (parseInt(floorBedding.count || 0) * parseInt(floorBedding.peoplePerFloorBedding || 1)) 
+      : 0;
+      
+    return bedOccupancy + floorOccupancy;
+};
   // Room creation/editing functions (keeping your original logic)
 const validateRoomData = () => {
   const errors = {};
@@ -282,9 +293,9 @@ const validateRoomData = () => {
     errors.maximumAdults = 'Maximum adults must be at least 1';
   }
   
-  if (currentRoomData.occupancy?.maximumAdults < currentRoomData.occupancy?.baseAdults) {
-    errors.maximumAdults = 'Maximum adults cannot be less than base adults';
-  }
+  // if (currentRoomData.occupancy?.maximumAdults < currentRoomData.occupancy?.baseAdults) {
+  //   errors.maximumAdults = 'Maximum adults cannot be less than base adults';
+  // }
   
   if (currentRoomData.occupancy?.maximumChildren < 0) {
     errors.maximumChildren = 'Maximum children cannot be negative';
@@ -309,8 +320,8 @@ const validateRoomData = () => {
     errors.baseAdultsCharge = 'Base price is required and must be greater than 0';
   }
   
-  if (!currentRoomData.pricing?.extraAdultsCharge || currentRoomData.pricing.extraAdultsCharge < 0) {
-    errors.extraAdultsCharge = 'Extra adult charge cannot be negative';
+  if (!currentRoomData.pricing?.extraFloorBeddingCharge || currentRoomData.pricing.extraFloorBeddingCharge < 0) {
+    errors.extraFloorBeddingCharge = 'Extra floor bedding charge cannot be negative';
   }
   
   if (!currentRoomData.pricing?.childCharge || currentRoomData.pricing.childCharge < 0) {
@@ -330,6 +341,8 @@ const validateRoomData = () => {
   return true;
 };
 
+console.log(formErrors, "form errors")
+
 // Function to scroll to the first error
 const scrollToFirstError = (errors) => {
   const errorFieldMap = {
@@ -345,7 +358,7 @@ const scrollToFirstError = (errors) => {
     bathroomType: 'bathroomType',
     mealPlan: 'mealPlan',
     baseAdultsCharge: 'baseAdultsCharge',
-    extraAdultsCharge: 'extraAdultsCharge',
+    extraFloorBeddingCharge: 'extraFloorBeddingCharge',
     childCharge: 'childCharge',
     availability: 'availability'
   };
@@ -610,17 +623,28 @@ const handleFileSelect = async (event) => {
     }
   };
 
-  const handleEditRoom = (index) => {
+const handleEditRoom = (index) => {
     const roomToEdit = localRooms[index];
-    const roomId = roomToEdit._id || roomToEdit.id;
-    setCurrentRoomId(roomId)
-    setCurrentRoomData(roomToEdit);
+    setCurrentRoomId(roomToEdit._id || roomToEdit.id);
+
+    // Deep clone the object to break references and handle Mongoose Maps
+    const sanitizedRoomData = JSON.parse(JSON.stringify(roomToEdit));
+
+    setCurrentRoomData({
+        ...getInitialRoomData(), 
+        ...sanitizedRoomData,
+        // Ensure amenities object exists with all required categories
+        amenities: {
+            ...getInitialRoomData().amenities,
+            ...(sanitizedRoomData.amenities || {})
+        }
+    });
+
     setEditingRoomIndex(index);
     setIsEditingRoom(true);
     setIsAddingRoom(true);
     setIsComplete(false);
-  };
-
+};
 
   const handleCancelForm = () => {
     setIsAddingRoom(false);
@@ -881,25 +905,32 @@ const handleFileSelect = async (event) => {
   };
 
 const handleNestedChange = (section, field, value) => {
-  setCurrentRoomData(prev => {
-    const updated = {
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
+    setCurrentRoomData(prev => {
+      const updatedSection = { ...prev[section], [field]: value };
+      const updatedRoom = { ...prev, [section]: updatedSection };
+
+      // Recalculate occupancy if floor bedding changes
+      if (section === 'FloorBedding') {
+        updatedRoom.occupancy.maximumOccupancy = calculateMaxOccupancy(updatedRoom.beds, updatedSection);
       }
-    };
+      return updatedRoom;
+    });
+  };
 
-    // If updating occupancy fields, recalculate maximumOccupancy
-    if (section === 'occupancy' && ['maximumAdults', 'maximumChildren'].includes(field)) {
-      updated.occupancy.maximumOccupancy = 
-        (field === 'maximumAdults' ? value : updated.occupancy.maximumAdults) + 
-        (field === 'maximumChildren' ? value : updated.occupancy.maximumChildren);
-    }
-
-    return updated;
-  });
-};
+const handleBedChange = (index, field, value) => {
+    setCurrentRoomData(prev => {
+      const updatedBeds = [...prev.beds];
+      updatedBeds[index] = { ...updatedBeds[index], [field]: value };
+      return {
+        ...prev,
+        beds: updatedBeds,
+        occupancy: {
+          ...prev.occupancy,
+          maximumOccupancy: calculateMaxOccupancy(updatedBeds, prev.FloorBedding) // Recalculate
+        }
+      };
+    });
+  };
 
 
 
@@ -920,16 +951,6 @@ const handleNestedChange = (section, field, value) => {
   };
 
 
-const handleBedChange = (index, field, value) => {
-  const updatedBeds = [...currentRoomData.beds];
-  updatedBeds[index] = { ...updatedBeds[index], [field]: value };
-
-  setCurrentRoomData(prev => ({
-    ...prev,
-    beds: updatedBeds
-    // No occupancy update needed here anymore
-  }));
-};
 
   const addBed = () => {
     setCurrentRoomData(prev => ({
@@ -1228,6 +1249,11 @@ const removeBed = (index) => {
                   fullWidth
                   label="Room Size *"
                   type="number"
+                  slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.roomSize}
                   onChange={(e) => handleRoomChange('roomSize', e.target.value)}
                   error={!!formErrors.roomSize}
@@ -1370,6 +1396,11 @@ const removeBed = (index) => {
                     fullWidth
                     label="Number of Beds(of this type) *"
                     type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                     value={bed.count}
                     onChange={(e) => handleBedChange(index, 'count', parseInt(e.target.value))}
                     error={!!formErrors.beds?.[index]?.count}
@@ -1402,6 +1433,11 @@ const removeBed = (index) => {
                     fullWidth
                     label="Accommodates *"
                     type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                     value={bed.accommodates}
                     onChange={(e) => handleBedChange(index, 'accommodates', parseInt(e.target.value))}
                     error={!!formErrors.beds?.[index]?.accommodates}
@@ -1437,79 +1473,96 @@ const removeBed = (index) => {
             <Typography variant="subtitle1" gutterBottom>Number of rooms (of this type) *</Typography>
 
             <Grid item size={{ xs: 4 }}>
-              <TextField
+            <TextField
               name="numberRoom"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-
+              label="Number of rooms (of this type) *"
+              type="number"
+              fullWidth
+              value={currentRoomData.numberRoom}
+              onChange={(e) => handleRoomChange('numberRoom', e.target.value)}
+              error={!!formErrors.numberRoom}
+              helperText={formErrors.numberRoom}
+              slotProps={{
+                htmlInput: {
+                  onWheel: (e) => e.currentTarget.blur(),
+                },
+              }}
+              sx={{
+                marginTop: '10px',
+                "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                  display: "none",
+                  appearance: "none",
+                  margin: 0,
+                },
+                "& input[type=number]": {
+                  MozAppearance: "textfield",
+                },
+                "& .MuiOutlinedInput-root": {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#2e2e2e",
+                  },
+                  "&.Mui-focused": {
                     "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
+                      borderColor: "#1976d2",
                     },
+                  },
+                  "& .MuiInputLabel-outlined": {
+                    color: "#2e2e2e",
                     "&.Mui-focused": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
-                      },
+                      color: "secondary.main",
                     },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
-                      "&.Mui-focused": {
-                        color: "secondary.main",
-
-                      },
-                    },
-                  }, marginTop: '10px'
-                }}
-                fullWidth
-                label="Number of rooms (of this type) *"
-                type="number"
-                value={currentRoomData.numberRoom}
-                onChange={(e) => handleRoomChange('numberRoom', e.target.value)}
-                error={!!formErrors.numberRoom}
-                helperText={formErrors.numberRoom}
-              />
+                  },
+                },
+              }}
+            />
             </Grid>
 
           </Grid>
 
           <FormControlLabel
-            control={
-              <Checkbox
-                checked={currentRoomData.FloorBedding.available}
-                onChange={(e) => handleNestedChange('FloorBedding', 'available', e.target.checked)}
-              />
-            }
-            label="Floor Bedding (Gaddi)"
-          />
+  control={
+    <Checkbox
+      checked={currentRoomData.FloorBedding.available}
+      onChange={(e) => handleNestedChange('FloorBedding', 'available', e.target.checked)}
+    />
+  }
+  label="Floor Bedding (Gaddi)"
+/>
 
-          {currentRoomData.FloorBedding.available && (<Grid item size={{ xs: 12, md: 6 }}>
-            <TextField sx={{
-              "& .MuiOutlinedInput-root": {
-
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#2e2e2e",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1976d2",
-                  },
-                },
-                "& .MuiInputLabel-outlined": {
-                  color: "#2e2e2e",
-                  "&.Mui-focused": {
-                    color: "secondary.main",
-
-                  },
-                },
-              },
-            }}
-              fullWidth
-              label="How many?"
-              type="number"
-              value={currentRoomData.FloorBedding.count}
-              onChange={(e) => handleNestedChange('FloorBedding', 'count', parseInt(e.target.value))}
-              InputProps={{ inputProps: { min: 0 } }}
-            />
-          </Grid>)}
+{currentRoomData.FloorBedding.available && (
+  <Grid container spacing={2} sx={{ mt: 1 }}>
+    <Grid item xs={6} md={3}>
+      <TextField
+        fullWidth
+        label="Number of Gaddi"
+        type="number"
+        slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
+        value={currentRoomData.FloorBedding.count}
+        onChange={(e) => handleNestedChange('FloorBedding', 'count', parseInt(e.target.value))}
+      />
+    </Grid>
+    {/* NEW BOX: People per floor bedding */}
+    <Grid item xs={6} md={3}>
+      <TextField
+        fullWidth
+        label="People per Gaddi *"
+        type="number"
+        slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
+        value={currentRoomData.FloorBedding.peoplePerFloorBedding}
+        onChange={(e) => handleNestedChange('FloorBedding', 'peoplePerFloorBedding', parseInt(e.target.value))}
+        error={!!formErrors.peoplePerFloorBedding}
+      />
+    </Grid>
+  </Grid>
+)}
 
           {/* Occupancy, Bathroom, Meal Plan sections - Same as before */}
           <Grid item size={{ xs: 12 }}>
@@ -1541,14 +1594,19 @@ const removeBed = (index) => {
                   fullWidth
                   label="Base Adults *"
                   type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.occupancy?.baseAdults}
                   onChange={(e) => handleNestedChange('occupancy', 'baseAdults', parseInt(e.target.value))}
                   InputProps={{ inputProps: { min: 1 } }}
                 />
               </Grid>
 
-              <Grid item size={{ xs: 12, md: 6 }}>
-                <TextField sx={{
+              {/* <Grid item size={{ xs: 12, md: 6 }}> */}
+                {/* <TextField sx={{
                   "& .MuiOutlinedInput-root": {
 
                     "& .MuiOutlinedInput-notchedOutline": {
@@ -1571,14 +1629,19 @@ const removeBed = (index) => {
                   fullWidth
                   label="Maximum Adults *"
                   type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.occupancy.maximumAdults}
                   onChange={(e) => handleNestedChange('occupancy', 'maximumAdults', parseInt(e.target.value))}
                   InputProps={{ inputProps: { min: 1 } }}
-                />
-              </Grid>
+                /> */}
+              {/* </Grid> */}
 
-              <Grid item size={{ xs: 12, md: 6 }}>
-                <TextField sx={{
+              {/* <Grid item size={{ xs: 12, md: 6 }}> */}
+                {/* <TextField sx={{
                   "& .MuiOutlinedInput-root": {
 
                     "& .MuiOutlinedInput-notchedOutline": {
@@ -1601,13 +1664,18 @@ const removeBed = (index) => {
                   fullWidth
                   label="Maximum Children"
                   type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.occupancy?.maximumChildren}
                   onChange={(e) => handleNestedChange('occupancy', 'maximumChildren', parseInt(e.target.value))}
                   InputProps={{ inputProps: { min: 0 } }}
-                />
-              </Grid>
+                /> */}
+              {/* </Grid> */}
 
-              <Grid item size={{ xs: 12, md: 6 }}>
+              <Grid item size={{ xs: 12, md: 6 }}  sx={{ marginTop: "10px" }}>
                 <TextField sx={{
                   "& .MuiOutlinedInput-root": {
 
@@ -1631,6 +1699,11 @@ const removeBed = (index) => {
                   fullWidth
                   label="Maximum Occupancy"
                   type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.occupancy?.maximumOccupancy}
                   InputProps={{ readOnly: true }}
                   helperText=""
@@ -1669,6 +1742,11 @@ const removeBed = (index) => {
                   fullWidth
                   label="Bathroom Count *"
                   type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.bathrooms.count}
                   onChange={(e) => handleNestedChange('bathrooms', 'count', parseInt(e.target.value))}
                   InputProps={{ inputProps: { min: 0 } }}
@@ -1751,16 +1829,12 @@ const removeBed = (index) => {
                 >
                   <MenuItem value="Accommodation only">Accommodation only</MenuItem>
                   <MenuItem value="Free Breakfast">Free Breakfast</MenuItem>
-                  <MenuItem value="Free Breakfast and Lunch/Dinner">Free Breakfast and Lunch/Dinner</MenuItem>
-                  <MenuItem value="Free Breakfast Lunch And Dinner">Free Breakfast Lunch And Dinner </MenuItem>
-                  <MenuItem value="Free Cooked Breakfast">Free Cooked Breakfast </MenuItem>
-                  <MenuItem value="Free Breakfast, Lunch, Dinner">Free Breakfast, Lunch, Dinner And Custom Inclusion</MenuItem>
-                  <MenuItem value="Free Breakfast And Lunch">Free Breakfast And Lunch </MenuItem>
-                  <MenuItem value="Free Breakfast And Dinner">Free Breakfast And Dinner </MenuItem>
-                  <MenuItem value="Free Lunch">Free Lunch </MenuItem>
-                  <MenuItem value="Free Dinner">Free Dinner </MenuItem>
-                  <MenuItem value="Free  Lunch and Dinner">Free  Lunch and Dinner </MenuItem>
-
+                  <MenuItem value="Free Breakfast + Lunch">Free Breakfast + Lunch</MenuItem>
+                  <MenuItem value="Free Breakfast + Dinner">Free Breakfast + Dinner </MenuItem>
+                  <MenuItem value="Free Lunch">Free Lunch</MenuItem>
+                  <MenuItem value="Free Dinner">Free Dinner</MenuItem>
+                  <MenuItem value="Free Lunch + Dinner">Free Lunch + Dinner </MenuItem>
+                  <MenuItem value="Free Breakfast + Lunch + Dinner">Free Breakfast + Lunch + Dinner </MenuItem>
                 </Select>
               </FormControl>
             )}
@@ -1797,6 +1871,11 @@ const removeBed = (index) => {
                   fullWidth
                   label="Base Price (per night) *"
                   type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.pricing?.baseAdultsCharge}
                   onChange={(e) => handleNestedChange('pricing', 'baseAdultsCharge', parseFloat(e.target.value))}
                   error={!!formErrors.baseAdultsCharge}
@@ -1825,19 +1904,24 @@ const removeBed = (index) => {
                     },
                   },
                 }}
-                 name='extraAdultsCharge'
+                 name='extraFloorBeddingCharge'
                   fullWidth
-                  label="Extra Adult Charge"
+                  label="Extra Floor Bedding (Gaddi) Charge"
                   type="number"
-                  value={currentRoomData.pricing?.extraAdultsCharge}
-                  onChange={(e) => handleNestedChange('pricing', 'extraAdultsCharge', parseFloat(e.target.value))}
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
+                  value={currentRoomData.pricing?.extraFloorBeddingCharge}
+                  onChange={(e) => handleNestedChange('pricing', 'extraFloorBeddingCharge', parseFloat(e.target.value))}
                   InputProps={{ startAdornment: '₹' }}
-                  error={!!formErrors.extraAdultsCharge}
-                  helperText={formErrors.extraAdultsCharge}
+                  error={!!formErrors.extraFloorBeddingCharge}
+                  helperText={formErrors.extraFloorBeddingCharge}
                 />
               </Grid>
 
-              <Grid item size={{ xs: 12 }} md={4}>
+              {/* <Grid item size={{ xs: 12 }} md={4}>
                 <TextField sx={{
                   "& .MuiOutlinedInput-root": {
                     "& .MuiOutlinedInput-notchedOutline": {
@@ -1861,23 +1945,29 @@ const removeBed = (index) => {
                   fullWidth
                   label="Child Charge"
                   type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.pricing?.childCharge}
                   onChange={(e) => handleNestedChange('pricing', 'childCharge', parseFloat(e.target.value))}
                   InputProps={{ startAdornment: '₹' }}
                   error={!!formErrors.childCharge}
                   helperText={formErrors.childCharge}
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
           </Grid>
         </Grid>
 
+        <Divider className="my-3" />
+
 
         {/* Room Amenities */}
         <RoomsAmenities roomAmenityCategories={roomAmenityCategories} currentRoomData={currentRoomData} selectedAmenityTab={selectedAmenityTab} setSelectedAmenityTab={setSelectedAmenityTab} handleRoomAmenityChange={handleRoomAmenityChange} />
-        <div className='my-5'>{renderMediaUploadStep()}</div>
 
-        <div className="flex justify-end mt-4 gap-2">
+         <div className="flex justify-end mt-4 gap-2">
           <Button
             variant="outlined"
             onClick={()=>{
@@ -1905,6 +1995,10 @@ const removeBed = (index) => {
           {isEditingRoom ? 'Update Room' : 'Save Room'}
         </Button>
         </div>
+        
+        <div className='my-5'>{renderMediaUploadStep()}</div>
+
+       
       </Paper>
     );
   }
@@ -1976,7 +2070,7 @@ const removeBed = (index) => {
                     </Typography>
 
                     <Typography variant="body2">
-                      <strong>Occupancy:</strong> {room.occupancy?.baseAdults}-{room.occupancy?.maximumAdults} adults
+                      <strong>Occupancy:</strong> {room.occupancy?.baseAdults} adults
                       {room.occupancy?.maximumChildren > 0 && `, up to ${room.occupancy.maximumChildren} children`}
                       {` (max ${room.occupancy?.maximumOccupancy} total)`}
                     </Typography>

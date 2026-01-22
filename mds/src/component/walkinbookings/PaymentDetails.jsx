@@ -134,6 +134,11 @@ const PaymentDetails = ({ bookingData, onBack, onSubmit, isLoading }) => {
                   <TextField
                     label="Amount to Pay"
                     type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                     value={paidAmount}
                     onChange={handleAmountChange}
                     error={!!errors.paidAmount}

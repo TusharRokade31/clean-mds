@@ -399,7 +399,7 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
                     <div className="space-y-1 text-sm">
                       <p className="flex items-center text-gray-600">
                         <Phone className="w-4 h-4 mr-2" />
-                        +91 98765 43210
+                        {property.mobileNumber}
                       </p>
                       <p className="flex items-center text-gray-600">
                         <Mail className="w-4 h-4 mr-2" />

@@ -424,6 +424,115 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
     );
   }
 
+  const RefundTimeline = () => (
+  <Box sx={{ mt: 2, mb: 4, ml: 4, maxWidth: 500 }}>
+    <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mb: 0.5, color: '#666' }}>
+      100% Refund
+    </Typography>
+    {/* Orange Bar with Ticks */}
+    <Box sx={{ height: 4, backgroundColor: '#f97316', borderRadius: 1, position: 'relative' }}>
+      <Box sx={{ position: 'absolute', left: 0, top: -3, height: 10, width: 2, backgroundColor: '#f97316' }} />
+      <Box sx={{ position: 'absolute', right: 0, top: -3, height: 10, width: 2, backgroundColor: '#f97316' }} />
+    </Box>
+    {/* Timeline Labels */}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+      <Typography sx={{ fontSize: '12px', fontWeight: 500, color: '#374151' }}>Booking Date</Typography>
+      <Typography sx={{ fontSize: '12px', fontWeight: 500, color: '#374151' }}>Check-in</Typography>
+    </Box>
+  </Box>
+);
+
+const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
+  // Determine split percentage based on selection to match the images
+  const getSplitConfig = () => {
+    switch (selectedOption.value) {
+      case "free_cancellation_checkin":
+        return { percent: 100, label: "" };
+      case "free_cancellation_24h":
+        return { percent: 70, label: "24 hours before check-in" };
+      case "free_cancellation_48h":
+        return { percent: 50, label: "48 hours before check-in" };
+      case "free_cancellation_72h":
+        return { percent: 30, label: "72 hours before check-in" };
+      case "free_cancellation_custom":
+        // Logic for custom hours (e.g., mapping 1-168 hours to 90%-10% of the bar)
+        const customPercent = Math.max(10, 100 - (customHours / 168) * 100);
+        return { percent: customPercent, label: `${customHours} hours before check-in` };
+      case "non_refundable":
+        return { percent: 0, label: "" };
+      default:
+        return { percent: 100, label: "" };
+    }
+  };
+
+  const { percent, label } = getSplitConfig();
+  const isNonRefundable = selectedOption.value === "non_refundable";
+  const isTillCheckIn = selectedOption.value === "free_cancellation_checkin";
+
+  return (
+    <Box sx={{ mt: 1.5, mb: 2, ml: 4, maxWidth: 550, bgcolor: '#f9f9f9', p: 2, borderRadius: '4px' }}>
+      {/* Warning for Non-refundable state (Match Image 3) */}
+      {isNonRefundable && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+          <span style={{ fontSize: '14px', color: '#666' }}>🔘</span>
+          <Typography variant="caption" sx={{ color: '#666', fontSize: '12px' }}>
+            Offer a free cancellation policy as it helps travellers book in advance.
+          </Typography>
+        </Box>
+      )}
+
+      {/* Top Labels: Refundable vs Non-refundable */}
+      <Box sx={{ display: 'flex', mb: 0.5, fontSize: '12px', color: '#666' }}>
+        {!isNonRefundable && (
+          <Box sx={{ flex: percent, textAlign: 'center' }}>100% Refund</Box>
+        )}
+        {!isTillCheckIn && (
+          <Box sx={{ flex: 100 - percent, textAlign: 'center' }}>Non-refundable</Box>
+        )}
+      </Box>
+
+      {/* The Segmented Bar (Dynamic Colors) */}
+      <Box sx={{ height: 6, display: 'flex', alignItems: 'center', position: 'relative' }}>
+        {/* Orange Segment */}
+        {!isNonRefundable && (
+          <Box sx={{ height: 4, width: `${percent}%`, bgcolor: '#f97316', borderLeft: '2px solid #f97316' }} />
+        )}
+        {/* Grey Segment */}
+        {!isTillCheckIn && (
+          <Box sx={{ height: 4, width: `${100 - percent}%`, bgcolor: '#d1d5db', borderRight: '2px solid #d1d5db' }} />
+        )}
+        {/* Split Marker (The vertical tick) */}
+        {!isNonRefundable && !isTillCheckIn && (
+          <Box sx={{ position: 'absolute', left: `${percent}%`, height: 12, width: 2, bgcolor: '#9ca3af', zIndex: 2 }} />
+        )}
+      </Box>
+
+      {/* Bottom Labels: Dates and Dynamic Hours */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, position: 'relative', minHeight: '25px' }}>
+        <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#374151' }}>Booking Date</Typography>
+        
+        {/* The Dynamic Hour Label (Matches dynamic hour requirement) */}
+        {label && (
+          <Typography sx={{ 
+            fontSize: '11px', 
+            color: '#374151', 
+            position: 'absolute', 
+            left: `${percent}%`, 
+            transform: 'translateX(-50%)',
+            textAlign: 'center',
+            width: '120px',
+            lineHeight: 1.2
+          }}>
+            {label}
+          </Typography>
+        )}
+        
+        <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#374151', textAlign: 'right' }}>Check-in</Typography>
+      </Box>
+    </Box>
+  );
+};
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <Card className="shadow-lg">
@@ -588,289 +697,97 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
           </TabPanel>
 
           {/* Cancellation Policy Tab */}
-          <TabPanel value={activeTab} index={1}>
-            <div className="space-y-6">
-              <div>
-                <Typography
-                  variant="h6"
-                  className="font-semibold text-gray-800 mb-2"
-                >
-                  Cancellation Policy
-                </Typography>
-                <Typography variant="body2" className="text-gray-600 mb-4">
-                  Offering a flexible cancellation policy helps travellers book
-                  in advance.
-                </Typography>
-              </div>
+      <TabPanel value={activeTab} index={1}>
+  <div className="space-y-4">
+    <div>
+      <Typography variant="h6" className="font-semibold text-gray-800">
+        Cancellation Policy
+      </Typography>
+      <Typography variant="body2" className="text-gray-400 mb-6">
+        Offering a flexible cancellation policy helps traveller book in advance.
+      </Typography>
+    </div>
 
-              <FormControl component="fieldset" className="w-full">
-                <RadioGroup
-                  value={
-                    formData.cancellationPolicy || "free_cancellation_checkin"
-                  }
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      cancellationPolicy: e.target.value,
-                    }))
-                  }
-                  className="space-y-3"
-                >
-                  {cancellationOptions.slice(0, -1).map((option) => (
-                    <Paper
-                      key={option.value}
-                      className={`p-4 border-2 transition-all duration-200 cursor-pointer ${
-                        formData.cancellationPolicy === option.value
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200 hover:border-blue-300 hover:bg-blue-25"
-                      }`}
-                      elevation={0}
-                    >
-                      <FormControlLabel
-                        value={option.value}
-                        control={<Radio color="primary" />}
-                        label={
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center">
-                              {/* Icon based on policy type */}
-                              <div className="mr-3">
-                                {option.value === "non_refundable" ? (
-                                  <span className="text-red-500 text-lg">
-                                    🚫
-                                  </span>
-                                ) : (
-                                  <span className="text-green-500 text-lg">
-                                    ✅
-                                  </span>
-                                )}
-                              </div>
+    <FormControl component="fieldset" className="w-full">
+      <RadioGroup
+        value={formData.cancellationPolicy || "free_cancellation_checkin"}
+        onChange={(e) => setFormData(prev => ({ ...prev, cancellationPolicy: e.target.value }))}
+      >
+        {cancellationOptions.map((option) => (
+          <div key={option.value}>
+            <FormControlLabel
+              value={option.value}
+              control={<Radio size="small" />}
+              label={
+                <div className="flex items-center gap-2">
+                  <Typography className="text-gray-700 text-[15px] py-1">
+                    {option.label}
+                  </Typography>
+                  {/* Recommended Badge */}
+                  {option.value === "free_cancellation_checkin" && (
+                    <Box sx={{ 
+                      bgcolor: '#f0fdf4', color: '#16a34a', fontSize: '10px', fontWeight: 'bold', 
+                      px: 1, py: 0.2, borderRadius: '4px', border: '1px solid #dcfce7', textTransform: 'uppercase'
+                    }}>
+                      Recommended
+                    </Box>
+                  )}
+                </div>
+              }
+              className="m-0"
+            />
 
-                              <div>
-                                <div className="text-gray-800 font-medium">
-                                  {option.label}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {option.description}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Badge */}
-                            {option.recommended && (
-                              <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
-                                RECOMMENDED
-                              </span>
-                            )}
-
-                            {option.value === "non_refundable" && (
-                              <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
-                                NO REFUND
-                              </span>
-                            )}
-                          </div>
-                        }
-                        className="m-0 w-full"
-                      />
-
-                      {/* Progress bar for refund policies */}
-                      {option.value !== "non_refundable" && (
-                        <Box sx={{ mb: 3, width:'50%' }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              height: 8,
-                              marginLeft:'20px',
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              backgroundColor: "#f0f0f0",
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: `${option.hour}%`,
-                                backgroundColor: "#FF9800",
-                                transition: "all 0.3s ease",
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                      )}
-                    </Paper>
-                  ))}
-                  {/* Custom Hours Option */}
-                  <Paper
-                    className={`p-4 border-2 transition-all duration-200 cursor-pointer ${
-                      formData.cancellationPolicy === "free_cancellation_custom"
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-blue-300 hover:bg-blue-25"
-                    }`}
-                    elevation={0}
-                  >
-                    <FormControlLabel
-                      value="free_cancellation_custom"
-                      control={<Radio color="primary" />}
-                      label={
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center">
-                            <div className="mr-3">
-                              <span className="text-blue-500 text-lg">⚙️</span>
-                            </div>
-                            <div>
-                              <div className="text-gray-800 font-medium">
-                                Custom Cancellation
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                Set your own cancellation hours
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      }
-                      className="m-0 w-full"
+            {/* Render Timeline when selected */}
+            {formData.cancellationPolicy === option.value && (
+              <>
+                {/* Custom Hour Input Logic */}
+                {option.value === "free_cancellation_custom" && (
+                  <div className="ml-10 mb-2 flex items-center gap-2">
+                    <TextField
+                      type="number"
+                      size="small"
+                      placeholder="e.g. 36"
+                      value={formData.customCancellationHours || ""}
+                      onChange={(e) => setFormData(p => ({ ...p, customCancellationHours: parseInt(e.target.value) || 0 }))}
+                      sx={{ width: 100 }}
                     />
+                    <Typography variant="caption" className="text-gray-500">hours before check-in</Typography>
+                  </div>
+                )}
+                
+                <DynamicRefundTimeline 
+                  selectedOption={option} 
+                  customHours={formData.customCancellationHours} 
+                />
+              </>
+            )}
+          </div>
+        ))}
+      </RadioGroup>
+    </FormControl>
 
-                    {/* Custom hours input */}
-                    {formData.cancellationPolicy ===
-                      "free_cancellation_custom" && (
-                      <div className="mt-3 ml-10">
-                        <div className="flex items-center space-x-2">
-                          <TextField
-                            type="number"
-                            label="Hours before check-in"
-                            value={formData.customCancellationHours || ""}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                customCancellationHours:
-                                  parseInt(e.target.value) || "",
-                              }))
-                            }
-                            inputProps={{ min: 1, max: 168 }}
-                            size="small"
-                            className="w-60"
-                          />
-                          <span className="text-sm ms-2 text-gray-600">
-                            hours
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          Enter hours (1-168). Example: 24 for 24 hours before
-                          check-in
-                        </div>
+    {/* Blue Info Footer (Exact match to image) */}
+    {/* <Paper 
+      elevation={0} 
+      className="mt-6 p-2 flex items-center gap-2"
+      sx={{ bgcolor: '#eff6ff', border: '1px solid #dbeafe', borderRadius: '4px' }}
+    >
+      <span className="text-blue-500 text-sm">ℹ️</span>
+      <Typography sx={{ fontSize: '12px', color: '#1e40af' }}>
+        Selected policy would be applicable to <b>2 rateplans</b> created. You can modify this policy after completing the listing.
+      </Typography>
+    </Paper> */}
 
-                        {/* Progress bar for custom option */}
-                         <Box sx={{ mb: 3, width:'50%' }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              height: 8,
-                              
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              backgroundColor: "#f0f0f0",
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: `${formData.customCancellationHours}%`,
-                                backgroundColor: "#FF9800",
-                                transition: "all 0.3s ease",
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                      </div>
-                    )}
-                  </Paper>
-
-                  {cancellationOptions.slice(-1).map((option) => (
-                    <Paper
-                      key={option.value}
-                      className={`p-4 border-2 transition-all duration-200 cursor-pointer ${
-                        formData.cancellationPolicy === option.value
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200 hover:border-blue-300 hover:bg-blue-25"
-                      }`}
-                      elevation={0}
-                    >
-                      <FormControlLabel
-                        value={option.value}
-                        control={<Radio color="primary" />}
-                        label={
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center">
-                              {/* Icon based on policy type */}
-                              <div className="mr-3">
-                                {option.value === "non_refundable" ? (
-                                  <span className="text-red-500 text-lg">
-                                    🚫
-                                  </span>
-                                ) : (
-                                  <span className="text-green-500 text-lg">
-                                    ✅
-                                  </span>
-                                )}
-                              </div>
-
-                              <div>
-                                <div className="text-gray-800 font-medium">
-                                  {option.label}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {option.description}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Badge */}
-                            {option.recommended && (
-                              <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
-                                RECOMMENDED
-                              </span>
-                            )}
-                          </div>
-                        }
-                        className="m-0 w-full"
-                      />
-
-                      {/* Progress bar for refund policies */}
-                      {option.value !== "non_refundable" && (
-                        <Box sx={{ mb: 3, width:'50%' }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              height: 8,
-                              marginLeft:'20px',
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              backgroundColor: "#f0f0f0",
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: `${option.hour}%`,
-                                backgroundColor: "#FF9800",
-                                transition: "all 0.3s ease",
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                      )}
-                    </Paper>
-                  ))}
-                </RadioGroup>
-              </FormControl>
-
-              <Button
-                variant="outlined"
-                color="primary"
-                sx={{ mt: 3 }}
-                onClick={() => handleSectionUpdate("cancellationPolicy")}
-              >
-                Save Cancellation Policy
-              </Button>
-            </div>
-          </TabPanel>
+    <Button
+      variant="outlined"
+      disableElevation
+      sx={{ mt: 4, textTransform: 'none', px: 4, fontWeight: 500 }}
+      onClick={() => handleSectionUpdate("cancellationPolicy")}
+    >
+      Save Cancellation Policy
+    </Button>
+  </div>
+</TabPanel>
 
           {/* Property Rules Tab */}
           <TabPanel value={activeTab} index={2}>
@@ -1372,6 +1289,11 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
                       fullWidth
                       label="Price per person"
                       type="number"
+                      slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                       value={formData.mealPrices?.breakfast?.price || 0}
                       onChange={(e) =>
                         handleNestedInputChange(
@@ -1417,6 +1339,11 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
                       fullWidth
                       label="Price per person"
                       type="number"
+                      slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                       value={formData.mealPrices?.lunch?.price || 0}
                       onChange={(e) =>
                         handleNestedInputChange(
@@ -1462,6 +1389,11 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
                       fullWidth
                       label="Price per person"
                       type="number"
+                      slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                       value={formData.mealPrices?.dinner?.price || 0}
                       onChange={(e) =>
                         handleNestedInputChange(

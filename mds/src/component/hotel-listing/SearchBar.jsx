@@ -205,7 +205,7 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
                 ref={suggestionsRef}
                 className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-2 mt-1"
               >
-                <h4 className="text-sm font-medium text-gray-600 mb-2">Suggestionss</h4>
+                <h4 className="text-sm font-medium text-gray-600 mb-2">Suggestions</h4>
                 {isSuggestionsLoading ? (
                   <div className="flex items-center justify-center py-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
