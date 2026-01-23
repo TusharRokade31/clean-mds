@@ -48,6 +48,7 @@ import {
   deleteCustomPolicy,
   completePrivacyPolicyStep,
 } from "@/redux/features/privacyPolicy/privacyPolicySlice";
+import toast, { Toaster } from "react-hot-toast"; // Add this line
 
 // Styled components for custom styling
 const StyledTabs = styled(Tabs)(({ theme }) => ({
@@ -81,6 +82,7 @@ function TabPanel({ children, value, index, ...other }) {
 
 const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
   const dispatch = useDispatch();
+  const [validationErrors, setValidationErrors] = useState({});
   const { currentPrivacyPolicy, privacyPolicyTemplate, isLoading, error } =
     useSelector((state) => state.privacyPolicy);
 
@@ -93,15 +95,15 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
     cancellationPolicy: "free_cancellation_checkin",
     propertyRules: {
       guestProfile: {
-        allowUnmarriedCouples: false,
-        allowGuestsBelow18: false,
-        allowOnlyMaleGuests: false,
+        allowUnmarriedCouples: null,
+        allowGuestsBelow18: null,
+        allowOnlyMaleGuests: null,
       },
       acceptableIdentityProofs: [],
     },
     propertyRestrictions: {
       nonVegetarianFood: {
-        allowed: true,
+        allowed: false,
         restrictions: "",
       },
       alcoholSmoking: {
@@ -112,11 +114,11 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
       },
       noiseRestrictions: {
         quietHours: {
-          enabled: true,
+          enabled: false,
           startTime: "10:00 PM",
           endTime: "7:00 AM",
         },
-        musicAllowed: true,
+        musicAllowed: false,
         partyAllowed: false,
         restrictions: "",
       },
@@ -218,121 +220,126 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
     }));
   };
 
-  const handleSave = async () => {
-    try {
+const handleSave = async () => {
+  try {
+    await dispatch(
+      createOrUpdatePrivacyPolicy({
+        propertyId,
+        data: formData,
+      })
+    ).unwrap();
+    toast.success("All changes saved successfully!");
+  } catch (error) {
+    toast.error("Failed to save all changes");
+  }
+};
+
+const handleSectionUpdate = async (section) => {
+  // Reset errors for this section initially
+  setValidationErrors({});
+
+  if (section === "propertyRules") {
+    const profile = formData.propertyRules?.guestProfile;
+    const identityProofs = formData.propertyRules?.acceptableIdentityProofs || [];
+    
+    let errors = {};
+    if (profile?.allowUnmarriedCouples === null) errors.allowUnmarriedCouples = true;
+    if (profile?.allowGuestsBelow18 === null) errors.allowGuestsBelow18 = true;
+    if (profile?.allowOnlyMaleGuests === null) errors.allowOnlyMaleGuests = true;
+    if (identityProofs.length === 0) errors.identityProofs = true;
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      toast.error("Please fill in all required property rules.");
+      return; // Stop here; highlighting happens via the state
+    }
+  }
+
+  try {
+    let sectionData = section === "cancellationPolicy" ? formData.cancellationPolicy : formData[section];
+
+    await dispatch(
+      updatePrivacyPolicySection({
+        propertyId,
+        section,
+        data: sectionData,
+      })
+    ).unwrap();
+
+    toast.success(`${section.replace(/([A-Z])/g, ' $1')} updated successfully!`);
+
+    if (activeTab < 6) {
+      setActiveTab((prev) => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  } catch (error) {
+    toast.error(`Failed to update ${section}`);
+  }
+};
+
+const handleAddCustomPolicy = async () => {
+  try {
+    if (!newCustomPolicy.title || !newCustomPolicy.description) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (editingPolicy) {
       await dispatch(
-        createOrUpdatePrivacyPolicy({
+        updateCustomPolicy({
           propertyId,
-          data: formData,
+          policyId: editingPolicy._id,
+          title: newCustomPolicy.title,
+          description: newCustomPolicy.description,
+          isActive: true,
         })
       ).unwrap();
-      alert("Privacy policy saved successfully!");
-    } catch (error) {
-      console.error("Save error:", error);
-      alert("Failed to save privacy policy");
+      toast.success("Custom policy updated!");
+    } else {
+      await dispatch(
+        addCustomPolicy({
+          propertyId,
+          title: newCustomPolicy.title,
+          description: newCustomPolicy.description,
+        })
+      ).unwrap();
+      toast.success("Custom policy added!");
     }
-  };
 
-  const handleSectionUpdate = async (section) => {
+    setCustomPolicyDialog(false);
+    setEditingPolicy(null);
+    setNewCustomPolicy({ title: "", description: "" });
+    
+    // Logic to move to the next section after custom policies are saved
+    // Note: Since users might want to add multiple policies, 
+    // you might prefer moving this to the "Save Custom Policies" button instead.
+  } catch (error) {
+    toast.error("Failed to save custom policy");
+  }
+};
+
+const handleDeleteCustomPolicy = async (policyId) => {
+  // Keeping window.confirm for safety, but using toast for the result
+  if (window.confirm("Are you sure you want to delete this policy?")) {
     try {
-      let sectionData;
-
-      if (section === "cancellationPolicy") {
-        // For cancellation policy, send the value directly
-        sectionData = formData.cancellationPolicy;
-        await dispatch(
-          updatePrivacyPolicySection({
-            propertyId,
-            section,
-            data: sectionData,
-          })
-        ).unwrap();
-      } else {
-        // For other sections, send the object
-        sectionData = formData[section];
-        await dispatch(
-          updatePrivacyPolicySection({
-            propertyId,
-            section,
-            data: sectionData,
-          })
-        ).unwrap();
-      }
-
-      alert(`${section} updated successfully!`);
+      await dispatch(deleteCustomPolicy({ propertyId, policyId })).unwrap();
+      toast.success("Policy deleted");
     } catch (error) {
-      console.error("Section update error:", error);
-      alert(`Failed to update ${section}`);
+      toast.error("Failed to delete policy");
     }
-  };
-
-  const handleAddCustomPolicy = async () => {
-    try {
-      if (!newCustomPolicy.title || !newCustomPolicy.description) {
-        alert("Please fill in all fields");
-        return;
-      }
-
-      if (editingPolicy) {
-        // Update existing policy
-        await dispatch(
-          updateCustomPolicy({
-            propertyId,
-            policyId: editingPolicy._id,
-            title: newCustomPolicy.title,
-            description: newCustomPolicy.description,
-            isActive: true,
-          })
-        ).unwrap();
-        alert("Custom policy updated successfully!");
-      } else {
-        // Add new policy
-        await dispatch(
-          addCustomPolicy({
-            propertyId,
-            title: newCustomPolicy.title,
-            description: newCustomPolicy.description,
-          })
-        ).unwrap();
-        alert("Custom policy added successfully!");
-      }
-
-      setCustomPolicyDialog(false);
-      setEditingPolicy(null);
-      setNewCustomPolicy({ title: "", description: "" });
-    } catch (error) {
-      console.error("Add/Update custom policy error:", error);
-      alert("Failed to save custom policy");
-    }
-  };
-
-  const handleDeleteCustomPolicy = async (policyId) => {
-    try {
-      if (window.confirm("Are you sure you want to delete this policy?")) {
-        await dispatch(
-          deleteCustomPolicy({
-            propertyId,
-            policyId,
-          })
-        ).unwrap();
-        alert("Custom policy deleted successfully!");
-      }
-    } catch (error) {
-      console.error("Delete custom policy error:", error);
-      alert("Failed to delete custom policy");
-    }
-  };
+  }
+};
 
   // completion handlers:
-  const handleCompleteStep = async () => {
-    try {
-      await dispatch(completePrivacyPolicyStep(propertyId)).unwrap();
-      onComplete?.();
-      alert("Finance & Legal step completed successfully!");
-    } catch (error) {
-      alert(`Validation errors:\n${error.errors?.join("\n") || error.message}`);
-    }
-  };
+const handleCompleteStep = async () => {
+  try {
+    await dispatch(completePrivacyPolicyStep(propertyId)).unwrap();
+    onComplete?.();
+    toast.success("Privacy Policy & Property Rules step completed!");
+  } catch (error) {
+    toast.error(error.errors?.[0] || error.message || "Validation failed");
+  }
+};
 
   const timeOptions = [
     "6:00 am",
@@ -398,6 +405,12 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
       description: "Guests can cancel for free up to 72 hours before check-in",
       hour: 28,
     },
+     {
+      value: "free_cancellation_custom",
+      label: "Free Cancellation Custom",
+      description: "Guests can cancel for free up to custom hours before check-in",
+      hour: 28,
+    },
     {
       value: "non_refundable",
       label: "Non Refundable",
@@ -423,6 +436,8 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
       </Alert>
     );
   }
+
+  const guestProfile = formData.propertyRules?.guestProfile || {};
 
   const RefundTimeline = () => (
   <Box sx={{ mt: 2, mb: 4, ml: 4, maxWidth: 500 }}>
@@ -535,6 +550,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
+      <Toaster position="top-right" />
       <Card className="shadow-lg">
         <CardContent className="p-6">
           {/* Header */}
@@ -668,7 +684,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                 </FormControl>
               </div>
 
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              {/* <div className="flex items-center justify-between p-4 border rounded-lg">
                 <Typography variant="body1" className="text-gray-800">
                   Do you have 24-hour check-in?
                 </Typography>
@@ -683,7 +699,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                   }
                   color="primary"
                 />
-              </div>
+              </div> */}
 
               <Button
                 variant="outlined"
@@ -757,26 +773,16 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                 
                 <DynamicRefundTimeline 
                   selectedOption={option} 
-                  customHours={formData.customCancellationHours} 
+                  customHours={formData.customCancellationHours || 82} 
                 />
               </>
             )}
           </div>
-        ))}
+        ))}     
+
       </RadioGroup>
     </FormControl>
 
-    {/* Blue Info Footer (Exact match to image) */}
-    {/* <Paper 
-      elevation={0} 
-      className="mt-6 p-2 flex items-center gap-2"
-      sx={{ bgcolor: '#eff6ff', border: '1px solid #dbeafe', borderRadius: '4px' }}
-    >
-      <span className="text-blue-500 text-sm">ℹ️</span>
-      <Typography sx={{ fontSize: '12px', color: '#1e40af' }}>
-        Selected policy would be applicable to <b>2 rateplans</b> created. You can modify this policy after completing the listing.
-      </Typography>
-    </Paper> */}
 
     <Button
       variant="outlined"
@@ -806,131 +812,81 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
               </div>
 
               {/* Guest Profile Section */}
-              <Paper className="border border-gray-200" elevation={0}>
-                <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-                  <Typography
-                    variant="subtitle1"
-                    className="font-semibold text-gray-800"
-                  >
-                    Guest Profile
-                  </Typography>
-                </div>
+           <Paper className="border border-gray-200 overflow-hidden" elevation={0}>
+      {/* Header */}
+      <div className="p-4 bg-gray-50 border-b border-gray-200">
+        <Typography variant="subtitle1" className="font-semibold text-gray-800">
+          Guest Profile
+        </Typography>
+      </div>
 
-                <div className="divide-y divide-gray-200">
-                  <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                    <Typography
-                      variant="body2"
-                      className="text-gray-800 flex-1"
-                    >
-                      Do you allow unmarried couples?
-                    </Typography>
-                    <RadioGroup
-                      row
-                      value={
-                        formData.propertyRules?.guestProfile
-                          ?.allowUnmarriedCouples
-                      }
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "propertyRules",
-                          "guestProfile",
-                          "allowUnmarriedCouples",
-                          e.target.value === "true"
-                        )
-                      }
-                      className="gap-4"
-                    >
-                      <FormControlLabel
-                        value={false}
-                        control={<Radio size="small" />}
-                        label="No"
-                      />
-                      <FormControlLabel
-                        value={true}
-                        control={<Radio size="small" />}
-                        label="Yes"
-                      />
-                    </RadioGroup>
-                  </div>
+      <div className="divide-y divide-gray-200">
+        
+        {/* Row 1: Unmarried Couples */}
+        <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <Typography variant="body2" className="text-gray-800 flex-1 font-medium">
+            Do you allow unmarried couples?
+          </Typography>
+          <div className="flex gap-8">
+            <CustomRadio 
+              label="No" 
+              isSelected={guestProfile.allowUnmarriedCouples === false} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowUnmarriedCouples", false)}
+            />
+            <CustomRadio 
+              label="Yes" 
+              isSelected={guestProfile.allowUnmarriedCouples === true} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowUnmarriedCouples", true)}
+            />
+          </div>
+        </div>
 
-                  <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                    <Typography
-                      variant="body2"
-                      className="text-gray-800 flex-1"
-                    >
-                      Do you allow guests below 18 years of age at your
-                      property?
-                    </Typography>
-                    <RadioGroup
-                      row
-                      value={
-                        formData.propertyRules?.guestProfile?.allowGuestsBelow18
-                      }
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "propertyRules",
-                          "guestProfile",
-                          "allowGuestsBelow18",
-                          e.target.value === "true"
-                        )
-                      }
-                      className="gap-4"
-                    >
-                      <FormControlLabel
-                        value={false}
-                        control={<Radio size="small" />}
-                        label="No"
-                      />
-                      <FormControlLabel
-                        value={true}
-                        control={<Radio size="small" />}
-                        label="Yes"
-                      />
-                    </RadioGroup>
-                  </div>
+        {/* Row 2: Below 18 */}
+        <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <Typography variant="body2" className="text-gray-800 flex-1 font-medium">
+            Do you allow guests below 18 years of age at your property?
+          </Typography>
+          <div className="flex gap-8">
+            <CustomRadio 
+              label="No" 
+              isSelected={guestProfile.allowGuestsBelow18 === false} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowGuestsBelow18", false)}
+            />
+            <CustomRadio 
+              label="Yes" 
+              isSelected={guestProfile.allowGuestsBelow18 === true} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowGuestsBelow18", true)}
+            />
+          </div>
+        </div>
 
-                  <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                    <Typography
-                      variant="body2"
-                      className="text-gray-800 flex-1"
-                    >
-                      Groups with only male guests are allowed at your property?
-                    </Typography>
-                    <RadioGroup
-                      row
-                      value={
-                        formData.propertyRules?.guestProfile
-                          ?.allowOnlyMaleGuests
-                      }
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "propertyRules",
-                          "guestProfile",
-                          "allowOnlyMaleGuests",
-                          e.target.value === "true"
-                        )
-                      }
-                      className="gap-4"
-                    >
-                      <FormControlLabel
-                        value={false}
-                        control={<Radio size="small" />}
-                        label="No"
-                      />
-                      <FormControlLabel
-                        value={true}
-                        control={<Radio size="small" />}
-                        label="Yes"
-                      />
-                    </RadioGroup>
-                  </div>
-                </div>
-              </Paper>
+        {/* Row 3: Only Male Guests */}
+        <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <Typography variant="body2" className="text-gray-800 flex-1 font-medium">
+            Groups with only male guests are allowed at your property?
+          </Typography>
+          <div className="flex gap-8">
+            <CustomRadio 
+              label="No" 
+              isSelected={guestProfile.allowOnlyMaleGuests === false} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowOnlyMaleGuests", false)}
+            />
+            <CustomRadio 
+              label="Yes" 
+              isSelected={guestProfile.allowOnlyMaleGuests === true} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowOnlyMaleGuests", true)}
+            />
+          </div>
+        </div>
+
+      </div>
+    </Paper>
 
               {/* Acceptable Identity Proofs */}
               <Paper className="border border-gray-200" elevation={0}>
                 <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
                   <Typography
+                  sx={{ color: validationErrors.identityProofs ? 'error.main' : 'inherit' }}
                     variant="subtitle1"
                     className="font-semibold text-gray-800"
                   >
@@ -989,6 +945,11 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                         </MenuItem>
                       ))}
                     </Select>
+                    {validationErrors.identityProofs && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+                    At least one identity proof is required.
+                  </Typography>
+                )}
                     <Typography
                       variant="caption"
                       className="text-gray-500 mt-1"
@@ -1247,180 +1208,180 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
           </TabPanel>
 
           {/* Meal Prices Tab */}
-          <TabPanel value={activeTab} index={6}>
-            <div className="space-y-6">
-              <div>
-                <Typography
-                  variant="h6"
-                  className="font-semibold text-gray-800 mb-2"
-                >
-                  Meal Prices
-                </Typography>
-                <Typography variant="body2" className="text-gray-600 mb-4">
-                  Set meal prices and availability for your property
-                </Typography>
-              </div>
+         <TabPanel value={activeTab} index={6}>
+  <div className="space-y-6">
+    <div>
+      <Typography
+        variant="h6"
+        className="font-semibold text-gray-800 mb-2"
+      >
+        Meal Prices
+      </Typography>
+      <Typography variant="body2" className="text-gray-600 mb-4">
+        Set meal prices and availability for your property
+      </Typography>
+    </div>
 
-              {/* Breakfast */}
-              <Paper className="border border-gray-200" elevation={0}>
-                <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-                  <Typography
-                    variant="subtitle1"
-                    className="font-semibold text-gray-800"
-                  >
-                    Breakfast
-                  </Typography>
-                  <Switch
-                    checked={formData.mealPrices?.breakfast?.available || false}
-                    onChange={(e) =>
-                      handleNestedInputChange(
-                        "mealPrices",
-                        "breakfast",
-                        "available",
-                        e.target.checked
-                      )
-                    }
-                    color="primary"
-                  />
-                </div>
-                {formData.mealPrices?.breakfast?.available && (
-                  <div className="p-4 space-y-4">
-                    <TextField
-                      fullWidth
-                      label="Price per person"
-                      type="number"
-                      slotProps={{
-                      htmlInput: {
-                        onWheel: (e) => e.currentTarget.blur(),
-                      },
-                    }}
-                      value={formData.mealPrices?.breakfast?.price || 0}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "mealPrices",
-                          "breakfast",
-                          "price",
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      InputProps={{
-                        startAdornment: <Typography>₹</Typography>,
-                      }}
-                    />
-                  </div>
-                )}
-              </Paper>
+    {/* Breakfast */}
+    <Paper className="border border-gray-200" elevation={0}>
+      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
+        <Typography
+          variant="subtitle1"
+          className="font-semibold text-gray-800"
+        >
+          Breakfast
+        </Typography>
+        <Switch
+          checked={formData.mealPrices?.breakfast?.available || false}
+          onChange={(e) =>
+            handleNestedInputChange(
+              "mealPrices",
+              "breakfast",
+              "available",
+              e.target.checked
+            )
+          }
+          color="primary"
+        />
+      </div>
+      {formData.mealPrices?.breakfast?.available && (
+        <div className="p-4 space-y-4">
+          <TextField
+            fullWidth
+            label="Price per person"
+            type="number"
+            slotProps={{
+              htmlInput: {
+                onWheel: (e) => e.currentTarget.blur(),
+              },
+            }}
+            value={formData.mealPrices?.breakfast?.price ?? ""}
+            onChange={(e) =>
+              handleNestedInputChange(
+                "mealPrices",
+                "breakfast",
+                "price",
+                e.target.value === "" ? "" : parseInt(e.target.value)
+              )
+            }
+            InputProps={{
+              startAdornment: <Typography>₹</Typography>,
+            }}
+          />
+        </div>
+      )}
+    </Paper>
 
-              {/* Lunch */}
-              <Paper className="border border-gray-200" elevation={0}>
-                <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-                  <Typography
-                    variant="subtitle1"
-                    className="font-semibold text-gray-800"
-                  >
-                    Lunch
-                  </Typography>
-                  <Switch
-                    checked={formData.mealPrices?.lunch?.available || false}
-                    onChange={(e) =>
-                      handleNestedInputChange(
-                        "mealPrices",
-                        "lunch",
-                        "available",
-                        e.target.checked
-                      )
-                    }
-                    color="primary"
-                  />
-                </div>
-                {formData.mealPrices?.lunch?.available && (
-                  <div className="p-4 space-y-4">
-                    <TextField
-                      fullWidth
-                      label="Price per person"
-                      type="number"
-                      slotProps={{
-                      htmlInput: {
-                        onWheel: (e) => e.currentTarget.blur(),
-                      },
-                    }}
-                      value={formData.mealPrices?.lunch?.price || 0}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "mealPrices",
-                          "lunch",
-                          "price",
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      InputProps={{
-                        startAdornment: <Typography>₹</Typography>,
-                      }}
-                    />
-                  </div>
-                )}
-              </Paper>
+    {/* Lunch */}
+    <Paper className="border border-gray-200" elevation={0}>
+      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
+        <Typography
+          variant="subtitle1"
+          className="font-semibold text-gray-800"
+        >
+          Lunch
+        </Typography>
+        <Switch
+          checked={formData.mealPrices?.lunch?.available || false}
+          onChange={(e) =>
+            handleNestedInputChange(
+              "mealPrices",
+              "lunch",
+              "available",
+              e.target.checked
+            )
+          }
+          color="primary"
+        />
+      </div>
+      {formData.mealPrices?.lunch?.available && (
+        <div className="p-4 space-y-4">
+          <TextField
+            fullWidth
+            label="Price per person"
+            type="number"
+            slotProps={{
+              htmlInput: {
+                onWheel: (e) => e.currentTarget.blur(),
+              },
+            }}
+            value={formData.mealPrices?.lunch?.price ?? ""}
+            onChange={(e) =>
+              handleNestedInputChange(
+                "mealPrices",
+                "lunch",
+                "price",
+                e.target.value === "" ? "" : parseInt(e.target.value)
+              )
+            }
+            InputProps={{
+              startAdornment: <Typography>₹</Typography>,
+            }}
+          />
+        </div>
+      )}
+    </Paper>
 
-              {/* Dinner */}
-              <Paper className="border border-gray-200" elevation={0}>
-                <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-                  <Typography
-                    variant="subtitle1"
-                    className="font-semibold text-gray-800"
-                  >
-                    Dinner
-                  </Typography>
-                  <Switch
-                    checked={formData.mealPrices?.dinner?.available || false}
-                    onChange={(e) =>
-                      handleNestedInputChange(
-                        "mealPrices",
-                        "dinner",
-                        "available",
-                        e.target.checked
-                      )
-                    }
-                    color="primary"
-                  />
-                </div>
-                {formData.mealPrices?.dinner?.available && (
-                  <div className="p-4 space-y-4">
-                    <TextField
-                      fullWidth
-                      label="Price per person"
-                      type="number"
-                      slotProps={{
-                      htmlInput: {
-                        onWheel: (e) => e.currentTarget.blur(),
-                      },
-                    }}
-                      value={formData.mealPrices?.dinner?.price || 0}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "mealPrices",
-                          "dinner",
-                          "price",
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      InputProps={{
-                        startAdornment: <Typography>₹</Typography>,
-                      }}
-                    />
-                  </div>
-                )}
-              </Paper>
+    {/* Dinner */}
+    <Paper className="border border-gray-200" elevation={0}>
+      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
+        <Typography
+          variant="subtitle1"
+          className="font-semibold text-gray-800"
+        >
+          Dinner
+        </Typography>
+        <Switch
+          checked={formData.mealPrices?.dinner?.available || false}
+          onChange={(e) =>
+            handleNestedInputChange(
+              "mealPrices",
+              "dinner",
+              "available",
+              e.target.checked
+            )
+          }
+          color="primary"
+        />
+      </div>
+      {formData.mealPrices?.dinner?.available && (
+        <div className="p-4 space-y-4">
+          <TextField
+            fullWidth
+            label="Price per person"
+            type="number"
+            slotProps={{
+              htmlInput: {
+                onWheel: (e) => e.currentTarget.blur(),
+              },
+            }}
+            value={formData.mealPrices?.dinner?.price ?? ""}
+            onChange={(e) =>
+              handleNestedInputChange(
+                "mealPrices",
+                "dinner",
+                "price",
+                e.target.value === "" ? "" : parseInt(e.target.value)
+              )
+            }
+            InputProps={{
+              startAdornment: <Typography>₹</Typography>,
+            }}
+          />
+        </div>
+      )}
+    </Paper>
 
-              <Button
-                variant="outlined"
-                color="primary"
-                sx={{ mt: 3 }}
-                onClick={() => handleSectionUpdate("mealPrices")}
-              >
-                Save Meal Prices
-              </Button>
-            </div>
-          </TabPanel>
+    <Button
+      variant="outlined"
+      color="primary"
+      sx={{ mt: 3 }}
+      onClick={() => handleSectionUpdate("mealPrices")}
+    >
+      Save Meal Prices
+    </Button>
+  </div>
+</TabPanel>
         </CardContent>
       </Card>
 
@@ -1512,5 +1473,26 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
     </div>
   );
 };
+
+const CustomRadio = ({ label, isSelected, onClick }) => (
+    <div 
+      className="flex items-center gap-2 cursor-pointer group" 
+      onClick={onClick}
+    >
+      <div className={`
+        w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
+        ${isSelected ? "border-blue-600" : "border-gray-300 group-hover:border-gray-400"}
+      `}>
+        {/* The dot only renders if isSelected is explicitly true */}
+        {isSelected && (
+          <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+        )}
+      </div>
+      <Typography variant="body2" className="text-gray-700 select-none">
+        {label}
+      </Typography>
+    </div>
+  );
+
 
 export default PrivacyPolicyForm;

@@ -287,6 +287,7 @@ const handleFileUpload = async (e) => {
                     <FormControl fullWidth required>
                       <InputLabel>Bank Name</InputLabel>
                       <Select
+                        fullWidth
                         value={financeData.bankDetails.bankName}
                         label="Bank Name"
                         onChange={(e) => handleFinanceChange('bankDetails', 'bankName', e.target.value)}

@@ -223,6 +223,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.error = action.payload;
+      deleteCookie('token');
       localStorage.removeItem('token');
     });
 

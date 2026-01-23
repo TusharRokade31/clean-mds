@@ -17,10 +17,12 @@ export const authAPI = {
     return response.data;
   },
   
-  authMe: async () => {
-    const response = await axiosInstance.get('/auth/me');
-    return response.data;
-  },
+authMe: async () => {
+  const response = await axiosInstance.get('/auth/me', {
+    withCredentials: true // Tells the browser to include cookies automatically
+  });
+  return response.data;
+},
 
   updateProfile: async (userData) => {
     const response = await axiosInstance.put('/users/update-profile', userData);

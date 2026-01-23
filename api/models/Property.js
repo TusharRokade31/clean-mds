@@ -163,7 +163,7 @@ const RoomSchema = new Schema({
     },
      extraFloorBeddingCharge: { 
       type: Number, 
-      required: [true, 'Extra floor bedding charge is required'], 
+      // required: [true, 'Extra floor bedding charge is required'], 
     },
     childCharge: { 
       type: Number, 

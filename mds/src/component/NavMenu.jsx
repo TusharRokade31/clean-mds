@@ -1,10 +1,16 @@
 import Link from "next/link";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import AvatarDropdown from "./AvatarDropdown";
 import SearchComponent from "./MobileSearchBar";
+import { useEffect } from "react";
+import { fetchCurrentUser } from "@/redux/features/auth/authSlice";
 
 const NavMenu = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
+  // const dispatch = useDispatch();
+  // useEffect(() => {
+  //   dispatch(fetchCurrentUser())
+  // }, [dispatch])
 
   // Function to handle click on "List your property"
   const handleListPropertyClick = () => {

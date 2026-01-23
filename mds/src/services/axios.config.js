@@ -24,4 +24,16 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Logic to remove cookie on frontend
+      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      // window.location.href = '/login'; // Redirect to login
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;
