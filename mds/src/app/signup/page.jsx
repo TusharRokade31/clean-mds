@@ -151,7 +151,7 @@ const handleSubmit = async (e) => {
           {/* FORM */}
           <form className="grid grid-cols-1 gap-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="text-red-500 text-sm">{error}</div>
+              <div className="text-red-500 text-sm">{error  == "Failed to fetch user" || error == "Not authorized to access this route" ? "" : error}</div>
             )}
             <label className="block">
               <span className="text-neutral-800 ">

@@ -212,7 +212,7 @@ const handleFilterChange = (category, value) => {
           </Typography>
         </div>
         <div className="space-y-2">
-          {["Under ₹10000", "₹10000 - ₹20000", "₹20000 - ₹30000", "Above ₹30000"].map((range) => (
+          {["Under ₹500", "₹500 - ₹1000", "₹1000 - ₹2000", "Above ₹2000"].map((range) => (
             <FormControlLabel 
               key={range}
               control={

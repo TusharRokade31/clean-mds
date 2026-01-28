@@ -109,71 +109,62 @@ export default function GoogleMapWithPlaces({
 
   // Search for nearby places using Places API
 const searchNearbyPlaces = async (map, location) => {
-    if (!window.google?.maps?.places) return
+  if (!window.google?.maps?.places) return
+  const service = new window.google.maps.places.PlacesService(map)
 
-    const service = new window.google.maps.places.PlacesService(map)
-    
-    // Helper to create a search promise for a specific type and radius
-    const createSearchPromise = (type, radius, rankByProminence = true) => {
-      return new Promise((resolve) => {
-        service.nearbySearch({
-          location: { lat: location.coordinates.lat, lng: location.coordinates.lng },
-          radius: radius,
-          type: type
-        }, (results, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-            resolve(results)
-          } else {
-            resolve([])
-          }
-        })
+  const createSearchPromise = (type, radius) => {
+    return new Promise((resolve) => {
+      service.nearbySearch({
+        location: { lat: location.coordinates.lat, lng: location.coordinates.lng },
+        radius: radius,
+        type: type
+      }, (results, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+          resolve(results)
+        } else { resolve([]) }
       })
-    }
-
-    try {
-      // 1. Fetch all data with improved radii and specific types
-      const [
-        rawRestaurants, 
-        rawAttractions, 
-        busStations, 
-        trainStations, 
-        airports
-      ] = await Promise.all([
-        createSearchPromise('restaurant', 5000),
-        createSearchPromise('tourist_attraction', 10000),
-        createSearchPromise('bus_station', 5000),
-        createSearchPromise('train_station', 20000), // Train stations are often further
-        createSearchPromise('airport', 50000)        // Airports can be up to 50km away
-      ])
-
-      // 2. Filter for Rating > 4 and Map Data
-      const results = {
-        restaurants: rawRestaurants
-          .filter(place => (place.rating || 0) >= 4)
-          .slice(0, 5)
-          .map(place => formatPlaceData(place, 'restaurant')),
-        
-        attractions: rawAttractions
-          .filter(place => (place.rating || 0) >= 4)
-          .slice(0, 5)
-          .map(place => formatPlaceData(place, 'attraction')),
-
-        // Combine all transport types into one array
-        transport: [...busStations, ...trainStations, ...airports]
-          .slice(0, 5)
-          .map(place => formatPlaceData(place, 'transport'))
-      }
-
-      // Sort by distance and send to parent
-      Object.keys(results).forEach(key => {
-        results[key].sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
-      })
-
-      onNearbyPlacesFound?.(results)
-    } catch (error) {
-      console.error('Error fetching nearby places:', error)
-    }
+    })
   }
+
+  try {
+    const [rawRestaurants, rawAttractions, busStations, trainStations, airports] = await Promise.all([
+      createSearchPromise('restaurant', 5000),
+      createSearchPromise('tourist_attraction', 10000),
+      createSearchPromise('bus_station', 10000),
+      createSearchPromise('train_station', 20000),
+      createSearchPromise('airport', 100000)
+    ])
+
+const results = {
+  restaurants: rawRestaurants
+    .filter(place => (place.rating || 0) >= 4)
+    .slice(0, 5)
+    .map(place => formatPlaceData(place, 'restaurant')),
+  
+  attractions: rawAttractions
+    .filter(place => (place.rating || 0) >= 4)
+    .slice(0, 5)
+    .map(place => formatPlaceData(place, 'attraction')),
+
+  // Split transport into the specific subcategories you requested
+  "Bus station": busStations
+    .slice(0, 3)
+    .map(place => formatPlaceData(place, 'transport')),
+    
+  "Railway station": trainStations
+    .slice(0, 3)
+    .map(place => formatPlaceData(place, 'transport')),
+    
+  "Airport near Dharamshala": airports
+    .slice(0, 2)
+    .map(place => formatPlaceData(place, 'transport'))
+};
+
+    onNearbyPlacesFound?.(results)
+  } catch (error) {
+    console.error('Error fetching nearby places:', error)
+  }
+}
 
   // Helper to format the place data and create markers
   const formatPlaceData = (place, type) => {
@@ -440,7 +431,7 @@ const searchNearbyPlaces = async (map, location) => {
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-            <span className="text-gray-600">Transport</span>
+            <span className="text-gray-600">Transport (Bus/Train/Air)</span>
           </div>
         </div>
       </div>

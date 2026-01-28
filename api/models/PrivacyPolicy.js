@@ -52,15 +52,15 @@ customCancellationHours: {
     guestProfile: {
       allowUnmarriedCouples: {
         type: Boolean,
-        default: false,
+        default: undefined,
       },
       allowGuestsBelow18: {
         type: Boolean,
-        default: false,
+        default: undefined,
       },
       allowOnlyMaleGuests: {
         type: Boolean,
-        default: false,
+        default: undefined,
       },
     },
     
@@ -84,7 +84,7 @@ customCancellationHours: {
     nonVegetarianFood: {
       allowed: {
         type: Boolean,
-        default: true,
+        default: false,
       },
       restrictions: {
         type: String,

@@ -58,6 +58,50 @@ const BookingFilters = ({ selectedProperty, bookings }) => {
     dispatch(resetFilters());
   };
 
+  // 1. CSV Export Logic
+  const handleExportCSV = () => {
+    if (!bookings || bookings.length === 0) {
+      alert("No data available to export");
+      return;
+    }
+
+    // Define Headers and Data Mapping
+    const headers = [
+      "Booking ID", "Guest Name", "Email", "Phone", "Property", 
+      "Check-In", "Check-Out", "Status", "Payment Status", 
+      "Total Amount", "Paid Amount", "Adults", "Children"
+    ];
+
+    const csvRows = bookings.map(b => [
+      b.bookingId,
+      `${b.primaryGuest?.firstName} ${b.primaryGuest?.lastName}`,
+      b.primaryGuest?.email,
+      b.primaryGuest?.phone,
+      b.property?.placeName,
+      new Date(b.checkIn).toLocaleDateString(),
+      new Date(b.checkOut).toLocaleDateString(),
+      b.status,
+      b.payment?.status,
+      b.pricing?.totalAmount,
+      b.payment?.paidAmount,
+      b.guestCount?.adults,
+      b.guestCount?.children
+    ].map(value => `"${value}"`).join(',')); // Wrap in quotes to handle commas in data
+
+    const csvContent = [headers.join(','), ...csvRows].join('\n');
+    
+    // Create Blob and Trigger Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `bookings_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
       {/* Search and Filter Bar */}
@@ -114,7 +158,8 @@ const BookingFilters = ({ selectedProperty, bookings }) => {
             
             <Grid item size={{xs:12, md:5}}>
               <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                <Button
+                <a href="/host/bookings">
+                  <Button
                   variant="contained"
                   color="success"
                   startIcon={<AddIcon />}
@@ -122,20 +167,22 @@ const BookingFilters = ({ selectedProperty, bookings }) => {
                 >
                   Manual Booking
                 </Button>
+                </a>
                 
-                <Button
+                {/* <Button
                   variant="contained"
                   color="secondary"
                   startIcon={<AnalyticsIcon />}
                   sx={{ textTransform: 'none' }}
                 >
                   Analytics
-                </Button>
+                </Button> */}
                 
-                <Button
+               <Button
                   variant="outlined"
                   startIcon={<ExportIcon />}
                   sx={{ textTransform: 'none' }}
+                  onClick={handleExportCSV} // 2. Attach the function here
                 >
                   Export CSV
                 </Button>

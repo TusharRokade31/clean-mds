@@ -7,10 +7,10 @@ import { fetchCurrentUser } from "@/redux/features/auth/authSlice";
 
 const NavMenu = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
-  // const dispatch = useDispatch();
-  // useEffect(() => {
-  //   dispatch(fetchCurrentUser())
-  // }, [dispatch])
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(fetchCurrentUser())
+  }, [])
 
   // Function to handle click on "List your property"
   const handleListPropertyClick = () => {

@@ -607,6 +607,11 @@ const handleCreateNew = () => {
   },
 };
 
+
+const isAllStepsCompleted = Array.from({ length: steps.length }).every((_, i) => 
+  completedTabs.has(i)
+);
+
 const validateMandatoryAmenities = () => {
   const mandatoryItems = amenityCategories.mandatory.items;
   const mandatoryData = formData?.amenities?.mandatory || {};
@@ -1057,17 +1062,27 @@ const validateMandatoryAmenities = () => {
 
         {/* Show completion button only on last tab */}
         {activeTab === steps.length - 1 && (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-            <Button
-              variant="contained"
-              onClick={handleComplete}
-              disabled={isLoading}
-              size="large"
-            >
-              {isLoading ? "Completing..." : "Complete Listing"}
-            </Button>
-          </Box>
-        )}
+  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mt: 3 }}>
+    {!isAllStepsCompleted && (
+      <Typography color="error" variant="caption" sx={{ mb: 1 }}>
+        Please complete all previous sections before submitting.
+      </Typography>
+    )}
+    
+    <Button
+      variant="contained"
+      onClick={handleComplete}
+      // Button is disabled if:
+      // 1. System is loading
+      // 2. OR Not all steps are completed in the completedTabs Set
+      disabled={isLoading || !isAllStepsCompleted}
+      size="large"
+      
+    >
+      {isLoading ? "Completing..." : "Complete Listing"}
+    </Button>
+  </Box>
+)}
       </Paper>
     </>
   );

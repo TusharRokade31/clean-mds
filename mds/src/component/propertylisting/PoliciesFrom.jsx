@@ -95,9 +95,9 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
     cancellationPolicy: "free_cancellation_checkin",
     propertyRules: {
       guestProfile: {
-        allowUnmarriedCouples: null,
-        allowGuestsBelow18: null,
-        allowOnlyMaleGuests: null,
+        allowUnmarriedCouples: undefined,
+        allowGuestsBelow18: undefined,
+        allowOnlyMaleGuests: undefined,
       },
       acceptableIdentityProofs: [],
     },
@@ -243,9 +243,9 @@ const handleSectionUpdate = async (section) => {
     const identityProofs = formData.propertyRules?.acceptableIdentityProofs || [];
     
     let errors = {};
-    if (profile?.allowUnmarriedCouples === null) errors.allowUnmarriedCouples = true;
-    if (profile?.allowGuestsBelow18 === null) errors.allowGuestsBelow18 = true;
-    if (profile?.allowOnlyMaleGuests === null) errors.allowOnlyMaleGuests = true;
+    if (profile?.allowUnmarriedCouples === undefined) errors.allowUnmarriedCouples = true;
+    if (profile?.allowGuestsBelow18 === undefined) errors.allowGuestsBelow18 = true;
+    if (profile?.allowOnlyMaleGuests === undefined) errors.allowOnlyMaleGuests = true;
     if (identityProofs.length === 0) errors.identityProofs = true;
 
     if (Object.keys(errors).length > 0) {
@@ -256,6 +256,18 @@ const handleSectionUpdate = async (section) => {
   }
 
   try {
+
+    const sectionNames = {
+  checkInCheckOut: "Check-in & Check-out",
+  cancellationPolicy: "Cancellation Policy",
+  propertyRules: "Property Rules",
+  propertyRestrictions: "Property Restrictions",
+  petPolicy: "Pet Policy",
+  customPolicies: "Custom Policies",
+  mealPrices: "Meal Prices"
+};
+
+
     let sectionData = section === "cancellationPolicy" ? formData.cancellationPolicy : formData[section];
 
     await dispatch(
@@ -266,7 +278,9 @@ const handleSectionUpdate = async (section) => {
       })
     ).unwrap();
 
-    toast.success(`${section.replace(/([A-Z])/g, ' $1')} updated successfully!`);
+    // Use the custom name from the mapping
+const sectionName = sectionNames[section] || section;
+toast.success(`${sectionName} updated successfully!`);
 
     if (activeTab < 6) {
       setActiveTab((prev) => prev + 1);
@@ -468,11 +482,12 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
       case "free_cancellation_48h":
         return { percent: 50, label: "48 hours before check-in" };
       case "free_cancellation_72h":
-        return { percent: 30, label: "72 hours before check-in" };
+        return { percent: 40, label: "72 hours before check-in" };
       case "free_cancellation_custom":
         // Logic for custom hours (e.g., mapping 1-168 hours to 90%-10% of the bar)
-        const customPercent = Math.max(10, 100 - (customHours / 168) * 100);
-        return { percent: customPercent, label: `${customHours} hours before check-in` };
+        const validHours = Math.min(120, Math.max(0, customHours));
+        const customPercent = Math.max(0, 100 - (validHours / 128) * 100); // Scale to fit within 0-100%
+        return { percent: customPercent, label: `${validHours} hours before check-in` };
       case "non_refundable":
         return { percent: 0, label: "" };
       default:
@@ -485,7 +500,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
   const isTillCheckIn = selectedOption.value === "free_cancellation_checkin";
 
   return (
-    <Box sx={{ mt: 1.5, mb: 2, ml: 4, maxWidth: 550, bgcolor: '#f9f9f9', p: 2, borderRadius: '4px' }}>
+    <Box sx={{ mt: 1.5, mb: 2, ml: 4, maxWidth: 700, bgcolor: '#f9f9f9', p: 2, borderRadius: '4px' }}>
       {/* Warning for Non-refundable state (Match Image 3) */}
       {isNonRefundable && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
@@ -758,18 +773,34 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
               <>
                 {/* Custom Hour Input Logic */}
                 {option.value === "free_cancellation_custom" && (
-                  <div className="ml-10 mb-2 flex items-center gap-2">
-                    <TextField
-                      type="number"
-                      size="small"
-                      placeholder="e.g. 36"
-                      value={formData.customCancellationHours || ""}
-                      onChange={(e) => setFormData(p => ({ ...p, customCancellationHours: parseInt(e.target.value) || 0 }))}
-                      sx={{ width: 100 }}
-                    />
-                    <Typography variant="caption" className="text-gray-500">hours before check-in</Typography>
-                  </div>
-                )}
+  <div className="ml-10 mb-2 flex items-center gap-2">
+    <TextField
+      type="number"
+      size="small"
+      placeholder="0-120"
+      // Display current value
+      value={formData.customCancellationHours || ""}
+      onChange={(e) => {
+        let val = parseInt(e.target.value);
+        // If user clears input, allow it to be empty or 0
+        if (isNaN(val)) val = 0;
+        
+        // Enforce 0 to 120 range
+        const clampedVal = Math.min(120, Math.max(0, val));
+        
+        setFormData(p => ({ ...p, customCancellationHours: clampedVal }));
+      }}
+      // Visual feedback/native validation
+      slotProps={{
+        htmlInput: { min: 0, max: 120 }
+      }}
+      sx={{ width: 100 }}
+    />
+    <Typography variant="caption" className="text-gray-500">
+      hours before check-in (Max 120)
+    </Typography>
+  </div>
+)}
                 
                 <DynamicRefundTimeline 
                   selectedOption={option} 
@@ -1381,7 +1412,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
       Save Meal Prices
     </Button>
   </div>
-</TabPanel>
+        </TabPanel>
         </CardContent>
       </Card>
 

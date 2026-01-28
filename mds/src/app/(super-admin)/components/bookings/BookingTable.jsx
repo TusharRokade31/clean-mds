@@ -50,6 +50,7 @@ const BookingTable = ({   bookings = [],
   onEditBooking,
   onUpdatePayment,
   onCancelBooking,
+  onConfirm,
   onCheckIn,
   onCheckOut }) => {
   const dispatch = useDispatch();
@@ -101,6 +102,13 @@ const BookingTable = ({   bookings = [],
   const handleCheckIn = () => {
     if (selectedBooking && onCheckIn) {
       onCheckIn(selectedBooking._id);
+    }
+    handleActionsClose();
+  };
+
+  const handleConfimStatus = () => {
+    if (selectedBooking && onConfirm) {
+      onConfirm(selectedBooking._id);
     }
     handleActionsClose();
   };
@@ -347,6 +355,14 @@ const BookingTable = ({   bookings = [],
       </ListItemIcon>
       <ListItemText>Check In</ListItemText>
     </MenuItem>
+  )}
+  {selectedBooking?.status === 'pending' && (
+    <MenuItem onClick={handleConfimStatus}>
+      <ListItemIcon>
+        {/* <CheckInIcon fontSize="small" /> */}
+      </ListItemIcon>
+      <ListItemText>Confirm</ListItemText>
+    </MenuItem>  
   )}
 
   {selectedBooking?.status === 'checked-in' && (
