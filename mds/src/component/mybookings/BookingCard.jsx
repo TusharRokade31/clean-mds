@@ -2,11 +2,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import BookingInvoice from '../onlinebooking/BookingInvoice';
 
 export default function BookingCard({ booking }) {
   const [showDetails, setShowDetails] = useState(false);
   const [imageError, setImageError] = useState(false);
-
+  const [showInvoice, setShowInvoice] = useState(false);
   // Helper functions
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -212,6 +213,7 @@ console.log(booking.property.media)
           {/* Action buttons */}
           <div className="flex flex-wrap gap-3">
             <motion.button
+             onClick={() => setShowInvoice(true)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
@@ -279,6 +281,16 @@ console.log(booking.property.media)
           )}
         </div>
       </div>
+
+      {/* Invoice Modal */}
+            {showInvoice && (
+              <BookingInvoice 
+                booking={booking} 
+                onClose={() => setShowInvoice(false)} 
+              />
+            )}
     </motion.div>
+
+    
   );
 }

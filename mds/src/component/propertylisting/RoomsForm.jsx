@@ -1,34 +1,86 @@
-'use client'
-import { useState, useEffect, useRef } from 'react';
+"use client";
+import { useState, useEffect, useRef } from "react";
 import {
-  Button, Typography, Divider, TextField, FormControl,
-  InputLabel, Select, MenuItem, FormHelperText, Grid,
-  Paper, IconButton, Chip, Box, Checkbox, FormControlLabel,
-  Card, CardContent, Tabs, Tab, RadioGroup, Radio, FormLabel,
-  Dialog, DialogTitle, DialogContent, DialogActions, Alert,
-  LinearProgress, Badge, Accordion, AccordionSummary, AccordionDetails,
-  CardMedia, List, ListItem, ListItemIcon, ListItemText
-} from '@mui/material';
+  Button,
+  Typography,
+  Divider,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
+  Grid,
+  Paper,
+  IconButton,
+  Chip,
+  Box,
+  Checkbox,
+  FormControlLabel,
+  Card,
+  CardContent,
+  Tabs,
+  Tab,
+  RadioGroup,
+  Radio,
+  FormLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  LinearProgress,
+  Badge,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  CardMedia,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
 
 import {
-  Delete as DeleteIcon, Add as AddIcon, Edit as EditIcon,
-  CloudUpload, Star, StarBorder, Image as ImageIcon, VideoFile,
-  Close, Warning, ExpandMore, ArrowBack, ArrowForward, Search,
+  Delete as DeleteIcon,
+  Add as AddIcon,
+  Edit as EditIcon,
+  CloudUpload,
+  Star,
+  StarBorder,
+  Image as ImageIcon,
+  VideoFile,
+  Close,
+  Warning,
+  ExpandMore,
+  ArrowBack,
+  ArrowForward,
+  Search,
   ContentCopy,
-  Delete
-} from '@mui/icons-material';
-import { useDispatch } from 'react-redux';
+  Delete,
+} from "@mui/icons-material";
+import { useDispatch } from "react-redux";
 import {
-  addRooms, deleteRoom, updateRoom,
-  uploadRoomMedia, updateRoomMediaItem, deleteRoomMediaItem,
+  addRooms,
+  deleteRoom,
+  updateRoom,
+  uploadRoomMedia,
+  updateRoomMediaItem,
+  deleteRoomMediaItem,
   getProperty,
-  completeRoomsStep
-} from '@/redux/features/property/propertySlice';
-import RoomsAmenities from './RoomsAmenities';
+  completeRoomsStep,
+} from "@/redux/features/property/propertySlice";
+import RoomsAmenities from "./RoomsAmenities";
 
-
-export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, onComplete, onSave, onBack }) {
-  
+export default function RoomsForm({
+  rooms = [],
+  propertyId,
+  onAddRoom,
+  errors,
+  onComplete,
+  onSave,
+  onBack,
+}) {
   const dispatch = useDispatch();
   const [isAddingRoom, setIsAddingRoom] = useState(false);
   const [isEditingRoom, setIsEditingRoom] = useState(false);
@@ -40,15 +92,15 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
   const [currentRoomId, setCurrentRoomId] = useState(null);
   const [editingMedia, setEditingMedia] = useState(null);
   const [editDialog, setEditDialog] = useState(false);
-  const [customTag, setCustomTag] = useState('');
-  const [validationError, setValidationError] = useState('');
+  const [customTag, setCustomTag] = useState("");
+  const [validationError, setValidationError] = useState("");
 
   useEffect(() => {
-    const roomID = localStorage.getItem('roomID')
+    const roomID = localStorage.getItem("roomID");
     if (roomID) {
-      setCurrentRoomId(roomID)
+      setCurrentRoomId(roomID);
     }
-  }, [])
+  }, []);
 
   // Refs
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,78 +110,86 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
 
   // All available tags for room media
   const availableRoomTags = [
-    'Bed', 'Bathroom/Washroom', 'Room View', 'Balcony', 'Furniture',
-    'Amenities', 'Decor', 'Lighting', 'Storage', 'Window View', 'Others'
+    "Bed",
+    "Bathroom/Washroom",
+    "Room View",
+    "Balcony",
+    "Furniture",
+    "Amenities",
+    "Decor",
+    "Lighting",
+    "Storage",
+    "Window View",
+    "Others",
   ];
 
   const roomAmenityCategories = {
-  basicFacilities: {
-    title: "Basic Facilities",
-    items: [
-      {
-        name: "Air Conditioning",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Wifi",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Television",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Hair Dryer",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Intercom",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Safe/Locker",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Geyser/Water Heater",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Wardrobe",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Charging Points",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Mosquito Net",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Kitchen",
-        options: [],
-        Suboptions: [],
-      },
-      {
-        name: "Balcony/Terrace",
-        options: [],
-        Suboptions: [],
-      },
-    ],
-  },
-};
-
+    basicFacilities: {
+      title: "Basic Facilities",
+      items: [
+        {
+          name: "Air Conditioning",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Wifi",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Television",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Hair Dryer",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Intercom",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Safe/Locker",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Geyser/Water Heater",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Wardrobe",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Charging Points",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Mosquito Net",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Kitchen",
+          options: [],
+          Suboptions: [],
+        },
+        {
+          name: "Balcony/Terrace",
+          options: [],
+          Suboptions: [],
+        },
+      ],
+    },
+  };
 
   // Update local rooms when props change
   useEffect(() => {
@@ -138,22 +198,23 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
 
   function getInitialRoomData() {
     return {
-      numberRoom: '',
-      roomName: '',
-      roomSize: '',
-      sizeUnit: 'sqft',
-      description: '',
-      beds: [{ bedType: '', count: 1, accommodates: 1 }],
+      numberRoom: "",
+      roomName: "",
+      roomSize: "",
+      sizeUnit: "sqft",
+      description: "",
+      beds: [{ bedType: "", count: 1, accommodates: 1 }],
       FloorBedding: {
         available: false,
-        count: ''
+        count: "",
+        peoplePerFloorBedding: 1, // Added as requested
       },
       alternativeBeds: [],
       occupancy: {
         baseAdults: 1,
         maximumAdults: 1,
         maximumChildren: 0,
-        maximumOccupancy: 1
+        maximumOccupancy: 1,
       },
       bathrooms: {
         count: 1,
@@ -162,18 +223,25 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
       },
       mealPlan: {
         available: false,
-        planType: ''
+        planType: "",
       },
       pricing: {
-        baseAdultsCharge: '',
-        extraAdultsCharge: '',
-        childCharge: ''
+        baseAdultsCharge: "",
+        extraFloorBeddingCharge: "",
+        extraAdultsCharge: "0",
+        childCharge: "0",
       },
-      availability: [{
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-        availableUnits: 1
-      }],
+      availability: [
+        {
+          startDate: new Date().toISOString().split("T")[0],
+          endDate: new Date(
+            new Date().setFullYear(new Date().getFullYear() + 1),
+          )
+            .toISOString()
+            .split("T")[0],
+          availableUnits: 1,
+        },
+      ],
       amenities: {
         mandatory: {},
         basicFacilities: {},
@@ -182,8 +250,8 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
         foodBeverages: {},
         healthWellness: {},
         security: {},
-        mediaTechnology: {}
-      }
+        mediaTechnology: {},
+      },
     };
   }
 
@@ -199,9 +267,9 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
     const allMedia = getRoomMediaItems(room);
     const groupedMedia = {};
 
-    allMedia.forEach(item => {
+    allMedia.forEach((item) => {
       if (item.tags && item.tags.length > 0) {
-        item.tags.forEach(tag => {
+        item.tags.forEach((tag) => {
           if (!groupedMedia[tag]) {
             groupedMedia[tag] = [];
           }
@@ -215,202 +283,254 @@ export default function RoomsForm({  rooms = [], propertyId, onAddRoom, errors, 
 
   const getRoomItemsWithoutTags = (room) => {
     const allMedia = getRoomMediaItems(room);
-    return allMedia.filter(item => !item.tags || item.tags.length === 0);
+    return allMedia.filter((item) => !item.tags || item.tags.length === 0);
   };
+  const calculateMaxOccupancy = (beds, floorBedding) => {
+    // Formula: (bed accommodates * number of beds) + (number of gaddi * people per gaddi)
+    const bedOccupancy = beds.reduce(
+      (acc, bed) =>
+        acc + parseInt(bed.count || 0) * parseInt(bed.accommodates || 0),
+      0,
+    );
 
+    const floorOccupancy = floorBedding.available
+      ? parseInt(floorBedding.count || 0) *
+        parseInt(floorBedding.peoplePerFloorBedding || 1)
+      : 0;
 
+    return bedOccupancy + floorOccupancy;
+  };
   // Room creation/editing functions (keeping your original logic)
-const validateRoomData = () => {
-  const errors = {};
-  
-  // Basic Room Details
-  if (!currentRoomData.roomName || !currentRoomData.roomName.trim()) {
-    errors.roomName = 'Room name is required';
-  }
-  
-  if (!currentRoomData.roomSize || currentRoomData.roomSize <= 0) {
-    errors.roomSize = 'Valid room size is required';
-  }
-  
-  if (!currentRoomData.numberRoom || currentRoomData.numberRoom <= 0) {
-    errors.numberRoom = 'Number of rooms must be at least 1';
-  }
-  
-  // Bed Configuration Validation
-  if (!currentRoomData.beds || currentRoomData.beds.length === 0) {
-    errors.beds = 'At least one bed configuration is required';
-  } else {
-    const bedErrors = [];
-    currentRoomData.beds.forEach((bed, index) => {
-      const bedError = {};
-      
-      if (!bed.bedType || !bed.bedType.trim()) {
-        bedError.bedType = 'Bed type is required';
-      }
-      
-      if (!bed.count || bed.count < 1) {
-        bedError.count = 'Number of beds must be at least 1';
-      }
-      
-      if (!bed.accommodates || bed.accommodates < 1) {
-        bedError.accommodates = 'Accommodates must be at least 1';
-      }
-      
-      if (Object.keys(bedError).length > 0) {
-        bedErrors[index] = bedError;
-      }
-    });
-    
-    if (bedErrors.length > 0) {
-      errors.beds = bedErrors;
-    }
-  }
-  
-  // Floor Bedding Validation
-  if (currentRoomData.FloorBedding?.available) {
-    if (!currentRoomData.FloorBedding.count || currentRoomData.FloorBedding.count < 1) {
-      errors.floorBedding = 'Floor bedding count must be at least 1';
-    }
-  }
-  
-  // Occupancy Validation
-  if (!currentRoomData.occupancy?.baseAdults || currentRoomData.occupancy.baseAdults < 1) {
-    errors.baseAdults = 'Base adults must be at least 1';
-  }
-  
-  if (!currentRoomData.occupancy?.maximumAdults || currentRoomData.occupancy.maximumAdults < 1) {
-    errors.maximumAdults = 'Maximum adults must be at least 1';
-  }
-  
-  if (currentRoomData.occupancy?.maximumAdults < currentRoomData.occupancy?.baseAdults) {
-    errors.maximumAdults = 'Maximum adults cannot be less than base adults';
-  }
-  
-  if (currentRoomData.occupancy?.maximumChildren < 0) {
-    errors.maximumChildren = 'Maximum children cannot be negative';
-  }
-  
-  // Bathroom Validation
-  if (!currentRoomData.bathrooms?.count || currentRoomData.bathrooms.count < 0) {
-    errors.bathroomCount = 'Bathroom count is required';
-  }
-  
-  if (!currentRoomData.bathrooms?.private && !currentRoomData.bathrooms?.shared) {
-    errors.bathroomType = 'Please select either private or shared bathroom';
-  }
-  
-  // Meal Plan Validation
-  if (currentRoomData.mealPlan?.available && !currentRoomData.mealPlan?.planType) {
-    errors.mealPlan = 'Please select a meal plan type';
-  }
-  
-  // Pricing Validation
-  if (!currentRoomData.pricing?.baseAdultsCharge || currentRoomData.pricing.baseAdultsCharge <= 0) {
-    errors.baseAdultsCharge = 'Base price is required and must be greater than 0';
-  }
-  
-  if (!currentRoomData.pricing?.extraAdultsCharge || currentRoomData.pricing.extraAdultsCharge < 0) {
-    errors.extraAdultsCharge = 'Extra adult charge cannot be negative';
-  }
-  
-  if (!currentRoomData.pricing?.childCharge || currentRoomData.pricing.childCharge < 0) {
-    errors.childCharge = 'Child charge cannot be negative';
-  }
-  
-  // Availability Validation
- 
-  setFormErrors(errors);
-  
-  // Scroll to first error
-  if (Object.keys(errors).length > 0) {
-    scrollToFirstError(errors);
-    return false;
-  }
-  
-  return true;
-};
+  const validateRoomData = () => {
+    const errors = {};
 
-// Function to scroll to the first error
-const scrollToFirstError = (errors) => {
-  const errorFieldMap = {
-    roomName: 'roomName',
-    roomSize: 'roomSize',
-    numberRoom: 'numberRoom',
-    beds: 'beds',
-    floorBedding: 'FloorBedding',
-    baseAdults: 'baseAdults',
-    maximumAdults: 'maximumAdults',
-    maximumChildren: 'maximumChildren',
-    bathroomCount: 'bathroomCount',
-    bathroomType: 'bathroomType',
-    mealPlan: 'mealPlan',
-    baseAdultsCharge: 'baseAdultsCharge',
-    extraAdultsCharge: 'extraAdultsCharge',
-    childCharge: 'childCharge',
-    availability: 'availability'
+    // Basic Room Details
+    if (!currentRoomData.roomName || !currentRoomData.roomName.trim()) {
+      errors.roomName = "Room name is required";
+    }
+
+    if (!currentRoomData.roomSize || currentRoomData.roomSize <= 0) {
+      errors.roomSize = "Valid room size is required";
+    }
+
+    if (!currentRoomData.numberRoom || currentRoomData.numberRoom <= 0) {
+      errors.numberRoom = "Number of rooms must be at least 1";
+    }
+
+    // Bed Configuration Validation
+    if (!currentRoomData.beds || currentRoomData.beds.length === 0) {
+      errors.beds = "At least one bed configuration is required";
+    } else {
+      const bedErrors = [];
+      currentRoomData.beds.forEach((bed, index) => {
+        const bedError = {};
+
+        if (!bed.bedType || !bed.bedType.trim()) {
+          bedError.bedType = "Bed type is required";
+        }
+
+        if (!bed.count || bed.count < 1) {
+          bedError.count = "Number of beds must be at least 1";
+        }
+
+        if (!bed.accommodates || bed.accommodates < 1) {
+          bedError.accommodates = "Accommodates must be at least 1";
+        }
+
+        if (Object.keys(bedError).length > 0) {
+          bedErrors[index] = bedError;
+        }
+      });
+
+      if (bedErrors.length > 0) {
+        errors.beds = bedErrors;
+      }
+    }
+
+    // Floor Bedding Validation
+    if (currentRoomData.FloorBedding?.available) {
+      if (
+        !currentRoomData.FloorBedding.count ||
+        currentRoomData.FloorBedding.count < 1
+      ) {
+        errors.floorBedding = "Floor bedding count must be at least 1";
+      }
+    }
+
+    // Occupancy Validation
+    if (
+      !currentRoomData.occupancy?.baseAdults ||
+      currentRoomData.occupancy.baseAdults < 1
+    ) {
+      errors.baseAdults = "Base adults must be at least 1";
+    }
+
+    if (
+      !currentRoomData.occupancy?.maximumAdults ||
+      currentRoomData.occupancy.maximumAdults < 1
+    ) {
+      errors.maximumAdults = "Maximum adults must be at least 1";
+    }
+
+    // if (currentRoomData.occupancy?.maximumAdults < currentRoomData.occupancy?.baseAdults) {
+    //   errors.maximumAdults = 'Maximum adults cannot be less than base adults';
+    // }
+
+    if (currentRoomData.occupancy?.maximumChildren < 0) {
+      errors.maximumChildren = "Maximum children cannot be negative";
+    }
+
+    // Bathroom Validation
+    if (
+      !currentRoomData.bathrooms?.count ||
+      currentRoomData.bathrooms.count < 0
+    ) {
+      errors.bathroomCount = "Bathroom count is required";
+    }
+
+    if (
+      !currentRoomData.bathrooms?.private &&
+      !currentRoomData.bathrooms?.shared
+    ) {
+      errors.bathroomType = "Please select either private or shared bathroom";
+    }
+
+    // Meal Plan Validation
+    if (
+      currentRoomData.mealPlan?.available &&
+      !currentRoomData.mealPlan?.planType
+    ) {
+      errors.mealPlan = "Please select a meal plan type";
+    }
+
+    // Pricing Validation
+    if (
+      !currentRoomData.pricing?.baseAdultsCharge ||
+      currentRoomData.pricing.baseAdultsCharge <= 0
+    ) {
+      errors.baseAdultsCharge =
+        "Base price is required and must be greater than 0";
+    }
+
+    if (
+      !currentRoomData.pricing?.extraFloorBeddingCharge ||
+      currentRoomData.pricing.extraFloorBeddingCharge < 0
+    ) {
+      errors.extraFloorBeddingCharge =
+        "Extra floor bedding charge cannot be negative";
+    }
+
+    if (
+      !currentRoomData.pricing?.childCharge ||
+      currentRoomData.pricing.childCharge < 0
+    ) {
+      errors.childCharge = "Child charge cannot be negative";
+    }
+
+    // Availability Validation
+
+    setFormErrors(errors);
+
+    // Scroll to first error
+    if (Object.keys(errors).length > 0) {
+      scrollToFirstError(errors);
+      return false;
+    }
+
+    return true;
   };
-  
-  // Find the first error key
-  const firstErrorKey = Object.keys(errors)[0];
-  
-  // Try to find the element by various methods
-  let errorElement = null;
-  
-  // Try finding by label text
-  const fieldName = errorFieldMap[firstErrorKey] || firstErrorKey;
-  errorElement = document.querySelector(`input[name="${fieldName}"]`) ||
-                 document.querySelector(`[name="${fieldName}"]`) ||
-                 document.querySelector(`label:contains("${firstErrorKey}")`);
-  
-  // If not found, try finding by error message
-  if (!errorElement) {
-    const errorTexts = document.querySelectorAll('.MuiFormHelperText-root.Mui-error');
-    if (errorTexts.length > 0) {
-      errorElement = errorTexts[0].closest('.MuiFormControl-root') || errorTexts[0];
+
+  console.log(formErrors, "form errors");
+
+  // Function to scroll to the first error
+  const scrollToFirstError = (errors) => {
+    const errorFieldMap = {
+      roomName: "roomName",
+      roomSize: "roomSize",
+      numberRoom: "numberRoom",
+      beds: "beds",
+      floorBedding: "FloorBedding",
+      baseAdults: "baseAdults",
+      maximumAdults: "maximumAdults",
+      maximumChildren: "maximumChildren",
+      bathroomCount: "bathroomCount",
+      bathroomType: "bathroomType",
+      mealPlan: "mealPlan",
+      baseAdultsCharge: "baseAdultsCharge",
+      extraFloorBeddingCharge: "extraFloorBeddingCharge",
+      childCharge: "childCharge",
+      availability: "availability",
+    };
+
+    // Find the first error key
+    const firstErrorKey = Object.keys(errors)[0];
+
+    // Try to find the element by various methods
+    let errorElement = null;
+
+    // Try finding by label text
+    const fieldName = errorFieldMap[firstErrorKey] || firstErrorKey;
+    errorElement =
+      document.querySelector(`input[name="${fieldName}"]`) ||
+      document.querySelector(`[name="${fieldName}"]`) ||
+      document.querySelector(`label:contains("${firstErrorKey}")`);
+
+    // If not found, try finding by error message
+    if (!errorElement) {
+      const errorTexts = document.querySelectorAll(
+        ".MuiFormHelperText-root.Mui-error",
+      );
+      if (errorTexts.length > 0) {
+        errorElement =
+          errorTexts[0].closest(".MuiFormControl-root") || errorTexts[0];
+      }
     }
-  }
-  
-  // Scroll to element
-  if (errorElement) {
-    errorElement.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center'
-    });
-    
-    // Focus the input if possible
-    const inputElement = errorElement.querySelector('input, textarea, select');
-    if (inputElement) {
-      setTimeout(() => inputElement.focus(), 300);
+
+    // Scroll to element
+    if (errorElement) {
+      errorElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      // Focus the input if possible
+      const inputElement = errorElement.querySelector(
+        "input, textarea, select",
+      );
+      if (inputElement) {
+        setTimeout(() => inputElement.focus(), 300);
+      }
+    } else {
+      // Fallback: scroll to top of form
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
     }
-  } else {
-    // Fallback: scroll to top of form
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  }
-  
-  // Show validation error message
-  setValidationError('Please fill in all required fields correctly.');
-};
+
+    // Show validation error message
+    setValidationError("Please fill in all required fields correctly.");
+  };
 
   const handleAddRoom = async () => {
     if (!validateRoomData()) return;
 
     setIsSubmitting(true);
-    console.log(propertyId)
+    console.log(propertyId);
     try {
-      console.log(propertyId)
-      const result = await dispatch(addRooms({
-        id: propertyId,
-        data: currentRoomData
-      })).unwrap();
+      console.log(propertyId);
+      const result = await dispatch(
+        addRooms({
+          id: propertyId,
+          data: currentRoomData,
+        }),
+      ).unwrap();
 
-      console.log(result.room)
+      console.log(result.room);
       setIsComplete(true);
 
       if (result.room) {
-        const roomID = result.room._id
+        const roomID = result.room._id;
         // localStorage.setItem('roomID', roomID)
         // Room created successfully, now move to media upload step
         setCurrentRoomId(roomID);
@@ -419,26 +539,24 @@ const scrollToFirstError = (errors) => {
         const updatedRooms = [...localRooms, result.room];
         setLocalRooms(updatedRooms);
         onAddRoom(updatedRooms);
-
       }
-      
     } catch (error) {
-      console.error('Failed to add room:', error);
-      setValidationError('Failed to create room. Please try again.');
+      console.error("Failed to add room:", error);
+      setValidationError("Failed to create room. Please try again.");
     } finally {
       // setIsSubmitting(false);
     }
   };
 
   // Media upload functions
-const handleFileSelect = async (event) => {
+  const handleFileSelect = async (event) => {
     const files = Array.from(event.target.files);
 
-    setValidationError('');
+    setValidationError("");
     if (files.length > 20) {
-      setValidationError('You can upload maximum 20 files at once');
+      setValidationError("You can upload maximum 20 files at once");
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
       return;
     }
@@ -446,55 +564,64 @@ const handleFileSelect = async (event) => {
     if (files.length === 0) return;
 
     const formData = new FormData();
-    files.forEach(file => {
-      formData.append('media', file);
+    files.forEach((file) => {
+      formData.append("media", file);
     });
 
-    setIsFileSubmiting(true)
+    setIsFileSubmiting(true);
     try {
-      const result = await dispatch(uploadRoomMedia({
-        propertyId,
-        roomId: currentRoomId,
-        formData
-      })).unwrap();
+      const result = await dispatch(
+        uploadRoomMedia({
+          propertyId,
+          roomId: currentRoomId,
+          formData,
+        }),
+      ).unwrap();
 
-      setCurrentRoomData(result.room)
+      setCurrentRoomData(result.room);
 
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
-
     } catch (error) {
-      console.log(error.message)
-      console.error('Upload failed:', error);
-      
+      console.log(error.message);
+      console.error("Upload failed:", error);
+
       // Handle validation errors from the response
       if (error.invalidFiles && error.invalidFiles.length > 0) {
         // Create a user-friendly error message from invalidFiles
-        const fileErrors = error.invalidFiles.map(file => 
-          `${file.filename}: ${file.error}`
-        ).join('\n');
-        
+        const fileErrors = error.invalidFiles
+          .map((file) => `${file.filename}: ${file.error}`)
+          .join("\n");
+
         setValidationError(`Upload failed:\n${fileErrors}`);
       } else {
         // Fallback error message
-        setValidationError(error.message || 'Failed to upload media. Please try again.');
+        setValidationError(
+          error.message || "Failed to upload media. Please try again.",
+        );
       }
     } finally {
-      setIsFileSubmiting(false)
+      setIsFileSubmiting(false);
     }
-};
+  };
   const handleDeleteMedia = async (mediaId) => {
-    if (!currentRoomId || !window.confirm('Are you sure you want to delete this media item?')) return;
+    if (
+      !currentRoomId ||
+      !window.confirm("Are you sure you want to delete this media item?")
+    )
+      return;
 
     try {
-      await dispatch(deleteRoomMediaItem({
-        propertyId,
-        roomId: currentRoomId,
-        mediaId
-      })).unwrap();
+      await dispatch(
+        deleteRoomMediaItem({
+          propertyId,
+          roomId: currentRoomId,
+          mediaId,
+        }),
+      ).unwrap();
     } catch (error) {
-      console.error('Delete failed:', error);
+      console.error("Delete failed:", error);
     }
   };
 
@@ -502,35 +629,37 @@ const handleFileSelect = async (event) => {
     setEditingMedia({
       ...mediaItem,
       roomId: currentRoomId,
-      tags: mediaItem.tags || []
+      tags: mediaItem.tags || [],
     });
     setEditDialog(true);
   };
 
   const handleSaveEdit = async () => {
     if (!editingMedia || !editingMedia.tags || editingMedia.tags.length === 0) {
-      alert('Please select at least one tag before saving.');
+      alert("Please select at least one tag before saving.");
       return;
     }
 
     try {
-      const result = await dispatch(updateRoomMediaItem({
-        propertyId,
-        roomId: currentRoomId,
-        mediaId: editingMedia._id,
-        data: {
-          tags: editingMedia.tags,
-          isCover: editingMedia.isCover,
-          displayOrder: editingMedia.displayOrder
-        }
-      })).unwrap();
+      const result = await dispatch(
+        updateRoomMediaItem({
+          propertyId,
+          roomId: currentRoomId,
+          mediaId: editingMedia._id,
+          data: {
+            tags: editingMedia.tags,
+            isCover: editingMedia.isCover,
+            displayOrder: editingMedia.displayOrder,
+          },
+        }),
+      ).unwrap();
 
-      setCurrentRoomData(result.room)
+      setCurrentRoomData(result.room);
 
       setEditDialog(false);
       setEditingMedia(null);
     } catch (error) {
-      console.error('Update failed:', error);
+      console.error("Update failed:", error);
     }
   };
 
@@ -541,18 +670,17 @@ const handleFileSelect = async (event) => {
     const isSelected = currentTags.includes(tag);
 
     if (isSelected) {
-      setEditingMedia(prev => ({
+      setEditingMedia((prev) => ({
         ...prev,
-        tags: prev.tags.filter(t => t !== tag)
+        tags: prev.tags.filter((t) => t !== tag),
       }));
     } else {
-      setEditingMedia(prev => ({
+      setEditingMedia((prev) => ({
         ...prev,
-        tags: [...prev.tags, tag]
+        tags: [...prev.tags, tag],
       }));
     }
   };
-
 
   const handleUpdateRoom = async () => {
     if (!validateRoomData()) return;
@@ -561,14 +689,16 @@ const handleFileSelect = async (event) => {
       const roomToUpdate = localRooms[editingRoomIndex];
       const roomId = roomToUpdate._id || roomToUpdate.id;
 
-      const result = await dispatch(updateRoom({
-        id: propertyId,
-        roomId: roomId,
-        data: currentRoomData
-      })).unwrap();
-       setIsComplete(true);
-      if (result.type.endsWith('/fulfilled')) {
-        console.log("in the condition....")
+      const result = await dispatch(
+        updateRoom({
+          id: propertyId,
+          roomId: roomId,
+          data: currentRoomData,
+        }),
+      ).unwrap();
+      setIsComplete(true);
+      if (result.type.endsWith("/fulfilled")) {
+        console.log("in the condition....");
         const updatedRooms = [...localRooms];
         updatedRooms[editingRoomIndex] = currentRoomData;
         setLocalRooms(updatedRooms);
@@ -578,10 +708,9 @@ const handleFileSelect = async (event) => {
         setEditingRoomIndex(-1);
         setCurrentRoomData(getInitialRoomData());
         setFormErrors({});
-        
       }
     } catch (error) {
-      console.error('Failed to update room:', error);
+      console.error("Failed to update room:", error);
     }
   };
 
@@ -591,17 +720,18 @@ const handleFileSelect = async (event) => {
 
     if (roomId && propertyId) {
       try {
-        const result = await dispatch(deleteRoom({
-          propertyId,
-          roomId
-        })).unwrap();
+        const result = await dispatch(
+          deleteRoom({
+            propertyId,
+            roomId,
+          }),
+        ).unwrap();
 
         setLocalRooms(result.property.rooms);
-        console.log(localRooms, "handle Room delete clicked ")
+        console.log(localRooms, "handle Room delete clicked ");
         onAddRoom(result.property.rooms);
-
       } catch (error) {
-        console.error('Failed to delete room:', error);
+        console.error("Failed to delete room:", error);
       }
     } else {
       const updatedRooms = localRooms.filter((_, i) => i !== index);
@@ -612,15 +742,26 @@ const handleFileSelect = async (event) => {
 
   const handleEditRoom = (index) => {
     const roomToEdit = localRooms[index];
-    const roomId = roomToEdit._id || roomToEdit.id;
-    setCurrentRoomId(roomId)
-    setCurrentRoomData(roomToEdit);
+    setCurrentRoomId(roomToEdit._id || roomToEdit.id);
+
+    // Deep clone the object to break references and handle Mongoose Maps
+    const sanitizedRoomData = JSON.parse(JSON.stringify(roomToEdit));
+
+    setCurrentRoomData({
+      ...getInitialRoomData(),
+      ...sanitizedRoomData,
+      // Ensure amenities object exists with all required categories
+      amenities: {
+        ...getInitialRoomData().amenities,
+        ...(sanitizedRoomData.amenities || {}),
+      },
+    });
+
     setEditingRoomIndex(index);
     setIsEditingRoom(true);
     setIsAddingRoom(true);
     setIsComplete(false);
   };
-
 
   const handleCancelForm = () => {
     setIsAddingRoom(false);
@@ -631,59 +772,93 @@ const handleFileSelect = async (event) => {
     setFormErrors({});
     setSelectedAmenityTab(0);
     setCurrentRoomId(null);
-    setValidationError('');
+    setValidationError("");
   };
 
+  const handleAddNewForm = () => {
+    // 1. Immediately set to true (or false, depending on your logic)
+    setIsAddingRoom(false);
+    setIsEditingRoom(false);
+    setIsComplete(false);
+    setEditingRoomIndex(-1);
+    setCurrentRoomData(getInitialRoomData());
+    setFormErrors({});
+    setSelectedAmenityTab(0);
+    setCurrentRoomId(null);
+    setValidationError("");
+
+    // 2. Wait for 1000ms (1 second)
+    setTimeout(() => {
+      // 3. Set it back to false
+      setIsAddingRoom(true);
+    }, 1000);
+  };
 
   // Tag Group Card Component
   const TagGroupCard = ({ tag, mediaItems }) => {
     const firstImage = mediaItems[0];
-    const imageCount = mediaItems.filter(item => item.type === 'image').length;
-    const videoCount = mediaItems.filter(item => item.type === 'video').length;
+    const imageCount = mediaItems.filter(
+      (item) => item.type === "image",
+    ).length;
+    const videoCount = mediaItems.filter(
+      (item) => item.type === "video",
+    ).length;
 
     return (
       <Card
         sx={{
           width: 280,
           height: 200,
-          position: 'relative',
-          cursor: 'pointer',
-          border: '1px solid #e0e0e0',
+          position: "relative",
+          cursor: "pointer",
+          border: "1px solid #e0e0e0",
           borderRadius: 2,
-          overflow: 'hidden',
-          '&:hover': {
-            transform: 'scale(1.02)',
-            transition: 'transform 0.2s ease-in-out',
-            boxShadow: 3
-          }
+          overflow: "hidden",
+          "&:hover": {
+            transform: "scale(1.02)",
+            transition: "transform 0.2s ease-in-out",
+            boxShadow: 3,
+          },
         }}
-       
       >
-        {firstImage.type === 'image' ? (
+        {firstImage.type === "image" ? (
           <CardMedia
             component="img"
             image={`${firstImage.url}`}
             alt={firstImage.filename}
-            sx={{ width: '100%', height: '70%', objectFit: 'cover' }}
+            sx={{ width: "100%", height: "70%", objectFit: "cover" }}
           />
         ) : (
           <video
             src={`${firstImage.url}`}
-            style={{ width: '100%', height: '70%', objectFit: 'cover' }}
-            muted loop autoPlay preload="metadata"
+            style={{ width: "100%", height: "70%", objectFit: "cover" }}
+            muted
+            loop
+            autoPlay
+            preload="metadata"
           />
         )}
 
-        <CardContent sx={{ height: '30%', p: 1.5 }}>
+        <CardContent sx={{ height: "30%", p: 1.5 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
             {tag}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: "flex", gap: 1 }}>
             {imageCount > 0 && (
-              <Chip label={`${imageCount} Images`} size="small" color="primary" variant="outlined" />
+              <Chip
+                label={`${imageCount} Images`}
+                size="small"
+                color="primary"
+                variant="outlined"
+              />
             )}
             {videoCount > 0 && (
-              <Chip label={`${videoCount} Videos`} size="small" color="secondary" variant="outlined" />
+              <Chip
+                label={`${videoCount} Videos`}
+                size="small"
+                color="secondary"
+                variant="outlined"
+              />
             )}
           </Box>
         </CardContent>
@@ -692,10 +867,14 @@ const handleFileSelect = async (event) => {
           badgeContent={mediaItems.length}
           color="primary"
           sx={{
-            position: 'absolute',
+            position: "absolute",
             top: 8,
             right: 8,
-            '& .MuiBadge-badge': { fontSize: '0.75rem', minWidth: 20, height: 20 }
+            "& .MuiBadge-badge": {
+              fontSize: "0.75rem",
+              minWidth: 20,
+              height: 20,
+            },
           }}
         />
       </Card>
@@ -718,7 +897,8 @@ const handleFileSelect = async (event) => {
         </Typography>
 
         <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-          Upload photos and videos for this room. Each media item must have at least one tag.
+          Upload photos and videos for this room. Each media item must have at
+          least one tag.
         </Typography>
 
         {validationError && (
@@ -728,7 +908,14 @@ const handleFileSelect = async (event) => {
         )}
 
         {/* Upload Section */}
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box
+          sx={{
+            mb: 3,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <div></div>
           <Box>
             <input
@@ -737,7 +924,7 @@ const handleFileSelect = async (event) => {
               multiple
               accept="image/*,video/*"
               onChange={handleFileSelect}
-              style={{ display: 'none' }}
+              style={{ display: "none" }}
             />
             <Button
               variant="contained"
@@ -746,7 +933,15 @@ const handleFileSelect = async (event) => {
               disabled={!isSubmitting && !isEditingRoom}
             >
               {console.log(isEditingRoom, "isEdting room")}
-              {!isSubmitting ? (isEditingRoom ? 'Upload Files' : "Save Room to upload media") : (isEditingRoom ? 'Upload Files' : (isFileSubmiting ? 'Uploading...' : 'Upload Files'))}
+              {!isSubmitting
+                ? isEditingRoom
+                  ? "Upload Files"
+                  : "Save Room to upload media"
+                : isEditingRoom
+                  ? "Upload Files"
+                  : isFileSubmiting
+                    ? "Uploading..."
+                    : "Upload Files"}
             </Button>
           </Box>
         </Box>
@@ -789,31 +984,42 @@ const handleFileSelect = async (event) => {
                     sx={{
                       width: 200,
                       height: 150,
-                      position: 'relative',
-                      cursor: 'pointer',
-                      border: '2px solid #f44336',
+                      position: "relative",
+                      cursor: "pointer",
+                      border: "2px solid #f44336",
                       borderRadius: 2,
-                      overflow: 'hidden',
-                      '&:hover': {
-                        transform: 'scale(1.02)',
-                        transition: 'transform 0.2s ease-in-out',
-                        boxShadow: 3
-                      }
+                      overflow: "hidden",
+                      "&:hover": {
+                        transform: "scale(1.02)",
+                        transition: "transform 0.2s ease-in-out",
+                        boxShadow: 3,
+                      },
                     }}
                     onClick={() => handleEditMedia(mediaItem)}
                   >
-                    {mediaItem.type === 'image' ? (
+                    {mediaItem.type === "image" ? (
                       <CardMedia
                         component="img"
                         image={`${mediaItem.url}`}
                         alt={mediaItem.filename}
-                        sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
                       />
                     ) : (
                       <video
                         src={`${mediaItem.url}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        muted loop autoPlay preload="metadata"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                        muted
+                        loop
+                        autoPlay
+                        preload="metadata"
                       />
                     )}
                     <Chip
@@ -821,11 +1027,11 @@ const handleFileSelect = async (event) => {
                       color="error"
                       size="small"
                       sx={{
-                        position: 'absolute',
+                        position: "absolute",
                         top: 8,
                         left: 8,
-                        fontSize: '0.7rem',
-                        height: 20
+                        fontSize: "0.7rem",
+                        height: 20,
                       }}
                     />
                   </Card>
@@ -838,231 +1044,239 @@ const handleFileSelect = async (event) => {
         {/* Status Alerts */}
         {totalMedia.length === 0 && (
           <Alert severity="info">
-            No media uploaded for this room yet. Upload some photos and videos to showcase this room.
+            No media uploaded for this room yet. Upload some photos and videos
+            to showcase this room.
           </Alert>
         )}
 
         {untaggedItems.length > 0 && (
           <Alert severity="warning" sx={{ mt: 2 }}>
-            {untaggedItems.length} media item(s) need tags. Click on items with red borders to add tags.
+            {untaggedItems.length} media item(s) need tags. Click on items with
+            red borders to add tags.
           </Alert>
         )}
       </Box>
     );
   };
 
-
-
   const bedTypes = [
-    'Single Bed', 'Double Bed', 'Queen Bed', 'King Bed', 'Bunk Bed',
-    'Sofa Bed', 'Couch', 'Floor Mattress', 'Air Mattress', 'Crib'
+    "Single Bed",
+    "Double Bed",
+    "Queen Bed",
+    "King Bed",
+    "Bunk Bed",
+    "Sofa Bed",
+    "Couch",
+    "Floor Mattress",
+    "Air Mattress",
+    "Crib",
   ];
 
   const handleRoomChange = (field, value) => {
-    setCurrentRoomData(prev => ({
+    setCurrentRoomData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleBathroomTypeChange = (type, checked) => {
     if (checked) {
       // If checking one, uncheck the other
-      setCurrentRoomData(prev => ({
+      setCurrentRoomData((prev) => ({
         ...prev,
         bathrooms: {
           ...prev.bathrooms,
-          private: type === 'private',
-          shared: type === 'shared'
-        }
+          private: type === "private",
+          shared: type === "shared",
+        },
       }));
     }
     // If unchecking, we don't allow it (at least one must be selected)
   };
 
-const handleNestedChange = (section, field, value) => {
-  setCurrentRoomData(prev => {
-    const updated = {
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
+  const handleNestedChange = (section, field, value) => {
+    setCurrentRoomData((prev) => {
+      const updatedSection = { ...prev[section], [field]: value };
+      const updatedRoom = { ...prev, [section]: updatedSection };
+
+      // Recalculate occupancy if floor bedding changes
+      if (section === "FloorBedding") {
+        updatedRoom.occupancy.maximumOccupancy = calculateMaxOccupancy(
+          updatedRoom.beds,
+          updatedSection,
+        );
       }
-    };
+      return updatedRoom;
+    });
+  };
 
-    // If updating occupancy fields, recalculate maximumOccupancy
-    if (section === 'occupancy' && ['maximumAdults', 'maximumChildren'].includes(field)) {
-      updated.occupancy.maximumOccupancy = 
-        (field === 'maximumAdults' ? value : updated.occupancy.maximumAdults) + 
-        (field === 'maximumChildren' ? value : updated.occupancy.maximumChildren);
-    }
-
-    return updated;
-  });
-};
-
-
-
+  const handleBedChange = (index, field, value) => {
+    setCurrentRoomData((prev) => {
+      const updatedBeds = [...prev.beds];
+      updatedBeds[index] = { ...updatedBeds[index], [field]: value };
+      return {
+        ...prev,
+        beds: updatedBeds,
+        occupancy: {
+          ...prev.occupancy,
+          maximumOccupancy: calculateMaxOccupancy(
+            updatedBeds,
+            prev.FloorBedding,
+          ), // Recalculate
+        },
+      };
+    });
+  };
 
   const handleRoomAmenityChange = (category, amenityName, updates) => {
-    const key = amenityName.replace(/[^a-zA-Z0-9]/g, '');
+    const key = amenityName.replace(/[^a-zA-Z0-9]/g, "");
 
-    setCurrentRoomData(prev => ({
+    setCurrentRoomData((prev) => ({
       ...prev,
       amenities: {
         ...prev.amenities,
         [category]: {
           ...prev.amenities[category],
-          [key]: updates
-        }
-      }
+          [key]: updates,
+        },
+      },
     }));
   };
-
-
-const handleBedChange = (index, field, value) => {
-  const updatedBeds = [...currentRoomData.beds];
-  updatedBeds[index] = { ...updatedBeds[index], [field]: value };
-
-  setCurrentRoomData(prev => ({
-    ...prev,
-    beds: updatedBeds
-    // No occupancy update needed here anymore
-  }));
-};
 
   const addBed = () => {
-    setCurrentRoomData(prev => ({
+    setCurrentRoomData((prev) => ({
       ...prev,
-      beds: [...prev.beds, { bedType: '', count: 1, accommodates: 1 }]
+      beds: [...prev.beds, { bedType: "", count: 1, accommodates: 1 }],
     }));
   };
 
-const removeBed = (index) => {
-  if (currentRoomData.beds.length <= 1) return;
+  const removeBed = (index) => {
+    if (currentRoomData.beds.length <= 1) return;
 
-  const updatedBeds = currentRoomData.beds.filter((_, i) => i !== index);
+    const updatedBeds = currentRoomData.beds.filter((_, i) => i !== index);
 
-  setCurrentRoomData(prev => ({
-    ...prev,
-    beds: updatedBeds
-    // No occupancy update needed here anymore
-  }));
-};
-
-
-  const handleDuplicateRoom = async (index) => {
-    if (!window.confirm('Do you want to duplicate this room? Media will not be copied.')) {
-    return;
-  }
-  const roomToDuplicate = localRooms[index];
-  
-  // Create a deep copy of the room data, excluding the _id and media
-  const duplicatedRoomData = {
-    ...roomToDuplicate,
-    roomName: `${roomToDuplicate.roomName} (Copy)`,
-    numberRoom: roomToDuplicate.numberRoom,
-    roomSize: roomToDuplicate.roomSize,
-    sizeUnit: roomToDuplicate.sizeUnit,
-    description: roomToDuplicate.description,
-    beds: [...roomToDuplicate.beds],
-    FloorBedding: { ...roomToDuplicate.FloorBedding },
-    alternativeBeds: [...(roomToDuplicate.alternativeBeds || [])],
-    occupancy: { ...roomToDuplicate.occupancy },
-    bathrooms: { ...roomToDuplicate.bathrooms },
-    mealPlan: { ...roomToDuplicate.mealPlan },
-    pricing: { ...roomToDuplicate.pricing },
-    availability: roomToDuplicate.availability.map(avail => ({ ...avail })),
-    amenities: JSON.parse(JSON.stringify(roomToDuplicate.amenities)) // Deep copy
+    setCurrentRoomData((prev) => ({
+      ...prev,
+      beds: updatedBeds,
+      // No occupancy update needed here anymore
+    }));
   };
 
-  // Remove fields that shouldn't be duplicated
-  delete duplicatedRoomData._id;
-  delete duplicatedRoomData.id;
-  delete duplicatedRoomData.media;
-  delete duplicatedRoomData.createdAt;
-  delete duplicatedRoomData.updatedAt;
-
-  setIsSubmitting(true);
-  
-  try {
-    const result = await dispatch(addRooms({
-      id: propertyId,
-      data: duplicatedRoomData
-    })).unwrap();
-
-    if (result.room) {
-      // Update local rooms
-      const updatedRooms = [...localRooms, result.room];
-      setLocalRooms(updatedRooms);
-      onAddRoom(updatedRooms);
-      
-      // Optionally show success message
-      setValidationError('');
+  const handleDuplicateRoom = async (index) => {
+    if (
+      !window.confirm(
+        "Do you want to duplicate this room? Media will not be copied.",
+      )
+    ) {
+      return;
     }
-  } catch (error) {
-    console.error('Failed to duplicate room:', error);
-    setValidationError('Failed to duplicate room. Please try again.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    const roomToDuplicate = localRooms[index];
 
+    // Create a deep copy of the room data, excluding the _id and media
+    const duplicatedRoomData = {
+      ...roomToDuplicate,
+      roomName: `${roomToDuplicate.roomName} (Copy)`,
+      numberRoom: roomToDuplicate.numberRoom,
+      roomSize: roomToDuplicate.roomSize,
+      sizeUnit: roomToDuplicate.sizeUnit,
+      description: roomToDuplicate.description,
+      beds: [...roomToDuplicate.beds],
+      FloorBedding: { ...roomToDuplicate.FloorBedding },
+      alternativeBeds: [...(roomToDuplicate.alternativeBeds || [])],
+      occupancy: { ...roomToDuplicate.occupancy },
+      bathrooms: { ...roomToDuplicate.bathrooms },
+      mealPlan: { ...roomToDuplicate.mealPlan },
+      pricing: { ...roomToDuplicate.pricing },
+      availability: roomToDuplicate.availability.map((avail) => ({ ...avail })),
+      amenities: JSON.parse(JSON.stringify(roomToDuplicate.amenities)), // Deep copy
+    };
+
+    // Remove fields that shouldn't be duplicated
+    delete duplicatedRoomData._id;
+    delete duplicatedRoomData.id;
+    delete duplicatedRoomData.media;
+    delete duplicatedRoomData.createdAt;
+    delete duplicatedRoomData.updatedAt;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await dispatch(
+        addRooms({
+          id: propertyId,
+          data: duplicatedRoomData,
+        }),
+      ).unwrap();
+
+      if (result.room) {
+        // Update local rooms
+        const updatedRooms = [...localRooms, result.room];
+        setLocalRooms(updatedRooms);
+        onAddRoom(updatedRooms);
+
+        // Optionally show success message
+        setValidationError("");
+      }
+    } catch (error) {
+      console.error("Failed to duplicate room:", error);
+      setValidationError("Failed to duplicate room. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Main render logic
   if (isAddingRoom) {
-
-
-
     // Room details step - render your existing room form here
     return (
       <Paper className="p-4 mb-4">
         <Typography variant="h6" gutterBottom>
-          {isEditingRoom ? 'Edit Room' : 'Add New Room'}
+          {isEditingRoom ? "Edit Room" : "Add New Room"}
         </Typography>
 
-
-
         {/* Edit Media Dialog */}
-        <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="lg" fullWidth>
-          <DialogTitle>
-            Edit Media Tags
-          </DialogTitle>
+        <Dialog
+          open={editDialog}
+          onClose={() => setEditDialog(false)}
+          maxWidth="lg"
+          fullWidth
+        >
+          <DialogTitle>Edit Media Tags</DialogTitle>
           <DialogContent>
             {editingMedia && (
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                  {editingMedia.type === 'image' ? (
+                  {editingMedia.type === "image" ? (
                     <img
                       src={`${editingMedia.url}`}
                       alt={editingMedia.filename}
                       style={{
-                        width: '100%',
-                        height: '400px',
-                        objectFit: 'cover',
-                        borderRadius: '8px'
+                        width: "100%",
+                        height: "400px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
                       }}
                     />
                   ) : (
                     <video
                       src={`${editingMedia.url}`}
                       style={{
-                        width: '100%',
-                        height: '400px',
-                        objectFit: 'cover',
-                        borderRadius: '8px'
+                        width: "100%",
+                        height: "400px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
                       }}
                       controls
                     />
                   )}
-                   <Button
-                                        variant="outlined"
-                                        color="error"
-                                        startIcon={<Delete />}
-                                        onClick={() => handleDeleteMedia(editingMedia._id)}
-                                      >
-                                        Delete
-                                      </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<Delete />}
+                    onClick={() => handleDeleteMedia(editingMedia._id)}
+                  >
+                    Delete
+                  </Button>
                 </Grid>
 
                 <Grid item xs={12} md={6}>
@@ -1070,27 +1284,29 @@ const removeBed = (index) => {
                     Tags Added
                   </Typography>
 
-                  <Box sx={{
-                    mb: 2,
-                    minHeight: 60,
-                    border: `1px solid ${(!editingMedia.tags || editingMedia.tags.length === 0) ? '#f44336' : '#e0e0e0'}`,
-                    borderRadius: 1,
-                    p: 2,
-                    bgcolor: '#f9f9f9',
-                    display: 'flex',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: 1
-                  }}>
+                  <Box
+                    sx={{
+                      mb: 2,
+                      minHeight: 60,
+                      border: `1px solid ${!editingMedia.tags || editingMedia.tags.length === 0 ? "#f44336" : "#e0e0e0"}`,
+                      borderRadius: 1,
+                      p: 2,
+                      bgcolor: "#f9f9f9",
+                      display: "flex",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: 1,
+                    }}
+                  >
                     {editingMedia.tags.length > 0 ? (
                       editingMedia.tags.map((tag) => (
                         <Chip
                           key={tag}
                           label={tag}
                           onDelete={() => {
-                            setEditingMedia(prev => ({
+                            setEditingMedia((prev) => ({
                               ...prev,
-                              tags: prev.tags.filter(t => t !== tag)
+                              tags: prev.tags.filter((t) => t !== tag),
                             }));
                           }}
                           deleteIcon={<Close />}
@@ -1112,26 +1328,37 @@ const removeBed = (index) => {
                     value={customTag}
                     onChange={(e) => setCustomTag(e.target.value)}
                     onKeyPress={(e) => {
-                      if (e.key === 'Enter' && customTag.trim() && !editingMedia.tags.includes(customTag.trim())) {
-                        setEditingMedia(prev => ({
+                      if (
+                        e.key === "Enter" &&
+                        customTag.trim() &&
+                        !editingMedia.tags.includes(customTag.trim())
+                      ) {
+                        setEditingMedia((prev) => ({
                           ...prev,
-                          tags: [...prev.tags, customTag.trim()]
+                          tags: [...prev.tags, customTag.trim()],
                         }));
-                        setCustomTag('');
+                        setCustomTag("");
                       }
                     }}
                     sx={{ mb: 2 }}
                   />
 
-                  <Box sx={{
-                    maxHeight: 300,
-                    overflow: 'auto',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: 1
-                  }}>
+                  <Box
+                    sx={{
+                      maxHeight: 300,
+                      overflow: "auto",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: 1,
+                    }}
+                  >
                     <List>
                       {availableRoomTags.map((tag) => (
-                        <ListItem key={tag} dense button onClick={() => handleTagToggle(tag)}>
+                        <ListItem
+                          key={tag}
+                          dense
+                          button
+                          onClick={() => handleTagToggle(tag)}
+                        >
                           <ListItemIcon>
                             <Checkbox
                               edge="start"
@@ -1143,18 +1370,19 @@ const removeBed = (index) => {
                         </ListItem>
                       ))}
                     </List>
-                    
                   </Box>
                 </Grid>
-                
               </Grid>
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => {
-              setEditDialog(false);
-             
-            }}>Back</Button>
+            <Button
+              onClick={() => {
+                setEditDialog(false);
+              }}
+            >
+              Back
+            </Button>
             <Button
               onClick={handleSaveEdit}
               variant="contained"
@@ -1171,10 +1399,9 @@ const removeBed = (index) => {
           {/* Basic Room Details - Same as before */}
           <Grid item size={{ xs: 12, md: 6 }}>
             <TextField
-            name="roomName"
+              name="roomName"
               sx={{
                 "& .MuiOutlinedInput-root": {
-
                   "& .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#2e2e2e",
                   },
@@ -1187,7 +1414,6 @@ const removeBed = (index) => {
                     color: "#2e2e2e",
                     "&.Mui-focused": {
                       color: "secondary.main",
-
                     },
                   },
                 },
@@ -1195,7 +1421,7 @@ const removeBed = (index) => {
               fullWidth
               label="Room Name *"
               value={currentRoomData.roomName}
-              onChange={(e) => handleRoomChange('roomName', e.target.value)}
+              onChange={(e) => handleRoomChange("roomName", e.target.value)}
               error={!!formErrors.roomName}
               helperText={formErrors.roomName}
               className="mb-4"
@@ -1204,10 +1430,9 @@ const removeBed = (index) => {
             <Grid container spacing={2}>
               <Grid item size={{ xs: 8 }}>
                 <TextField
-                name="roomSize"
+                  name="roomSize"
                   sx={{
                     "& .MuiOutlinedInput-root": {
-
                       "& .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#2e2e2e",
                       },
@@ -1220,45 +1445,54 @@ const removeBed = (index) => {
                         color: "#2e2e2e",
                         "&.Mui-focused": {
                           color: "secondary.main",
-
                         },
                       },
-                    }, marginTop: '10px'
+                    },
+                    marginTop: "10px",
                   }}
                   fullWidth
                   label="Room Size *"
                   type="number"
+                  slotProps={{
+                    htmlInput: {
+                      onWheel: (e) => e.currentTarget.blur(),
+                    },
+                  }}
                   value={currentRoomData.roomSize}
-                  onChange={(e) => handleRoomChange('roomSize', e.target.value)}
+                  onChange={(e) => handleRoomChange("roomSize", e.target.value)}
                   error={!!formErrors.roomSize}
                   helperText={formErrors.roomSize}
                 />
               </Grid>
               <Grid item xs={4}>
-                <FormControl sx={{
-                  "& .MuiOutlinedInput-root": {
-
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
-                    },
-                    "&.Mui-focused": {
+                <FormControl
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
                       "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
+                        borderColor: "#2e2e2e",
                       },
-                    },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
                       "&.Mui-focused": {
-                        color: "secondary.main",
-
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#1976d2",
+                        },
+                      },
+                      "& .MuiInputLabel-outlined": {
+                        color: "#2e2e2e",
+                        "&.Mui-focused": {
+                          color: "secondary.main",
+                        },
                       },
                     },
-                  }, marginTop: '10px'
-                }} fullWidth>
+                    marginTop: "10px",
+                  }}
+                  fullWidth
+                >
                   <InputLabel>Unit</InputLabel>
                   <Select
                     value={currentRoomData.sizeUnit}
-                    onChange={(e) => handleRoomChange('sizeUnit', e.target.value)}
+                    onChange={(e) =>
+                      handleRoomChange("sizeUnit", e.target.value)
+                    }
                     label="Unit"
                   >
                     <MenuItem value="sqft">sq ft</MenuItem>
@@ -1273,7 +1507,6 @@ const removeBed = (index) => {
             <TextField
               sx={{
                 "& .MuiOutlinedInput-root": {
-
                   "& .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#2e2e2e",
                   },
@@ -1286,7 +1519,6 @@ const removeBed = (index) => {
                     color: "#2e2e2e",
                     "&.Mui-focused": {
                       color: "secondary.main",
-
                     },
                   },
                 },
@@ -1296,82 +1528,103 @@ const removeBed = (index) => {
               multiline
               rows={4}
               value={currentRoomData.description}
-              onChange={(e) => handleRoomChange('description', e.target.value)}
+              onChange={(e) => handleRoomChange("description", e.target.value)}
               className="mb-4"
             />
           </Grid>
 
           {/* Bed Configuration - Same as before */}
           <Grid item size={{ xs: 12 }}>
-            <Typography variant="subtitle1" gutterBottom>Bed Configuration *</Typography>
+            <Typography variant="subtitle1" gutterBottom>
+              Bed Configuration *
+            </Typography>
 
             {currentRoomData.beds.map((bed, index) => (
-              <Grid container spacing={2} key={index} className="mb-3 items-end">
+              <Grid
+                container
+                spacing={2}
+                key={index}
+                className="mb-3 items-end"
+              >
                 <Grid item size={{ xs: 12 }} sm={4}>
-                  <FormControl sx={{
-                    "& .MuiOutlinedInput-root": {
-
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
+                  <FormControl
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
                         "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
+                          borderColor: "#2e2e2e",
                         },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
                         "&.Mui-focused": {
-                          color: "secondary.main",
-
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#1976d2",
+                          },
+                        },
+                        "& .MuiInputLabel-outlined": {
+                          color: "#2e2e2e",
+                          "&.Mui-focused": {
+                            color: "secondary.main",
+                          },
                         },
                       },
-                    },
-                  }} fullWidth error={!!formErrors.beds?.[index]?.bedType}>
+                    }}
+                    fullWidth
+                    error={!!formErrors.beds?.[index]?.bedType}
+                  >
                     <InputLabel>Bed Type *</InputLabel>
                     <Select
-                     name='beds'
+                      name="beds"
                       value={bed.bedType}
-                      onChange={(e) => handleBedChange(index, 'bedType', e.target.value)}
+                      onChange={(e) =>
+                        handleBedChange(index, "bedType", e.target.value)
+                      }
                       label="Bed Type *"
                     >
-                      {bedTypes.map(type => (
-                        <MenuItem key={type} value={type}>{type}</MenuItem>
+                      {bedTypes.map((type) => (
+                        <MenuItem key={type} value={type}>
+                          {type}
+                        </MenuItem>
                       ))}
                     </Select>
                     {formErrors.beds?.[index]?.bedType && (
-                      <FormHelperText>{formErrors.beds[index].bedType}</FormHelperText>
+                      <FormHelperText>
+                        {formErrors.beds[index].bedType}
+                      </FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
 
                 <Grid item size={{ xs: 12, md: 3 }}>
-                  <TextField sx={{
-                    "& .MuiOutlinedInput-root": {
-
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
+                  <TextField
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
                         "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
+                          borderColor: "#2e2e2e",
                         },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
                         "&.Mui-focused": {
-                          color: "secondary.main",
-
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#1976d2",
+                          },
+                        },
+                        "& .MuiInputLabel-outlined": {
+                          color: "#2e2e2e",
+                          "&.Mui-focused": {
+                            color: "secondary.main",
+                          },
                         },
                       },
-                    },
-                  }}
-                    name='beds'
+                    }}
+                    name="beds"
                     fullWidth
                     label="Number of Beds(of this type) *"
                     type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                     value={bed.count}
-                    onChange={(e) => handleBedChange(index, 'count', parseInt(e.target.value))}
+                    onChange={(e) =>
+                      handleBedChange(index, "count", parseInt(e.target.value))
+                    }
                     error={!!formErrors.beds?.[index]?.count}
                     helperText={formErrors.beds?.[index]?.count}
                     InputProps={{ inputProps: { min: 1 } }}
@@ -1379,38 +1632,53 @@ const removeBed = (index) => {
                 </Grid>
 
                 <Grid item size={{ xs: 12, md: 3 }}>
-                  <TextField sx={{
-                    "& .MuiOutlinedInput-root": {
-
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
+                  <TextField
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
                         "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
+                          borderColor: "#2e2e2e",
                         },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
                         "&.Mui-focused": {
-                          color: "secondary.main",
-
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#1976d2",
+                          },
+                        },
+                        "& .MuiInputLabel-outlined": {
+                          color: "#2e2e2e",
+                          "&.Mui-focused": {
+                            color: "secondary.main",
+                          },
                         },
                       },
-                    },
-                  }}
+                    }}
                     fullWidth
                     label="Accommodates *"
                     type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                     value={bed.accommodates}
-                    onChange={(e) => handleBedChange(index, 'accommodates', parseInt(e.target.value))}
+                    onChange={(e) =>
+                      handleBedChange(
+                        index,
+                        "accommodates",
+                        parseInt(e.target.value),
+                      )
+                    }
                     error={!!formErrors.beds?.[index]?.accommodates}
                     helperText={formErrors.beds?.[index]?.accommodates}
                     InputProps={{ inputProps: { min: 1 } }}
                   />
                 </Grid>
 
-                <Grid item size={{ xs: 12 }} sm={2} className="flex justify-end">
+                <Grid
+                  item
+                  size={{ xs: 12 }}
+                  sm={2}
+                  className="flex justify-end"
+                >
                   <IconButton
                     color="error"
                     onClick={() => removeBed(index)}
@@ -1434,14 +1702,37 @@ const removeBed = (index) => {
 
           {/* Bed Configuration - Same as before */}
           <Grid item size={{ xs: 12 }}>
-            <Typography variant="subtitle1" gutterBottom>Number of rooms (of this type) *</Typography>
+            <Typography variant="subtitle1" gutterBottom>
+              Number of rooms (of this type) *
+            </Typography>
 
             <Grid item size={{ xs: 4 }}>
               <TextField
-              name="numberRoom"
+                name="numberRoom"
+                label="Number of rooms (of this type) *"
+                type="number"
+                fullWidth
+                value={currentRoomData.numberRoom}
+                onChange={(e) => handleRoomChange("numberRoom", e.target.value)}
+                error={!!formErrors.numberRoom}
+                helperText={formErrors.numberRoom}
+                slotProps={{
+                  htmlInput: {
+                    onWheel: (e) => e.currentTarget.blur(),
+                  },
+                }}
                 sx={{
+                  marginTop: "10px",
+                  "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                    {
+                      display: "none",
+                      appearance: "none",
+                      margin: 0,
+                    },
+                  "& input[type=number]": {
+                    MozAppearance: "textfield",
+                  },
                   "& .MuiOutlinedInput-root": {
-
                     "& .MuiOutlinedInput-notchedOutline": {
                       borderColor: "#2e2e2e",
                     },
@@ -1454,101 +1745,131 @@ const removeBed = (index) => {
                       color: "#2e2e2e",
                       "&.Mui-focused": {
                         color: "secondary.main",
-
                       },
                     },
-                  }, marginTop: '10px'
+                  },
                 }}
-                fullWidth
-                label="Number of rooms (of this type) *"
-                type="number"
-                value={currentRoomData.numberRoom}
-                onChange={(e) => handleRoomChange('numberRoom', e.target.value)}
-                error={!!formErrors.numberRoom}
-                helperText={formErrors.numberRoom}
               />
             </Grid>
-
           </Grid>
 
           <FormControlLabel
             control={
               <Checkbox
                 checked={currentRoomData.FloorBedding.available}
-                onChange={(e) => handleNestedChange('FloorBedding', 'available', e.target.checked)}
+                onChange={(e) =>
+                  handleNestedChange(
+                    "FloorBedding",
+                    "available",
+                    e.target.checked,
+                  )
+                }
               />
             }
             label="Floor Bedding (Gaddi)"
           />
 
-          {currentRoomData.FloorBedding.available && (<Grid item size={{ xs: 12, md: 6 }}>
-            <TextField sx={{
-              "& .MuiOutlinedInput-root": {
-
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#2e2e2e",
-                },
-                "&.Mui-focused": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1976d2",
-                  },
-                },
-                "& .MuiInputLabel-outlined": {
-                  color: "#2e2e2e",
-                  "&.Mui-focused": {
-                    color: "secondary.main",
-
-                  },
-                },
-              },
-            }}
-              fullWidth
-              label="How many?"
-              type="number"
-              value={currentRoomData.FloorBedding.count}
-              onChange={(e) => handleNestedChange('FloorBedding', 'count', parseInt(e.target.value))}
-              InputProps={{ inputProps: { min: 0 } }}
-            />
-          </Grid>)}
+          {currentRoomData.FloorBedding.available && (
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Number of Gaddi"
+                  type="number"
+                  slotProps={{
+                    htmlInput: {
+                      onWheel: (e) => e.currentTarget.blur(),
+                    },
+                  }}
+                  value={currentRoomData.FloorBedding.count}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "FloorBedding",
+                      "count",
+                      parseInt(e.target.value),
+                    )
+                  }
+                />
+              </Grid>
+              {/* NEW BOX: People per floor bedding */}
+              <Grid item xs={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="People per Gaddi *"
+                  type="number"
+                  slotProps={{
+                    htmlInput: {
+                      onWheel: (e) => e.currentTarget.blur(),
+                    },
+                  }}
+                  value={currentRoomData.FloorBedding.peoplePerFloorBedding}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "FloorBedding",
+                      "peoplePerFloorBedding",
+                      parseInt(e.target.value),
+                    )
+                  }
+                  error={!!formErrors.peoplePerFloorBedding}
+                />
+              </Grid>
+            </Grid>
+          )}
 
           {/* Occupancy, Bathroom, Meal Plan sections - Same as before */}
           <Grid item size={{ xs: 12 }}>
             <Divider className="my-3" />
-            <Typography sx={{ marginTop: "5px" }} variant="subtitle1" gutterBottom>Occupancy</Typography>
+            <Typography
+              sx={{ marginTop: "5px" }}
+              variant="subtitle1"
+              gutterBottom
+            >
+              Occupancy
+            </Typography>
 
             <Grid container spacing={3}>
               <Grid sx={{ marginTop: "10px" }} item size={{ xs: 12, md: 6 }}>
-                <TextField sx={{
-                  "& .MuiOutlinedInput-root": {
-
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
-                    },
-                    "&.Mui-focused": {
+                <TextField
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
                       "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
+                        borderColor: "#2e2e2e",
                       },
-                    },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
                       "&.Mui-focused": {
-                        color: "secondary.main",
-
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#1976d2",
+                        },
+                      },
+                      "& .MuiInputLabel-outlined": {
+                        color: "#2e2e2e",
+                        "&.Mui-focused": {
+                          color: "secondary.main",
+                        },
                       },
                     },
-                  },
-                }}
+                  }}
                   fullWidth
                   label="Base Adults *"
                   type="number"
+                  slotProps={{
+                    htmlInput: {
+                      onWheel: (e) => e.currentTarget.blur(),
+                    },
+                  }}
                   value={currentRoomData.occupancy?.baseAdults}
-                  onChange={(e) => handleNestedChange('occupancy', 'baseAdults', parseInt(e.target.value))}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "occupancy",
+                      "baseAdults",
+                      parseInt(e.target.value),
+                    )
+                  }
                   InputProps={{ inputProps: { min: 1 } }}
                 />
               </Grid>
 
-              <Grid item size={{ xs: 12, md: 6 }}>
-                <TextField sx={{
+              {/* <Grid item size={{ xs: 12, md: 6 }}> */}
+              {/* <TextField sx={{
                   "& .MuiOutlinedInput-root": {
 
                     "& .MuiOutlinedInput-notchedOutline": {
@@ -1571,14 +1892,19 @@ const removeBed = (index) => {
                   fullWidth
                   label="Maximum Adults *"
                   type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.occupancy.maximumAdults}
                   onChange={(e) => handleNestedChange('occupancy', 'maximumAdults', parseInt(e.target.value))}
                   InputProps={{ inputProps: { min: 1 } }}
-                />
-              </Grid>
+                /> */}
+              {/* </Grid> */}
 
-              <Grid item size={{ xs: 12, md: 6 }}>
-                <TextField sx={{
+              {/* <Grid item size={{ xs: 12, md: 6 }}> */}
+              {/* <TextField sx={{
                   "& .MuiOutlinedInput-root": {
 
                     "& .MuiOutlinedInput-notchedOutline": {
@@ -1601,54 +1927,21 @@ const removeBed = (index) => {
                   fullWidth
                   label="Maximum Children"
                   type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.occupancy?.maximumChildren}
                   onChange={(e) => handleNestedChange('occupancy', 'maximumChildren', parseInt(e.target.value))}
                   InputProps={{ inputProps: { min: 0 } }}
-                />
-              </Grid>
+                /> */}
+              {/* </Grid> */}
 
-              <Grid item size={{ xs: 12, md: 6 }}>
-                <TextField sx={{
-                  "& .MuiOutlinedInput-root": {
-
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
-                    },
-                    "&.Mui-focused": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
-                      },
-                    },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
-                      "&.Mui-focused": {
-                        color: "secondary.main",
-
-                      },
-                    },
-                  },
-                }}
-                  fullWidth
-                  label="Maximum Occupancy"
-                  type="number"
-                  value={currentRoomData.occupancy?.maximumOccupancy}
-                  InputProps={{ readOnly: true }}
-                  helperText=""
-                />
-              </Grid>
-            </Grid>
-          </Grid>
-
-          {/* Bathroom */}
-          <Grid item size={{ xs: 12, md: 6 }}>
-            <Typography variant="subtitle1" gutterBottom>Bathroom</Typography>
-
-            <Grid container spacing={2}>
-              <Grid sx={{ marginTop: "10px" }} item xs={6}>
+              <Grid item size={{ xs: 12, md: 6 }} sx={{ marginTop: "10px" }}>
                 <TextField
                   sx={{
                     "& .MuiOutlinedInput-root": {
-
                       "& .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#2e2e2e",
                       },
@@ -1661,7 +1954,49 @@ const removeBed = (index) => {
                         color: "#2e2e2e",
                         "&.Mui-focused": {
                           color: "secondary.main",
+                        },
+                      },
+                    },
+                  }}
+                  fullWidth
+                  label="Maximum Occupancy"
+                  type="number"
+                  slotProps={{
+                    htmlInput: {
+                      onWheel: (e) => e.currentTarget.blur(),
+                    },
+                  }}
+                  value={currentRoomData.occupancy?.maximumOccupancy}
+                  InputProps={{ readOnly: true }}
+                  helperText=""
+                />
+              </Grid>
+            </Grid>
+          </Grid>
 
+          {/* Bathroom */}
+          <Grid item size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Bathroom
+            </Typography>
+
+            <Grid container spacing={2}>
+              <Grid sx={{ marginTop: "10px" }} item xs={6}>
+                <TextField
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#2e2e2e",
+                      },
+                      "&.Mui-focused": {
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#1976d2",
+                        },
+                      },
+                      "& .MuiInputLabel-outlined": {
+                        color: "#2e2e2e",
+                        "&.Mui-focused": {
+                          color: "secondary.main",
                         },
                       },
                     },
@@ -1669,8 +2004,19 @@ const removeBed = (index) => {
                   fullWidth
                   label="Bathroom Count *"
                   type="number"
+                  slotProps={{
+                    htmlInput: {
+                      onWheel: (e) => e.currentTarget.blur(),
+                    },
+                  }}
                   value={currentRoomData.bathrooms.count}
-                  onChange={(e) => handleNestedChange('bathrooms', 'count', parseInt(e.target.value))}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "bathrooms",
+                      "count",
+                      parseInt(e.target.value),
+                    )
+                  }
                   InputProps={{ inputProps: { min: 0 } }}
                 />
               </Grid>
@@ -1681,21 +2027,26 @@ const removeBed = (index) => {
                     control={
                       <Checkbox
                         checked={currentRoomData.bathrooms.private}
-                        onChange={(e) => handleBathroomTypeChange('private', e.target.checked)}
+                        onChange={(e) =>
+                          handleBathroomTypeChange("private", e.target.checked)
+                        }
                       />
                     }
                     label="Private Bathroom"
                   />
                   {formErrors.bathroomType && (
-                      <FormHelperText error>{formErrors.bathroomType}</FormHelperText>
-                    )}
-
+                    <FormHelperText error>
+                      {formErrors.bathroomType}
+                    </FormHelperText>
+                  )}
 
                   <FormControlLabel
                     control={
                       <Checkbox
                         checked={currentRoomData.bathrooms.shared}
-                        onChange={(e) => handleBathroomTypeChange('shared', e.target.checked)}
+                        onChange={(e) =>
+                          handleBathroomTypeChange("shared", e.target.checked)
+                        }
                       />
                     }
                     label="Shared Bathroom"
@@ -1707,60 +2058,77 @@ const removeBed = (index) => {
 
           {/* Meal Plan */}
           <Grid item size={{ xs: 12, md: 6 }}>
-            <Typography variant="subtitle1" gutterBottom>Meal Plan</Typography>
+            <Typography variant="subtitle1" gutterBottom>
+              Meal Plan
+            </Typography>
 
             <FormControlLabel
               control={
                 <Checkbox
                   checked={currentRoomData.mealPlan.available}
-                  onChange={(e) => handleNestedChange('mealPlan', 'available', e.target.checked)}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "mealPlan",
+                      "available",
+                      e.target.checked,
+                    )
+                  }
                 />
               }
               label="Meal Plan Available"
             />
             {formErrors.mealPlan && (
-        <FormHelperText error>{formErrors.mealPlan}</FormHelperText>
-      )}
-
+              <FormHelperText error>{formErrors.mealPlan}</FormHelperText>
+            )}
 
             {currentRoomData.mealPlan.available && (
-              <FormControl sx={{
-                "& .MuiOutlinedInput-root": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#2e2e2e",
-                  },
-                  "&.Mui-focused": {
+              <FormControl
+                sx={{
+                  "& .MuiOutlinedInput-root": {
                     "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#1976d2",
+                      borderColor: "#2e2e2e",
                     },
-                  },
-                  "& .MuiInputLabel-outlined": {
-                    color: "#2e2e2e",
                     "&.Mui-focused": {
-                      color: "secondary.main",
-
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#1976d2",
+                      },
+                    },
+                    "& .MuiInputLabel-outlined": {
+                      color: "#2e2e2e",
+                      "&.Mui-focused": {
+                        color: "secondary.main",
+                      },
                     },
                   },
-                },
-              }} fullWidth>
+                }}
+                fullWidth
+              >
                 <InputLabel>Meal</InputLabel>
                 <Select
                   value={currentRoomData.mealPlan.planType}
-                  onChange={(e) => handleNestedChange('mealPlan', 'planType', e.target.value)}
+                  onChange={(e) =>
+                    handleNestedChange("mealPlan", "planType", e.target.value)
+                  }
                   label="Plan Type"
                 >
-                  <MenuItem value="Accommodation only">Accommodation only</MenuItem>
+                  <MenuItem value="Accommodation only">
+                    Accommodation only
+                  </MenuItem>
                   <MenuItem value="Free Breakfast">Free Breakfast</MenuItem>
-                  <MenuItem value="Free Breakfast and Lunch/Dinner">Free Breakfast and Lunch/Dinner</MenuItem>
-                  <MenuItem value="Free Breakfast Lunch And Dinner">Free Breakfast Lunch And Dinner </MenuItem>
-                  <MenuItem value="Free Cooked Breakfast">Free Cooked Breakfast </MenuItem>
-                  <MenuItem value="Free Breakfast, Lunch, Dinner">Free Breakfast, Lunch, Dinner And Custom Inclusion</MenuItem>
-                  <MenuItem value="Free Breakfast And Lunch">Free Breakfast And Lunch </MenuItem>
-                  <MenuItem value="Free Breakfast And Dinner">Free Breakfast And Dinner </MenuItem>
-                  <MenuItem value="Free Lunch">Free Lunch </MenuItem>
-                  <MenuItem value="Free Dinner">Free Dinner </MenuItem>
-                  <MenuItem value="Free  Lunch and Dinner">Free  Lunch and Dinner </MenuItem>
-
+                  <MenuItem value="Free Breakfast + Lunch">
+                    Free Breakfast + Lunch
+                  </MenuItem>
+                  <MenuItem value="Free Breakfast + Dinner">
+                    Free Breakfast + Dinner{" "}
+                  </MenuItem>
+                  <MenuItem value="Free Lunch">Free Lunch</MenuItem>
+                  <MenuItem value="Free Dinner">Free Dinner</MenuItem>
+                  <MenuItem value="Free Lunch + Dinner">
+                    Free Lunch + Dinner{" "}
+                  </MenuItem>
+                  <MenuItem value="Free Breakfast + Lunch + Dinner">
+                    Free Breakfast + Lunch + Dinner{" "}
+                  </MenuItem>
                 </Select>
               </FormControl>
             )}
@@ -1769,75 +2137,102 @@ const removeBed = (index) => {
           {/* Pricing */}
           <Grid item size={{ xs: 12 }}>
             <Divider className="my-3" />
-            <Typography sx={{ marginTop: "10px" }} variant="subtitle1" gutterBottom>Pricing</Typography>
+            <Typography
+              sx={{ marginTop: "10px" }}
+              variant="subtitle1"
+              gutterBottom
+            >
+              Pricing
+            </Typography>
 
             <Grid container spacing={3}>
               <Grid sx={{ marginTop: "10px" }} item size={{ xs: 12 }} md={4}>
-                <TextField sx={{
-                  "& .MuiOutlinedInput-root": {
-
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
-                    },
-                    "&.Mui-focused": {
+                <TextField
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
                       "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
+                        borderColor: "#2e2e2e",
                       },
-                    },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
                       "&.Mui-focused": {
-                        color: "secondary.main",
-
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#1976d2",
+                        },
+                      },
+                      "& .MuiInputLabel-outlined": {
+                        color: "#2e2e2e",
+                        "&.Mui-focused": {
+                          color: "secondary.main",
+                        },
                       },
                     },
-                  },
-                }}
-                  name='baseAdultsCharge'
+                  }}
+                  name="baseAdultsCharge"
                   fullWidth
                   label="Base Price (per night) *"
                   type="number"
+                  slotProps={{
+                    htmlInput: {
+                      onWheel: (e) => e.currentTarget.blur(),
+                    },
+                  }}
                   value={currentRoomData.pricing?.baseAdultsCharge}
-                  onChange={(e) => handleNestedChange('pricing', 'baseAdultsCharge', parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "pricing",
+                      "baseAdultsCharge",
+                      parseFloat(e.target.value),
+                    )
+                  }
                   error={!!formErrors.baseAdultsCharge}
                   helperText={formErrors.baseAdultsCharge}
-                  InputProps={{ startAdornment: '₹' }}
+                  InputProps={{ startAdornment: "₹" }}
                 />
               </Grid>
 
               <Grid item size={{ xs: 12 }} md={4}>
-                <TextField sx={{
-                  "& .MuiOutlinedInput-root": {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
-                    },
-                    "&.Mui-focused": {
+                <TextField
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
                       "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
+                        borderColor: "#2e2e2e",
                       },
-                    },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
                       "&.Mui-focused": {
-                        color: "secondary.main",
-
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#1976d2",
+                        },
+                      },
+                      "& .MuiInputLabel-outlined": {
+                        color: "#2e2e2e",
+                        "&.Mui-focused": {
+                          color: "secondary.main",
+                        },
                       },
                     },
-                  },
-                }}
-                 name='extraAdultsCharge'
+                  }}
+                  name="extraFloorBeddingCharge"
                   fullWidth
-                  label="Extra Adult Charge"
+                  label="Extra Floor Bedding (Gaddi) Charge"
                   type="number"
-                  value={currentRoomData.pricing?.extraAdultsCharge}
-                  onChange={(e) => handleNestedChange('pricing', 'extraAdultsCharge', parseFloat(e.target.value))}
-                  InputProps={{ startAdornment: '₹' }}
-                  error={!!formErrors.extraAdultsCharge}
-                  helperText={formErrors.extraAdultsCharge}
+                  slotProps={{
+                    htmlInput: {
+                      onWheel: (e) => e.currentTarget.blur(),
+                    },
+                  }}
+                  value={currentRoomData.pricing?.extraFloorBeddingCharge}
+                  onChange={(e) =>
+                    handleNestedChange(
+                      "pricing",
+                      "extraFloorBeddingCharge",
+                      parseFloat(e.target.value),
+                    )
+                  }
+                  InputProps={{ startAdornment: "₹" }}
+                  error={!!formErrors.extraFloorBeddingCharge}
+                  helperText={formErrors.extraFloorBeddingCharge}
                 />
               </Grid>
 
-              <Grid item size={{ xs: 12 }} md={4}>
+              {/* <Grid item size={{ xs: 12 }} md={4}>
                 <TextField sx={{
                   "& .MuiOutlinedInput-root": {
                     "& .MuiOutlinedInput-notchedOutline": {
@@ -1861,32 +2256,43 @@ const removeBed = (index) => {
                   fullWidth
                   label="Child Charge"
                   type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                   value={currentRoomData.pricing?.childCharge}
                   onChange={(e) => handleNestedChange('pricing', 'childCharge', parseFloat(e.target.value))}
                   InputProps={{ startAdornment: '₹' }}
                   error={!!formErrors.childCharge}
                   helperText={formErrors.childCharge}
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
           </Grid>
         </Grid>
 
+        <Divider className="my-3" />
 
         {/* Room Amenities */}
-        <RoomsAmenities roomAmenityCategories={roomAmenityCategories} currentRoomData={currentRoomData} selectedAmenityTab={selectedAmenityTab} setSelectedAmenityTab={setSelectedAmenityTab} handleRoomAmenityChange={handleRoomAmenityChange} />
-        <div className='my-5'>{renderMediaUploadStep()}</div>
+        <RoomsAmenities
+          roomAmenityCategories={roomAmenityCategories}
+          currentRoomData={currentRoomData}
+          selectedAmenityTab={selectedAmenityTab}
+          setSelectedAmenityTab={setSelectedAmenityTab}
+          handleRoomAmenityChange={handleRoomAmenityChange}
+        />
 
         <div className="flex justify-end mt-4 gap-2">
           <Button
             variant="outlined"
-            onClick={()=>{
-              handleCancelForm()
+            onClick={() => {
+              handleCancelForm();
             }}
           >
             Back
           </Button>
-          
+
           {/* <Button
             variant="contained"
             color="primary"
@@ -1897,19 +2303,44 @@ const removeBed = (index) => {
           </Button> */}
 
           <Button
-          variant="contained"
-          color="primary"
-          disabled={ isSubmitting }
-          onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
-        >
-          {isEditingRoom ? 'Update Room' : 'Save Room'}
-        </Button>
+            variant="contained"
+            color="primary"
+            disabled={isSubmitting}
+            onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
+          >
+            {isEditingRoom ? "Update Room" : "Save Room"}
+          </Button>
         </div>
+
+        <div className="my-5">{renderMediaUploadStep()}</div>
+
+        {!isEditingRoom && (
+          <div className="flex justify-end mt-4 gap-2">
+            <Button
+              variant="outlined"
+              onClick={() => {
+                handleAddNewForm();
+              }}
+            >
+              Add New Room
+            </Button>
+
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={localRooms.length == 0}
+              onClick={() => {
+                dispatch(completeRoomsStep(propertyId));
+                onComplete?.();
+              }}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </Paper>
     );
   }
-
-
 
   // Room list view - your existing room list JSX
   return (
@@ -1919,7 +2350,6 @@ const removeBed = (index) => {
       </Typography>
 
       <div className="mb-6">
-
         <Grid container spacing={3}>
           {localRooms.map((room, index) => (
             <Grid item size={{ xs: 12, md: 6 }} key={index}>
@@ -1928,40 +2358,48 @@ const removeBed = (index) => {
                   <div className="flex justify-between items-center mb-2">
                     <Typography variant="h6">{room.roomName}</Typography>
                     <div className="flex gap-1">
-                       <IconButton
-            size="small"
-            color="primary"
-            onClick={() => handleEditRoom(index)}
-            title="Edit Room"
-          >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            size="small"
-            color="secondary"
-            onClick={() => handleDuplicateRoom(index)}
-            disabled={isSubmitting}
-            title="Duplicate Room"
-          >
-            <ContentCopy />
-          </IconButton>
-          <IconButton
-            size="small"
-            color="error"
-            onClick={() => handleDeleteRoom(index)}
-            title="Delete Room"
-          >
-            <DeleteIcon />
-          </IconButton>
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => handleEditRoom(index)}
+                        title="Edit Room"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="secondary"
+                        onClick={() => handleDuplicateRoom(index)}
+                        disabled={isSubmitting}
+                        title="Duplicate Room"
+                      >
+                        <ContentCopy />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteRoom(index)}
+                        title="Delete Room"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
                     </div>
                   </div>
 
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
                     {room.roomSize} {room.sizeUnit}
                   </Typography>
 
                   {room.description && (
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
                       {room.description}
                     </Typography>
                   )}
@@ -1970,28 +2408,36 @@ const removeBed = (index) => {
 
                   <div className="space-y-1">
                     <Typography variant="body2">
-                      <strong>Beds:</strong> {room.beds?.map(bed =>
-                        `${bed.count}x ${bed.bedType} (${bed.accommodates} guests)`
-                      ).join(', ')}
+                      <strong>Beds:</strong>{" "}
+                      {room.beds
+                        ?.map(
+                          (bed) =>
+                            `${bed.count}x ${bed.bedType} (${bed.accommodates} guests)`,
+                        )
+                        .join(", ")}
                     </Typography>
 
                     <Typography variant="body2">
-                      <strong>Occupancy:</strong> {room.occupancy?.baseAdults}-{room.occupancy?.maximumAdults} adults
-                      {room.occupancy?.maximumChildren > 0 && `, up to ${room.occupancy.maximumChildren} children`}
+                      <strong>Occupancy:</strong> {room.occupancy?.baseAdults}{" "}
+                      adults
+                      {room.occupancy?.maximumChildren > 0 &&
+                        `, up to ${room.occupancy.maximumChildren} children`}
                       {` (max ${room.occupancy?.maximumOccupancy} total)`}
                     </Typography>
 
                     <Typography variant="body2">
                       <strong>Bathroom:</strong> {room.bathrooms.count}
-                      {room.bathrooms.private ? ' private' : ' shared'}
+                      {room.bathrooms.private ? " private" : " shared"}
                     </Typography>
 
                     <Typography variant="body2">
-                      <strong>Price:</strong> ₹{room.pricing?.baseAdultsCharge} per night
+                      <strong>Price:</strong> ₹{room.pricing?.baseAdultsCharge}{" "}
+                      per night
                     </Typography>
 
                     <Typography variant="body2">
-                      <strong>Availability:</strong> {room.availability?.length || 0} period(s)
+                      <strong>Availability:</strong>{" "}
+                      {room.availability?.length || 0} period(s)
                     </Typography>
                   </div>
                 </CardContent>
@@ -2001,7 +2447,7 @@ const removeBed = (index) => {
         </Grid>
       </div>
 
-      <div className='flex justify-between'>
+      <div className="flex justify-between">
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -2014,8 +2460,8 @@ const removeBed = (index) => {
           disabled={localRooms.length == 0}
           variant="contained"
           onClick={() => {
-            dispatch(completeRoomsStep(propertyId))
-            onComplete?.()
+            dispatch(completeRoomsStep(propertyId));
+            onComplete?.();
           }}
           sx={{ mt: 2 }}
         >

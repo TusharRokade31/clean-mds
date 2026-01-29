@@ -48,6 +48,7 @@ import {
   deleteCustomPolicy,
   completePrivacyPolicyStep,
 } from "@/redux/features/privacyPolicy/privacyPolicySlice";
+import toast, { Toaster } from "react-hot-toast"; // Add this line
 
 // Styled components for custom styling
 const StyledTabs = styled(Tabs)(({ theme }) => ({
@@ -81,6 +82,7 @@ function TabPanel({ children, value, index, ...other }) {
 
 const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
   const dispatch = useDispatch();
+  const [validationErrors, setValidationErrors] = useState({});
   const { currentPrivacyPolicy, privacyPolicyTemplate, isLoading, error } =
     useSelector((state) => state.privacyPolicy);
 
@@ -93,15 +95,15 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
     cancellationPolicy: "free_cancellation_checkin",
     propertyRules: {
       guestProfile: {
-        allowUnmarriedCouples: false,
-        allowGuestsBelow18: false,
-        allowOnlyMaleGuests: false,
+        allowUnmarriedCouples: undefined,
+        allowGuestsBelow18: undefined,
+        allowOnlyMaleGuests: undefined,
       },
       acceptableIdentityProofs: [],
     },
     propertyRestrictions: {
       nonVegetarianFood: {
-        allowed: true,
+        allowed: false,
         restrictions: "",
       },
       alcoholSmoking: {
@@ -112,11 +114,11 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
       },
       noiseRestrictions: {
         quietHours: {
-          enabled: true,
+          enabled: false,
           startTime: "10:00 PM",
           endTime: "7:00 AM",
         },
-        musicAllowed: true,
+        musicAllowed: false,
         partyAllowed: false,
         restrictions: "",
       },
@@ -218,121 +220,140 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
     }));
   };
 
-  const handleSave = async () => {
-    try {
+const handleSave = async () => {
+  try {
+    await dispatch(
+      createOrUpdatePrivacyPolicy({
+        propertyId,
+        data: formData,
+      })
+    ).unwrap();
+    toast.success("All changes saved successfully!");
+  } catch (error) {
+    toast.error("Failed to save all changes");
+  }
+};
+
+const handleSectionUpdate = async (section) => {
+  // Reset errors for this section initially
+  setValidationErrors({});
+
+  if (section === "propertyRules") {
+    const profile = formData.propertyRules?.guestProfile;
+    const identityProofs = formData.propertyRules?.acceptableIdentityProofs || [];
+    
+    let errors = {};
+    if (profile?.allowUnmarriedCouples === undefined) errors.allowUnmarriedCouples = true;
+    if (profile?.allowGuestsBelow18 === undefined) errors.allowGuestsBelow18 = true;
+    if (profile?.allowOnlyMaleGuests === undefined) errors.allowOnlyMaleGuests = true;
+    if (identityProofs.length === 0) errors.identityProofs = true;
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      toast.error("Please fill in all required property rules.");
+      return; // Stop here; highlighting happens via the state
+    }
+  }
+
+  try {
+
+    const sectionNames = {
+  checkInCheckOut: "Check-in & Check-out",
+  cancellationPolicy: "Cancellation Policy",
+  propertyRules: "Property Rules",
+  propertyRestrictions: "Property Restrictions",
+  petPolicy: "Pet Policy",
+  customPolicies: "Custom Policies",
+  mealPrices: "Meal Prices"
+};
+
+
+    let sectionData = section === "cancellationPolicy" ? formData.cancellationPolicy : formData[section];
+
+    await dispatch(
+      updatePrivacyPolicySection({
+        propertyId,
+        section,
+        data: sectionData,
+      })
+    ).unwrap();
+
+    // Use the custom name from the mapping
+const sectionName = sectionNames[section] || section;
+toast.success(`${sectionName} updated successfully!`);
+
+    if (activeTab < 6) {
+      setActiveTab((prev) => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  } catch (error) {
+    toast.error(`Failed to update ${section}`);
+  }
+};
+
+const handleAddCustomPolicy = async () => {
+  try {
+    if (!newCustomPolicy.title || !newCustomPolicy.description) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (editingPolicy) {
       await dispatch(
-        createOrUpdatePrivacyPolicy({
+        updateCustomPolicy({
           propertyId,
-          data: formData,
+          policyId: editingPolicy._id,
+          title: newCustomPolicy.title,
+          description: newCustomPolicy.description,
+          isActive: true,
         })
       ).unwrap();
-      alert("Privacy policy saved successfully!");
-    } catch (error) {
-      console.error("Save error:", error);
-      alert("Failed to save privacy policy");
+      toast.success("Custom policy updated!");
+    } else {
+      await dispatch(
+        addCustomPolicy({
+          propertyId,
+          title: newCustomPolicy.title,
+          description: newCustomPolicy.description,
+        })
+      ).unwrap();
+      toast.success("Custom policy added!");
     }
-  };
 
-  const handleSectionUpdate = async (section) => {
+    setCustomPolicyDialog(false);
+    setEditingPolicy(null);
+    setNewCustomPolicy({ title: "", description: "" });
+    
+    // Logic to move to the next section after custom policies are saved
+    // Note: Since users might want to add multiple policies, 
+    // you might prefer moving this to the "Save Custom Policies" button instead.
+  } catch (error) {
+    toast.error("Failed to save custom policy");
+  }
+};
+
+const handleDeleteCustomPolicy = async (policyId) => {
+  // Keeping window.confirm for safety, but using toast for the result
+  if (window.confirm("Are you sure you want to delete this policy?")) {
     try {
-      let sectionData;
-
-      if (section === "cancellationPolicy") {
-        // For cancellation policy, send the value directly
-        sectionData = formData.cancellationPolicy;
-        await dispatch(
-          updatePrivacyPolicySection({
-            propertyId,
-            section,
-            data: sectionData,
-          })
-        ).unwrap();
-      } else {
-        // For other sections, send the object
-        sectionData = formData[section];
-        await dispatch(
-          updatePrivacyPolicySection({
-            propertyId,
-            section,
-            data: sectionData,
-          })
-        ).unwrap();
-      }
-
-      alert(`${section} updated successfully!`);
+      await dispatch(deleteCustomPolicy({ propertyId, policyId })).unwrap();
+      toast.success("Policy deleted");
     } catch (error) {
-      console.error("Section update error:", error);
-      alert(`Failed to update ${section}`);
+      toast.error("Failed to delete policy");
     }
-  };
-
-  const handleAddCustomPolicy = async () => {
-    try {
-      if (!newCustomPolicy.title || !newCustomPolicy.description) {
-        alert("Please fill in all fields");
-        return;
-      }
-
-      if (editingPolicy) {
-        // Update existing policy
-        await dispatch(
-          updateCustomPolicy({
-            propertyId,
-            policyId: editingPolicy._id,
-            title: newCustomPolicy.title,
-            description: newCustomPolicy.description,
-            isActive: true,
-          })
-        ).unwrap();
-        alert("Custom policy updated successfully!");
-      } else {
-        // Add new policy
-        await dispatch(
-          addCustomPolicy({
-            propertyId,
-            title: newCustomPolicy.title,
-            description: newCustomPolicy.description,
-          })
-        ).unwrap();
-        alert("Custom policy added successfully!");
-      }
-
-      setCustomPolicyDialog(false);
-      setEditingPolicy(null);
-      setNewCustomPolicy({ title: "", description: "" });
-    } catch (error) {
-      console.error("Add/Update custom policy error:", error);
-      alert("Failed to save custom policy");
-    }
-  };
-
-  const handleDeleteCustomPolicy = async (policyId) => {
-    try {
-      if (window.confirm("Are you sure you want to delete this policy?")) {
-        await dispatch(
-          deleteCustomPolicy({
-            propertyId,
-            policyId,
-          })
-        ).unwrap();
-        alert("Custom policy deleted successfully!");
-      }
-    } catch (error) {
-      console.error("Delete custom policy error:", error);
-      alert("Failed to delete custom policy");
-    }
-  };
+  }
+};
 
   // completion handlers:
-  const handleCompleteStep = async () => {
-    try {
-      await dispatch(completePrivacyPolicyStep(propertyId)).unwrap();
-      onComplete?.();
-      alert("Finance & Legal step completed successfully!");
-    } catch (error) {
-      alert(`Validation errors:\n${error.errors?.join("\n") || error.message}`);
-    }
-  };
+const handleCompleteStep = async () => {
+  try {
+    await dispatch(completePrivacyPolicyStep(propertyId)).unwrap();
+    onComplete?.();
+    toast.success("Privacy Policy & Property Rules step completed!");
+  } catch (error) {
+    toast.error(error.errors?.[0] || error.message || "Validation failed");
+  }
+};
 
   const timeOptions = [
     "6:00 am",
@@ -398,6 +419,12 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
       description: "Guests can cancel for free up to 72 hours before check-in",
       hour: 28,
     },
+     {
+      value: "free_cancellation_custom",
+      label: "Free Cancellation Custom",
+      description: "Guests can cancel for free up to custom hours before check-in",
+      hour: 28,
+    },
     {
       value: "non_refundable",
       label: "Non Refundable",
@@ -424,8 +451,121 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
     );
   }
 
+  const guestProfile = formData.propertyRules?.guestProfile || {};
+
+  const RefundTimeline = () => (
+  <Box sx={{ mt: 2, mb: 4, ml: 4, maxWidth: 500 }}>
+    <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mb: 0.5, color: '#666' }}>
+      100% Refund
+    </Typography>
+    {/* Orange Bar with Ticks */}
+    <Box sx={{ height: 4, backgroundColor: '#f97316', borderRadius: 1, position: 'relative' }}>
+      <Box sx={{ position: 'absolute', left: 0, top: -3, height: 10, width: 2, backgroundColor: '#f97316' }} />
+      <Box sx={{ position: 'absolute', right: 0, top: -3, height: 10, width: 2, backgroundColor: '#f97316' }} />
+    </Box>
+    {/* Timeline Labels */}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+      <Typography sx={{ fontSize: '12px', fontWeight: 500, color: '#374151' }}>Booking Date</Typography>
+      <Typography sx={{ fontSize: '12px', fontWeight: 500, color: '#374151' }}>Check-in</Typography>
+    </Box>
+  </Box>
+);
+
+const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
+  // Determine split percentage based on selection to match the images
+  const getSplitConfig = () => {
+    switch (selectedOption.value) {
+      case "free_cancellation_checkin":
+        return { percent: 100, label: "" };
+      case "free_cancellation_24h":
+        return { percent: 70, label: "24 hours before check-in" };
+      case "free_cancellation_48h":
+        return { percent: 50, label: "48 hours before check-in" };
+      case "free_cancellation_72h":
+        return { percent: 40, label: "72 hours before check-in" };
+      case "free_cancellation_custom":
+        // Logic for custom hours (e.g., mapping 1-168 hours to 90%-10% of the bar)
+        const validHours = Math.min(120, Math.max(0, customHours));
+        const customPercent = Math.max(0, 100 - (validHours / 128) * 100); // Scale to fit within 0-100%
+        return { percent: customPercent, label: `${validHours} hours before check-in` };
+      case "non_refundable":
+        return { percent: 0, label: "" };
+      default:
+        return { percent: 100, label: "" };
+    }
+  };
+
+  const { percent, label } = getSplitConfig();
+  const isNonRefundable = selectedOption.value === "non_refundable";
+  const isTillCheckIn = selectedOption.value === "free_cancellation_checkin";
+
+  return (
+    <Box sx={{ mt: 1.5, mb: 2, ml: 4, maxWidth: 700, bgcolor: '#f9f9f9', p: 2, borderRadius: '4px' }}>
+      {/* Warning for Non-refundable state (Match Image 3) */}
+      {isNonRefundable && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+          <span style={{ fontSize: '14px', color: '#666' }}>🔘</span>
+          <Typography variant="caption" sx={{ color: '#666', fontSize: '12px' }}>
+            Offer a free cancellation policy as it helps travellers book in advance.
+          </Typography>
+        </Box>
+      )}
+
+      {/* Top Labels: Refundable vs Non-refundable */}
+      <Box sx={{ display: 'flex', mb: 0.5, fontSize: '12px', color: '#666' }}>
+        {!isNonRefundable && (
+          <Box sx={{ flex: percent, textAlign: 'center' }}>100% Refund</Box>
+        )}
+        {!isTillCheckIn && (
+          <Box sx={{ flex: 100 - percent, textAlign: 'center' }}>Non-refundable</Box>
+        )}
+      </Box>
+
+      {/* The Segmented Bar (Dynamic Colors) */}
+      <Box sx={{ height: 6, display: 'flex', alignItems: 'center', position: 'relative' }}>
+        {/* Orange Segment */}
+        {!isNonRefundable && (
+          <Box sx={{ height: 4, width: `${percent}%`, bgcolor: '#f97316', borderLeft: '2px solid #f97316' }} />
+        )}
+        {/* Grey Segment */}
+        {!isTillCheckIn && (
+          <Box sx={{ height: 4, width: `${100 - percent}%`, bgcolor: '#d1d5db', borderRight: '2px solid #d1d5db' }} />
+        )}
+        {/* Split Marker (The vertical tick) */}
+        {!isNonRefundable && !isTillCheckIn && (
+          <Box sx={{ position: 'absolute', left: `${percent}%`, height: 12, width: 2, bgcolor: '#9ca3af', zIndex: 2 }} />
+        )}
+      </Box>
+
+      {/* Bottom Labels: Dates and Dynamic Hours */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, position: 'relative', minHeight: '25px' }}>
+        <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#374151' }}>Booking Date</Typography>
+        
+        {/* The Dynamic Hour Label (Matches dynamic hour requirement) */}
+        {label && (
+          <Typography sx={{ 
+            fontSize: '11px', 
+            color: '#374151', 
+            position: 'absolute', 
+            left: `${percent}%`, 
+            transform: 'translateX(-50%)',
+            textAlign: 'center',
+            width: '120px',
+            lineHeight: 1.2
+          }}>
+            {label}
+          </Typography>
+        )}
+        
+        <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#374151', textAlign: 'right' }}>Check-in</Typography>
+      </Box>
+    </Box>
+  );
+};
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
+      <Toaster position="top-right" />
       <Card className="shadow-lg">
         <CardContent className="p-6">
           {/* Header */}
@@ -559,7 +699,7 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
                 </FormControl>
               </div>
 
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              {/* <div className="flex items-center justify-between p-4 border rounded-lg">
                 <Typography variant="body1" className="text-gray-800">
                   Do you have 24-hour check-in?
                 </Typography>
@@ -574,7 +714,7 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
                   }
                   color="primary"
                 />
-              </div>
+              </div> */}
 
               <Button
                 variant="outlined"
@@ -588,289 +728,103 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
           </TabPanel>
 
           {/* Cancellation Policy Tab */}
-          <TabPanel value={activeTab} index={1}>
-            <div className="space-y-6">
-              <div>
-                <Typography
-                  variant="h6"
-                  className="font-semibold text-gray-800 mb-2"
-                >
-                  Cancellation Policy
-                </Typography>
-                <Typography variant="body2" className="text-gray-600 mb-4">
-                  Offering a flexible cancellation policy helps travellers book
-                  in advance.
-                </Typography>
-              </div>
+      <TabPanel value={activeTab} index={1}>
+  <div className="space-y-4">
+    <div>
+      <Typography variant="h6" className="font-semibold text-gray-800">
+        Cancellation Policy
+      </Typography>
+      <Typography variant="body2" className="text-gray-400 mb-6">
+        Offering a flexible cancellation policy helps traveller book in advance.
+      </Typography>
+    </div>
 
-              <FormControl component="fieldset" className="w-full">
-                <RadioGroup
-                  value={
-                    formData.cancellationPolicy || "free_cancellation_checkin"
-                  }
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      cancellationPolicy: e.target.value,
-                    }))
-                  }
-                  className="space-y-3"
-                >
-                  {cancellationOptions.slice(0, -1).map((option) => (
-                    <Paper
-                      key={option.value}
-                      className={`p-4 border-2 transition-all duration-200 cursor-pointer ${
-                        formData.cancellationPolicy === option.value
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200 hover:border-blue-300 hover:bg-blue-25"
-                      }`}
-                      elevation={0}
-                    >
-                      <FormControlLabel
-                        value={option.value}
-                        control={<Radio color="primary" />}
-                        label={
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center">
-                              {/* Icon based on policy type */}
-                              <div className="mr-3">
-                                {option.value === "non_refundable" ? (
-                                  <span className="text-red-500 text-lg">
-                                    🚫
-                                  </span>
-                                ) : (
-                                  <span className="text-green-500 text-lg">
-                                    ✅
-                                  </span>
-                                )}
-                              </div>
+    <FormControl component="fieldset" className="w-full">
+      <RadioGroup
+        value={formData.cancellationPolicy || "free_cancellation_checkin"}
+        onChange={(e) => setFormData(prev => ({ ...prev, cancellationPolicy: e.target.value }))}
+      >
+        {cancellationOptions.map((option) => (
+          <div key={option.value}>
+            <FormControlLabel
+              value={option.value}
+              control={<Radio size="small" />}
+              label={
+                <div className="flex items-center gap-2">
+                  <Typography className="text-gray-700 text-[15px] py-1">
+                    {option.label}
+                  </Typography>
+                  {/* Recommended Badge */}
+                  {option.value === "free_cancellation_checkin" && (
+                    <Box sx={{ 
+                      bgcolor: '#f0fdf4', color: '#16a34a', fontSize: '10px', fontWeight: 'bold', 
+                      px: 1, py: 0.2, borderRadius: '4px', border: '1px solid #dcfce7', textTransform: 'uppercase'
+                    }}>
+                      Recommended
+                    </Box>
+                  )}
+                </div>
+              }
+              className="m-0"
+            />
 
-                              <div>
-                                <div className="text-gray-800 font-medium">
-                                  {option.label}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {option.description}
-                                </div>
-                              </div>
-                            </div>
+            {/* Render Timeline when selected */}
+            {formData.cancellationPolicy === option.value && (
+              <>
+                {/* Custom Hour Input Logic */}
+                {option.value === "free_cancellation_custom" && (
+  <div className="ml-10 mb-2 flex items-center gap-2">
+    <TextField
+      type="number"
+      size="small"
+      placeholder="0-120"
+      // Display current value
+      value={formData.customCancellationHours || ""}
+      onChange={(e) => {
+        let val = parseInt(e.target.value);
+        // If user clears input, allow it to be empty or 0
+        if (isNaN(val)) val = 0;
+        
+        // Enforce 0 to 120 range
+        const clampedVal = Math.min(120, Math.max(0, val));
+        
+        setFormData(p => ({ ...p, customCancellationHours: clampedVal }));
+      }}
+      // Visual feedback/native validation
+      slotProps={{
+        htmlInput: { min: 0, max: 120 }
+      }}
+      sx={{ width: 100 }}
+    />
+    <Typography variant="caption" className="text-gray-500">
+      hours before check-in (Max 120)
+    </Typography>
+  </div>
+)}
+                
+                <DynamicRefundTimeline 
+                  selectedOption={option} 
+                  customHours={formData.customCancellationHours || 82} 
+                />
+              </>
+            )}
+          </div>
+        ))}     
 
-                            {/* Badge */}
-                            {option.recommended && (
-                              <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
-                                RECOMMENDED
-                              </span>
-                            )}
+      </RadioGroup>
+    </FormControl>
 
-                            {option.value === "non_refundable" && (
-                              <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
-                                NO REFUND
-                              </span>
-                            )}
-                          </div>
-                        }
-                        className="m-0 w-full"
-                      />
 
-                      {/* Progress bar for refund policies */}
-                      {option.value !== "non_refundable" && (
-                        <Box sx={{ mb: 3, width:'50%' }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              height: 8,
-                              marginLeft:'20px',
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              backgroundColor: "#f0f0f0",
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: `${option.hour}%`,
-                                backgroundColor: "#FF9800",
-                                transition: "all 0.3s ease",
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                      )}
-                    </Paper>
-                  ))}
-                  {/* Custom Hours Option */}
-                  <Paper
-                    className={`p-4 border-2 transition-all duration-200 cursor-pointer ${
-                      formData.cancellationPolicy === "free_cancellation_custom"
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-blue-300 hover:bg-blue-25"
-                    }`}
-                    elevation={0}
-                  >
-                    <FormControlLabel
-                      value="free_cancellation_custom"
-                      control={<Radio color="primary" />}
-                      label={
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center">
-                            <div className="mr-3">
-                              <span className="text-blue-500 text-lg">⚙️</span>
-                            </div>
-                            <div>
-                              <div className="text-gray-800 font-medium">
-                                Custom Cancellation
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                Set your own cancellation hours
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      }
-                      className="m-0 w-full"
-                    />
-
-                    {/* Custom hours input */}
-                    {formData.cancellationPolicy ===
-                      "free_cancellation_custom" && (
-                      <div className="mt-3 ml-10">
-                        <div className="flex items-center space-x-2">
-                          <TextField
-                            type="number"
-                            label="Hours before check-in"
-                            value={formData.customCancellationHours || ""}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                customCancellationHours:
-                                  parseInt(e.target.value) || "",
-                              }))
-                            }
-                            inputProps={{ min: 1, max: 168 }}
-                            size="small"
-                            className="w-60"
-                          />
-                          <span className="text-sm ms-2 text-gray-600">
-                            hours
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          Enter hours (1-168). Example: 24 for 24 hours before
-                          check-in
-                        </div>
-
-                        {/* Progress bar for custom option */}
-                         <Box sx={{ mb: 3, width:'50%' }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              height: 8,
-                              
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              backgroundColor: "#f0f0f0",
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: `${formData.customCancellationHours}%`,
-                                backgroundColor: "#FF9800",
-                                transition: "all 0.3s ease",
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                      </div>
-                    )}
-                  </Paper>
-
-                  {cancellationOptions.slice(-1).map((option) => (
-                    <Paper
-                      key={option.value}
-                      className={`p-4 border-2 transition-all duration-200 cursor-pointer ${
-                        formData.cancellationPolicy === option.value
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200 hover:border-blue-300 hover:bg-blue-25"
-                      }`}
-                      elevation={0}
-                    >
-                      <FormControlLabel
-                        value={option.value}
-                        control={<Radio color="primary" />}
-                        label={
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center">
-                              {/* Icon based on policy type */}
-                              <div className="mr-3">
-                                {option.value === "non_refundable" ? (
-                                  <span className="text-red-500 text-lg">
-                                    🚫
-                                  </span>
-                                ) : (
-                                  <span className="text-green-500 text-lg">
-                                    ✅
-                                  </span>
-                                )}
-                              </div>
-
-                              <div>
-                                <div className="text-gray-800 font-medium">
-                                  {option.label}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {option.description}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Badge */}
-                            {option.recommended && (
-                              <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
-                                RECOMMENDED
-                              </span>
-                            )}
-                          </div>
-                        }
-                        className="m-0 w-full"
-                      />
-
-                      {/* Progress bar for refund policies */}
-                      {option.value !== "non_refundable" && (
-                        <Box sx={{ mb: 3, width:'50%' }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              height: 8,
-                              marginLeft:'20px',
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              backgroundColor: "#f0f0f0",
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: `${option.hour}%`,
-                                backgroundColor: "#FF9800",
-                                transition: "all 0.3s ease",
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                      )}
-                    </Paper>
-                  ))}
-                </RadioGroup>
-              </FormControl>
-
-              <Button
-                variant="outlined"
-                color="primary"
-                sx={{ mt: 3 }}
-                onClick={() => handleSectionUpdate("cancellationPolicy")}
-              >
-                Save Cancellation Policy
-              </Button>
-            </div>
-          </TabPanel>
+    <Button
+      variant="outlined"
+      disableElevation
+      sx={{ mt: 4, textTransform: 'none', px: 4, fontWeight: 500 }}
+      onClick={() => handleSectionUpdate("cancellationPolicy")}
+    >
+      Save Cancellation Policy
+    </Button>
+  </div>
+</TabPanel>
 
           {/* Property Rules Tab */}
           <TabPanel value={activeTab} index={2}>
@@ -889,131 +843,81 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
               </div>
 
               {/* Guest Profile Section */}
-              <Paper className="border border-gray-200" elevation={0}>
-                <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-                  <Typography
-                    variant="subtitle1"
-                    className="font-semibold text-gray-800"
-                  >
-                    Guest Profile
-                  </Typography>
-                </div>
+           <Paper className="border border-gray-200 overflow-hidden" elevation={0}>
+      {/* Header */}
+      <div className="p-4 bg-gray-50 border-b border-gray-200">
+        <Typography variant="subtitle1" className="font-semibold text-gray-800">
+          Guest Profile
+        </Typography>
+      </div>
 
-                <div className="divide-y divide-gray-200">
-                  <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                    <Typography
-                      variant="body2"
-                      className="text-gray-800 flex-1"
-                    >
-                      Do you allow unmarried couples?
-                    </Typography>
-                    <RadioGroup
-                      row
-                      value={
-                        formData.propertyRules?.guestProfile
-                          ?.allowUnmarriedCouples
-                      }
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "propertyRules",
-                          "guestProfile",
-                          "allowUnmarriedCouples",
-                          e.target.value === "true"
-                        )
-                      }
-                      className="gap-4"
-                    >
-                      <FormControlLabel
-                        value={false}
-                        control={<Radio size="small" />}
-                        label="No"
-                      />
-                      <FormControlLabel
-                        value={true}
-                        control={<Radio size="small" />}
-                        label="Yes"
-                      />
-                    </RadioGroup>
-                  </div>
+      <div className="divide-y divide-gray-200">
+        
+        {/* Row 1: Unmarried Couples */}
+        <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <Typography variant="body2" className="text-gray-800 flex-1 font-medium">
+            Do you allow unmarried couples?
+          </Typography>
+          <div className="flex gap-8">
+            <CustomRadio 
+              label="No" 
+              isSelected={guestProfile.allowUnmarriedCouples === false} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowUnmarriedCouples", false)}
+            />
+            <CustomRadio 
+              label="Yes" 
+              isSelected={guestProfile.allowUnmarriedCouples === true} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowUnmarriedCouples", true)}
+            />
+          </div>
+        </div>
 
-                  <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                    <Typography
-                      variant="body2"
-                      className="text-gray-800 flex-1"
-                    >
-                      Do you allow guests below 18 years of age at your
-                      property?
-                    </Typography>
-                    <RadioGroup
-                      row
-                      value={
-                        formData.propertyRules?.guestProfile?.allowGuestsBelow18
-                      }
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "propertyRules",
-                          "guestProfile",
-                          "allowGuestsBelow18",
-                          e.target.value === "true"
-                        )
-                      }
-                      className="gap-4"
-                    >
-                      <FormControlLabel
-                        value={false}
-                        control={<Radio size="small" />}
-                        label="No"
-                      />
-                      <FormControlLabel
-                        value={true}
-                        control={<Radio size="small" />}
-                        label="Yes"
-                      />
-                    </RadioGroup>
-                  </div>
+        {/* Row 2: Below 18 */}
+        <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <Typography variant="body2" className="text-gray-800 flex-1 font-medium">
+            Do you allow guests below 18 years of age at your property?
+          </Typography>
+          <div className="flex gap-8">
+            <CustomRadio 
+              label="No" 
+              isSelected={guestProfile.allowGuestsBelow18 === false} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowGuestsBelow18", false)}
+            />
+            <CustomRadio 
+              label="Yes" 
+              isSelected={guestProfile.allowGuestsBelow18 === true} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowGuestsBelow18", true)}
+            />
+          </div>
+        </div>
 
-                  <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                    <Typography
-                      variant="body2"
-                      className="text-gray-800 flex-1"
-                    >
-                      Groups with only male guests are allowed at your property?
-                    </Typography>
-                    <RadioGroup
-                      row
-                      value={
-                        formData.propertyRules?.guestProfile
-                          ?.allowOnlyMaleGuests
-                      }
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "propertyRules",
-                          "guestProfile",
-                          "allowOnlyMaleGuests",
-                          e.target.value === "true"
-                        )
-                      }
-                      className="gap-4"
-                    >
-                      <FormControlLabel
-                        value={false}
-                        control={<Radio size="small" />}
-                        label="No"
-                      />
-                      <FormControlLabel
-                        value={true}
-                        control={<Radio size="small" />}
-                        label="Yes"
-                      />
-                    </RadioGroup>
-                  </div>
-                </div>
-              </Paper>
+        {/* Row 3: Only Male Guests */}
+        <div className="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <Typography variant="body2" className="text-gray-800 flex-1 font-medium">
+            Groups with only male guests are allowed at your property?
+          </Typography>
+          <div className="flex gap-8">
+            <CustomRadio 
+              label="No" 
+              isSelected={guestProfile.allowOnlyMaleGuests === false} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowOnlyMaleGuests", false)}
+            />
+            <CustomRadio 
+              label="Yes" 
+              isSelected={guestProfile.allowOnlyMaleGuests === true} 
+              onClick={() => handleNestedInputChange("propertyRules", "guestProfile", "allowOnlyMaleGuests", true)}
+            />
+          </div>
+        </div>
+
+      </div>
+    </Paper>
 
               {/* Acceptable Identity Proofs */}
               <Paper className="border border-gray-200" elevation={0}>
                 <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
                   <Typography
+                  sx={{ color: validationErrors.identityProofs ? 'error.main' : 'inherit' }}
                     variant="subtitle1"
                     className="font-semibold text-gray-800"
                   >
@@ -1072,6 +976,11 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
                         </MenuItem>
                       ))}
                     </Select>
+                    {validationErrors.identityProofs && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+                    At least one identity proof is required.
+                  </Typography>
+                )}
                     <Typography
                       variant="caption"
                       className="text-gray-500 mt-1"
@@ -1330,165 +1239,180 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
           </TabPanel>
 
           {/* Meal Prices Tab */}
-          <TabPanel value={activeTab} index={6}>
-            <div className="space-y-6">
-              <div>
-                <Typography
-                  variant="h6"
-                  className="font-semibold text-gray-800 mb-2"
-                >
-                  Meal Prices
-                </Typography>
-                <Typography variant="body2" className="text-gray-600 mb-4">
-                  Set meal prices and availability for your property
-                </Typography>
-              </div>
+         <TabPanel value={activeTab} index={6}>
+  <div className="space-y-6">
+    <div>
+      <Typography
+        variant="h6"
+        className="font-semibold text-gray-800 mb-2"
+      >
+        Meal Prices
+      </Typography>
+      <Typography variant="body2" className="text-gray-600 mb-4">
+        Set meal prices and availability for your property
+      </Typography>
+    </div>
 
-              {/* Breakfast */}
-              <Paper className="border border-gray-200" elevation={0}>
-                <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-                  <Typography
-                    variant="subtitle1"
-                    className="font-semibold text-gray-800"
-                  >
-                    Breakfast
-                  </Typography>
-                  <Switch
-                    checked={formData.mealPrices?.breakfast?.available || false}
-                    onChange={(e) =>
-                      handleNestedInputChange(
-                        "mealPrices",
-                        "breakfast",
-                        "available",
-                        e.target.checked
-                      )
-                    }
-                    color="primary"
-                  />
-                </div>
-                {formData.mealPrices?.breakfast?.available && (
-                  <div className="p-4 space-y-4">
-                    <TextField
-                      fullWidth
-                      label="Price per person"
-                      type="number"
-                      value={formData.mealPrices?.breakfast?.price || 0}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "mealPrices",
-                          "breakfast",
-                          "price",
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      InputProps={{
-                        startAdornment: <Typography>₹</Typography>,
-                      }}
-                    />
-                  </div>
-                )}
-              </Paper>
+    {/* Breakfast */}
+    <Paper className="border border-gray-200" elevation={0}>
+      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
+        <Typography
+          variant="subtitle1"
+          className="font-semibold text-gray-800"
+        >
+          Breakfast
+        </Typography>
+        <Switch
+          checked={formData.mealPrices?.breakfast?.available || false}
+          onChange={(e) =>
+            handleNestedInputChange(
+              "mealPrices",
+              "breakfast",
+              "available",
+              e.target.checked
+            )
+          }
+          color="primary"
+        />
+      </div>
+      {formData.mealPrices?.breakfast?.available && (
+        <div className="p-4 space-y-4">
+          <TextField
+            fullWidth
+            label="Price per person"
+            type="number"
+            slotProps={{
+              htmlInput: {
+                onWheel: (e) => e.currentTarget.blur(),
+              },
+            }}
+            value={formData.mealPrices?.breakfast?.price ?? ""}
+            onChange={(e) =>
+              handleNestedInputChange(
+                "mealPrices",
+                "breakfast",
+                "price",
+                e.target.value === "" ? "" : parseInt(e.target.value)
+              )
+            }
+            InputProps={{
+              startAdornment: <Typography>₹</Typography>,
+            }}
+          />
+        </div>
+      )}
+    </Paper>
 
-              {/* Lunch */}
-              <Paper className="border border-gray-200" elevation={0}>
-                <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-                  <Typography
-                    variant="subtitle1"
-                    className="font-semibold text-gray-800"
-                  >
-                    Lunch
-                  </Typography>
-                  <Switch
-                    checked={formData.mealPrices?.lunch?.available || false}
-                    onChange={(e) =>
-                      handleNestedInputChange(
-                        "mealPrices",
-                        "lunch",
-                        "available",
-                        e.target.checked
-                      )
-                    }
-                    color="primary"
-                  />
-                </div>
-                {formData.mealPrices?.lunch?.available && (
-                  <div className="p-4 space-y-4">
-                    <TextField
-                      fullWidth
-                      label="Price per person"
-                      type="number"
-                      value={formData.mealPrices?.lunch?.price || 0}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "mealPrices",
-                          "lunch",
-                          "price",
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      InputProps={{
-                        startAdornment: <Typography>₹</Typography>,
-                      }}
-                    />
-                  </div>
-                )}
-              </Paper>
+    {/* Lunch */}
+    <Paper className="border border-gray-200" elevation={0}>
+      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
+        <Typography
+          variant="subtitle1"
+          className="font-semibold text-gray-800"
+        >
+          Lunch
+        </Typography>
+        <Switch
+          checked={formData.mealPrices?.lunch?.available || false}
+          onChange={(e) =>
+            handleNestedInputChange(
+              "mealPrices",
+              "lunch",
+              "available",
+              e.target.checked
+            )
+          }
+          color="primary"
+        />
+      </div>
+      {formData.mealPrices?.lunch?.available && (
+        <div className="p-4 space-y-4">
+          <TextField
+            fullWidth
+            label="Price per person"
+            type="number"
+            slotProps={{
+              htmlInput: {
+                onWheel: (e) => e.currentTarget.blur(),
+              },
+            }}
+            value={formData.mealPrices?.lunch?.price ?? ""}
+            onChange={(e) =>
+              handleNestedInputChange(
+                "mealPrices",
+                "lunch",
+                "price",
+                e.target.value === "" ? "" : parseInt(e.target.value)
+              )
+            }
+            InputProps={{
+              startAdornment: <Typography>₹</Typography>,
+            }}
+          />
+        </div>
+      )}
+    </Paper>
 
-              {/* Dinner */}
-              <Paper className="border border-gray-200" elevation={0}>
-                <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-                  <Typography
-                    variant="subtitle1"
-                    className="font-semibold text-gray-800"
-                  >
-                    Dinner
-                  </Typography>
-                  <Switch
-                    checked={formData.mealPrices?.dinner?.available || false}
-                    onChange={(e) =>
-                      handleNestedInputChange(
-                        "mealPrices",
-                        "dinner",
-                        "available",
-                        e.target.checked
-                      )
-                    }
-                    color="primary"
-                  />
-                </div>
-                {formData.mealPrices?.dinner?.available && (
-                  <div className="p-4 space-y-4">
-                    <TextField
-                      fullWidth
-                      label="Price per person"
-                      type="number"
-                      value={formData.mealPrices?.dinner?.price || 0}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "mealPrices",
-                          "dinner",
-                          "price",
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      InputProps={{
-                        startAdornment: <Typography>₹</Typography>,
-                      }}
-                    />
-                  </div>
-                )}
-              </Paper>
+    {/* Dinner */}
+    <Paper className="border border-gray-200" elevation={0}>
+      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
+        <Typography
+          variant="subtitle1"
+          className="font-semibold text-gray-800"
+        >
+          Dinner
+        </Typography>
+        <Switch
+          checked={formData.mealPrices?.dinner?.available || false}
+          onChange={(e) =>
+            handleNestedInputChange(
+              "mealPrices",
+              "dinner",
+              "available",
+              e.target.checked
+            )
+          }
+          color="primary"
+        />
+      </div>
+      {formData.mealPrices?.dinner?.available && (
+        <div className="p-4 space-y-4">
+          <TextField
+            fullWidth
+            label="Price per person"
+            type="number"
+            slotProps={{
+              htmlInput: {
+                onWheel: (e) => e.currentTarget.blur(),
+              },
+            }}
+            value={formData.mealPrices?.dinner?.price ?? ""}
+            onChange={(e) =>
+              handleNestedInputChange(
+                "mealPrices",
+                "dinner",
+                "price",
+                e.target.value === "" ? "" : parseInt(e.target.value)
+              )
+            }
+            InputProps={{
+              startAdornment: <Typography>₹</Typography>,
+            }}
+          />
+        </div>
+      )}
+    </Paper>
 
-              <Button
-                variant="outlined"
-                color="primary"
-                sx={{ mt: 3 }}
-                onClick={() => handleSectionUpdate("mealPrices")}
-              >
-                Save Meal Prices
-              </Button>
-            </div>
-          </TabPanel>
+    <Button
+      variant="outlined"
+      color="primary"
+      sx={{ mt: 3 }}
+      onClick={() => handleSectionUpdate("mealPrices")}
+    >
+      Save Meal Prices
+    </Button>
+  </div>
+        </TabPanel>
         </CardContent>
       </Card>
 
@@ -1580,5 +1504,26 @@ const PrivacyPolicyForm = ({ propertyId, onComplete }) => {
     </div>
   );
 };
+
+const CustomRadio = ({ label, isSelected, onClick }) => (
+    <div 
+      className="flex items-center gap-2 cursor-pointer group" 
+      onClick={onClick}
+    >
+      <div className={`
+        w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
+        ${isSelected ? "border-blue-600" : "border-gray-300 group-hover:border-gray-400"}
+      `}>
+        {/* The dot only renders if isSelected is explicitly true */}
+        {isSelected && (
+          <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+        )}
+      </div>
+      <Typography variant="body2" className="text-gray-700 select-none">
+        {label}
+      </Typography>
+    </div>
+  );
+
 
 export default PrivacyPolicyForm;

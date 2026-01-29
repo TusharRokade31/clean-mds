@@ -108,152 +108,93 @@ export default function GoogleMapWithPlaces({
 
 
   // Search for nearby places using Places API
-  const searchNearbyPlaces = async (map, location) => {
-    if (!window.google?.maps?.places) return
+const searchNearbyPlaces = async (map, location) => {
+  if (!window.google?.maps?.places) return
+  const service = new window.google.maps.places.PlacesService(map)
 
-    const service = new window.google.maps.places.PlacesService(map)
-    const results = {
-      restaurants: [],
-      attractions: [],
-      transport: []
-    }
-
-    const searchPromises = [
-      new Promise((resolve) => {
-        service.nearbySearch({
-          location: { lat: location.coordinates.lat, lng: location.coordinates.lng },
-          radius: 5000,
-          type: 'restaurant'
-        }, (results, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-            resolve(results.slice(0, 3))
-          } else {
-            resolve([])
-          }
-        })
-      }),
-      new Promise((resolve) => {
-        service.nearbySearch({
-          location: { lat: location.coordinates.lat, lng: location.coordinates.lng },
-          radius: 10000,
-          type: 'tourist_attraction'
-        }, (results, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-            resolve(results.slice(0, 4))
-          } else {
-            resolve([])
-          }
-        })
-      }),
-      new Promise((resolve) => {
-        service.nearbySearch({
-          location: { lat: location.coordinates.lat, lng: location.coordinates.lng },
-          radius: 3000,
-          type: 'transit_station'
-        }, (results, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-            resolve(results.slice(0, 2))
-          } else {
-            resolve([])
-          }
-        })
+  const createSearchPromise = (type, radius) => {
+    return new Promise((resolve) => {
+      service.nearbySearch({
+        location: { lat: location.coordinates.lat, lng: location.coordinates.lng },
+        radius: radius,
+        type: type
+      }, (results, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+          resolve(results)
+        } else { resolve([]) }
       })
-    ]
-
-    try {
-      const [restaurants, attractions, transport] = await Promise.all(searchPromises)
-      
-      results.restaurants = await Promise.all(restaurants.map(async (place) => {
-        const placeData = {
-          name: place.name,
-          type: place.types?.[0]?.replace(/_/g, ' ') || 'Restaurant',
-          distance: calculateDistance(
-            location.coordinates.lat,
-            location.coordinates.lng,
-            place.geometry.location.lat(),
-            place.geometry.location.lng()
-          ),
-          rating: place.rating,
-          place_id: place.place_id,
-          photoUrl: place.photos?.[0]?.getUrl({ maxWidth: 200, maxHeight: 200 }) || null,
-          address: place.vicinity
-        }
-
-        const marker = createMarker(
-          place.geometry.location,
-          place.name,
-          'restaurant',
-          placeData
-        )
-        markersRef.current.push(marker)
-        
-        return placeData
-      }))
-
-      results.attractions = await Promise.all(attractions.map(async (place) => {
-        const placeData = {
-          name: place.name,
-          type: 'Tourist Attraction',
-          distance: calculateDistance(
-            location.coordinates.lat,
-            location.coordinates.lng,
-            place.geometry.location.lat(),
-            place.geometry.location.lng()
-          ),
-          rating: place.rating,
-          place_id: place.place_id,
-          photoUrl: place.photos?.[0]?.getUrl({ maxWidth: 200, maxHeight: 200 }) || null,
-          address: place.vicinity
-        }
-
-        const marker = createMarker(
-          place.geometry.location,
-          place.name,
-          'attraction',
-          placeData
-        )
-        markersRef.current.push(marker)
-        
-        return placeData
-      }))
-
-      results.transport = await Promise.all(transport.map(async (place) => {
-        const placeData = {
-          name: place.name,
-          type: place.types?.includes('bus_station') ? 'Bus Station' : 'Transit Station',
-          distance: calculateDistance(
-            location.coordinates.lat,
-            location.coordinates.lng,
-            place.geometry.location.lat(),
-            place.geometry.location.lng()
-          ),
-          place_id: place.place_id,
-          photoUrl: place.photos?.[0]?.getUrl({ maxWidth: 200, maxHeight: 200 }) || null,
-          address: place.vicinity
-        }
-
-        const marker = createMarker(
-          place.geometry.location,
-          place.name,
-          'transport',
-          placeData
-        )
-        markersRef.current.push(marker)
-        
-        return placeData
-      }))
-
-      Object.keys(results).forEach(key => {
-        results[key].sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
-      })
-
-      
-      onNearbyPlacesFound?.(results)
-    } catch (error) {
-      console.error('Error fetching nearby places:', error)
-    }
+    })
   }
 
+  try {
+    const [rawRestaurants, rawAttractions, busStations, trainStations, airports] = await Promise.all([
+      createSearchPromise('restaurant', 5000),
+      createSearchPromise('tourist_attraction', 10000),
+      createSearchPromise('bus_station', 10000),
+      createSearchPromise('train_station', 20000),
+      createSearchPromise('airport', 100000)
+    ])
+
+const results = {
+  restaurants: rawRestaurants
+    .filter(place => (place.rating || 0) >= 4)
+    .slice(0, 5)
+    .map(place => formatPlaceData(place, 'restaurant')),
+  
+  attractions: rawAttractions
+    .filter(place => (place.rating || 0) >= 4)
+    .slice(0, 5)
+    .map(place => formatPlaceData(place, 'attraction')),
+
+  // Split transport into the specific subcategories you requested
+  "Bus station": busStations
+    .slice(0, 3)
+    .map(place => formatPlaceData(place, 'transport')),
+    
+  "Railway station": trainStations
+    .slice(0, 3)
+    .map(place => formatPlaceData(place, 'transport')),
+    
+  "Airport near Dharamshala": airports
+    .slice(0, 2)
+    .map(place => formatPlaceData(place, 'transport'))
+};
+
+    onNearbyPlacesFound?.(results)
+  } catch (error) {
+    console.error('Error fetching nearby places:', error)
+  }
+}
+
+  // Helper to format the place data and create markers
+  const formatPlaceData = (place, type) => {
+    const placeData = {
+      name: place.name,
+      type: place.types?.includes('airport') ? 'Airport' : 
+            place.types?.includes('train_station') ? 'Railway Station' : 
+            place.types?.includes('bus_station') ? 'Bus Station' : 
+            place.types?.[0]?.replace(/_/g, ' ') || 'Place',
+      distance: calculateDistance(
+        location.coordinates.lat,
+        location.coordinates.lng,
+        place.geometry.location.lat(),
+        place.geometry.location.lng()
+      ),
+      rating: place.rating,
+      place_id: place.place_id,
+      photoUrl: place.photos?.[0]?.getUrl({ maxWidth: 200, maxHeight: 200 }) || null,
+      address: place.vicinity
+    }
+
+    const marker = createMarker(
+      place.geometry.location,
+      place.name,
+      type,
+      placeData
+    )
+    markersRef.current.push(marker)
+    return placeData
+  }
   // Initialize map
   const initializeMap = () => {
     if (!window.google || !location?.coordinates || !mapRef.current) {
@@ -490,7 +431,7 @@ export default function GoogleMapWithPlaces({
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-            <span className="text-gray-600">Transport</span>
+            <span className="text-gray-600">Transport (Bus/Train/Air)</span>
           </div>
         </div>
       </div>

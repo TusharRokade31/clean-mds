@@ -3,12 +3,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiMapPin, FiCalendar, FiUsers, FiSearch, FiX, FiChevronLeft, FiChevronRight, FiClock } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
-
+import { getPanchangam, Observer, tithiNames } from '@ishubhamx/panchangam-js';
 
 import { fetchSuggestions, clearSuggestions, getPropertiesByQuery } from '@/redux/features/property/propertySlice';
 import { useDebounce } from '@/hooks/useDebounce';
 
 export default function SearchBar() {
+
+
   const dispatch = useDispatch();
   const router = useRouter();
   const { suggestions, isSuggestionsLoading } = useSelector(state => state.property);
@@ -316,141 +318,127 @@ const handleSearch = async () => {
     setCurrentMonth(prevMonthDate);
   };
 
-const renderCalendar = () => {
-    const currentDate = new Date(currentMonth);
-    const today = getTodayDate();
-    
-    const renderMonthCalendar = (date) => {
-      const month = date.getMonth();
-      const year = date.getFullYear();
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      
-      const daysFromPrevMonth = firstDay;
-      const prevMonthDays = new Date(year, month, 0).getDate();
-      
-      const days = [];
-      
-      // Previous month days
-      for (let i = 0; i < daysFromPrevMonth; i++) {
-        const dayDate = new Date(year, month - 1, prevMonthDays - daysFromPrevMonth + i + 1);
-        days.push({
-          day: prevMonthDays - daysFromPrevMonth + i + 1,
-          isCurrentMonth: false,
-          date: dayDate,
-          isPast: isPastDate(dayDate)
-        });
-      }
-      
-      // Current month days
-      for (let i = 1; i <= daysInMonth; i++) {
-        const dayDate = new Date(year, month, i);
-        days.push({
-          day: i,
-          isCurrentMonth: true,
-          date: dayDate,
-          isPast: isPastDate(dayDate)
-        });
-      }
-      
-      // Next month days
-      const remainingDays = 42 - days.length;
-      for (let i = 1; i <= remainingDays; i++) {
-        const dayDate = new Date(year, month + 1, i);
-        days.push({
-          day: i,
-          isCurrentMonth: false,
-          date: dayDate,
-          isPast: isPastDate(dayDate)
-        });
-      }
-      
-      return {
-        monthName: date.toLocaleString('default', { month: 'long' }),
-        year: date.getFullYear(),
-        days: days
-      };
-    };
-    
-    // Only generate data for the current month
-    const monthData = renderMonthCalendar(currentDate);
-    
-    return (
-      // Changed width to w-[360px] (or similar) to fit a single calendar nicely
-      <div ref={calendarRef} className="absolute top-22 left-50 bg-white rounded-2xl shadow-lg p-6 z-2 w-[360px]">
-        <div className="flex justify-between items-center mb-4">
-          <button 
-            onClick={prevMonth} 
-            className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear()}
-          >
-            <FiChevronLeft className="text-gray-600" />
-          </button>
-          
-          {/* Single centered title */}
-          <div className="font-semibold text-lg">
-            {monthData.monthName} {monthData.year}
-          </div>
 
-          <button onClick={nextMonth} className="p-2 rounded-full hover:bg-gray-100">
-            <FiChevronRight className="text-gray-600" />
-          </button>
-        </div>
-        
-        {/* Single Grid View */}
-        <div>
-          <div className="grid grid-cols-7 mb-2">
-            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-              <div key={day} className="text-center text-sm font-medium text-gray-500">{day}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {monthData.days.map((day, index) => {
-              const dateStr = formatDateToLocalString(day.date);
-              const isCheckin = selectedDates.checkin === dateStr;
-              const isCheckout = selectedDates.checkout === dateStr;
-              const isInRange = selectedDates.checkin && selectedDates.checkout && 
-                day.date > createDateFromString(selectedDates.checkin) && 
-                day.date < createDateFromString(selectedDates.checkout);
-              const isToday = formatDateToLocalString(day.date) === formatDateToLocalString(today);
-              
-              return (
-                <div 
-                  key={index} 
-                  className={`h-10 w-10 flex items-center justify-center rounded-full cursor-pointer text-sm
-                    ${day.isCurrentMonth && !day.isPast ? 'hover:bg-gray-100' : ''}
-                    ${day.isPast ? 'text-gray-300 cursor-not-allowed' : ''}
-                    ${!day.isCurrentMonth && !day.isPast ? 'text-gray-400 hover:bg-gray-100' : ''}
-                    ${!day.isCurrentMonth && day.isPast ? 'text-gray-200 cursor-not-allowed' : ''}
-                    ${isCheckin || isCheckout ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''}
-                    ${isInRange ? 'bg-indigo-50 text-indigo-900' : ''}
-                    ${isToday && !isCheckin && !isCheckout ? 'border border-gray-300 font-bold' : ''}
-                  `}
-                  onClick={() => !day.isPast && handleDateSelect(day.date)}
-                >
-                  {day.day}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        
-        <div className="mt-4 flex justify-center border-t border-gray-100 pt-3">
-          <div className="text-sm text-gray-600">
-            {selectedDates.checkin && selectedDates.checkout ? (
-              <span>
-                {createDateFromString(selectedDates.checkin).toLocaleDateString()} - {createDateFromString(selectedDates.checkout).toLocaleDateString()}
-              </span>
-            ) : selectedDates.checkin ? (
-              <span>Select check-out date</span>
-            ) : (
-              <span>Select check-in date</span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
+  const mumbaiObserver = new Observer(19.0760, 72.8777, 10);
+
+const getDayPanchang = (date) => {
+  try {
+    const p = getPanchangam(date, mumbaiObserver);
+    return {
+      tithi: tithiNames[p.tithi], // e.g., "Prathama", "Ekadashi"
+      festivals: p.festivals, // Array of festival names
+      isAuspicious: p.festivals.length > 0
+    };
+  } catch (e) {
+    return null;
+  }
+};
+
+const renderCalendar = () => {
+  const currentDate = new Date(currentMonth);
+  const today = getTodayDate();
+  
+  const renderMonthCalendar = (date) => {
+    const month = date.getMonth();
+    const year = date.getFullYear();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const days = [];
+    
+    // Previous month filler logic
+    const firstDayOfGrid = new Date(year, month, 0).getDate();
+    for (let i = 0; i < firstDay; i++) {
+      const dayDate = new Date(year, month - 1, firstDayOfGrid - firstDay + i + 1);
+      days.push({ day: firstDayOfGrid - firstDay + i + 1, isCurrentMonth: false, date: dayDate, isPast: isPastDate(dayDate) });
+    }
+    
+    // Current month with Dynamic Hindu Data
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dayDate = new Date(year, month, i);
+      days.push({
+        day: i,
+        isCurrentMonth: true,
+        date: dayDate,
+        isPast: isPastDate(dayDate),
+        panchang: getDayPanchang(dayDate) // Dynamic call
+      });
+    }
+    
+    // Fill remaining grid slots
+    const remainingDays = 42 - days.length;
+    for (let i = 1; i <= remainingDays; i++) {
+      const dayDate = new Date(year, month + 1, i);
+      days.push({ day: i, isCurrentMonth: false, date: dayDate, isPast: isPastDate(dayDate) });
+    }
+    
+    return { monthName: date.toLocaleString('default', { month: 'long' }), year, days };
   };
+
+  const monthData = renderMonthCalendar(currentDate);
+  // Get details for the selected check-in date
+  const selectedPanchang = selectedDates.checkin ? getDayPanchang(createDateFromString(selectedDates.checkin)) : null;
+
+  return (
+    <div ref={calendarRef} className="absolute top-22 left-50 bg-white rounded-2xl shadow-lg p-6 z-2 w-[360px]">
+      <div className="flex justify-between items-center mb-4 text-gray-800">
+        <button onClick={prevMonth} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-30" 
+          disabled={currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear()}>
+          <FiChevronLeft />
+        </button>
+        <div className="font-semibold text-lg">{monthData.monthName} {monthData.year}</div>
+        <button onClick={nextMonth} className="p-2 rounded-full hover:bg-gray-100"><FiChevronRight /></button>
+      </div>
+      
+      <div className="grid grid-cols-7 mb-2 text-gray-500 font-medium text-xs">
+        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => <div key={day} className="text-center">{day}</div>)}
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
+        {monthData.days.map((day, index) => {
+          const dateStr = formatDateToLocalString(day.date);
+          const isCheckin = selectedDates.checkin === dateStr;
+          const isCheckout = selectedDates.checkout === dateStr;
+          const isInRange = selectedDates.checkin && selectedDates.checkout && 
+            day.date > createDateFromString(selectedDates.checkin) && day.date < createDateFromString(selectedDates.checkout);
+          
+          return (
+            <div key={index} 
+              className={`h-11 w-11 flex flex-col items-center justify-center rounded-full cursor-pointer relative text-sm
+                ${day.isCurrentMonth && !day.isPast ? 'hover:bg-gray-50' : 'text-gray-300'}
+                ${isCheckin || isCheckout ? 'bg-indigo-600 text-white !hover:bg-indigo-700' : ''}
+                ${isInRange ? 'bg-indigo-50 text-indigo-900' : ''}
+              `}
+              onClick={() => !day.isPast && handleDateSelect(day.date)}
+            >
+              <span className="font-semibold">{day.day}</span>
+              {/* Festival indicator */}
+              {day.isCurrentMonth && day.panchang?.isAuspicious && !isCheckin && (
+                <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Kalnirnay-style Detail Box */}
+      <div className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-100 text-center min-h-[60px] flex flex-col justify-center">
+        {selectedPanchang ? (
+          <div className="animate-in fade-in slide-in-from-bottom-1">
+            <p className="text-xs font-bold text-orange-800 uppercase tracking-wide">
+              {selectedPanchang.festivals.join(", ") || "Regular Day"}
+            </p>
+            <p className="text-[10px] text-orange-600 mt-1 font-medium">
+              Tithi: {selectedPanchang.tithi}
+            </p>
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400">Select a date to see Hindu Tithi and Festivals</p>
+        )}
+      </div>
+    </div>
+  );
+};
 
   const adjustGuests = (type, action) => {
     const newGuests = {...guests};

@@ -34,15 +34,15 @@ export const getPrivacyPolicy = async (req, res) => {
         cancellationPolicy: 'free_cancellation_checkin',
         propertyRules: {
           guestProfile: {
-            allowUnmarriedCouples: false,
-            allowGuestsBelow18: false,
-            allowOnlyMaleGuests: false,
+            allowUnmarriedCouples: undefined,
+            allowGuestsBelow18: undefined,
+            allowOnlyMaleGuests: undefined,
           },
           acceptableIdentityProofs: [],
         },
         propertyRestrictions: {
           nonVegetarianFood: {
-            allowed: true,
+            allowed: false,
             restrictions: '',
           },
           alcoholSmoking: {
@@ -57,7 +57,7 @@ export const getPrivacyPolicy = async (req, res) => {
               startTime: '10:00 PM',
               endTime: '7:00 AM',
             },
-            musicAllowed: true,
+            musicAllowed: false,
             partyAllowed: false,
             restrictions: '',
           },
@@ -549,15 +549,15 @@ export const getPrivacyPolicyTemplate = async (req, res) => {
       cancellationPolicy: 'free_cancellation_checkin',
       propertyRules: {
         guestProfile: {
-          allowUnmarriedCouples: false,
-          allowGuestsBelow18: false,
-          allowOnlyMaleGuests: false,
+          allowUnmarriedCouples: undefined,
+          allowGuestsBelow18: undefined,
+          allowOnlyMaleGuests: undefined,
         },
         acceptableIdentityProofs: ['passport', 'drivers_license', 'national_id'],
       },
       propertyRestrictions: {
         nonVegetarianFood: {
-          allowed: true,
+          allowed: false,
           restrictions: '',
         },
         alcoholSmoking: {
@@ -572,7 +572,7 @@ export const getPrivacyPolicyTemplate = async (req, res) => {
             startTime: '10:00 PM',
             endTime: '7:00 AM',
           },
-          musicAllowed: true,
+          musicAllowed: false,
           partyAllowed: false,
           restrictions: '',
         },

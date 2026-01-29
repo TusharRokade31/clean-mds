@@ -242,45 +242,59 @@ const getSelectedCount = (category) => {
             }}  fullWidth>
               <InputLabel>Select Additional Options</InputLabel>
               <Select
-                multiple={amenity.name !== 'Fireplace'}
-                value={amenityValue.subOptions || []}
-                label="Select Additional Options"
-                onChange={(e) => {
-                  const value = typeof e.target.value === 'string' 
-                    ? e.target.value.split(',') 
-                    : e.target.value;
-                  
-                  handleAmenityChange(category, amenity.name, {
-                    ...amenityValue,
-                    subOptions: value
-                  });
-                }}
-                renderValue={(selected) => (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {selected.map((value) => (
-                      <Chip key={value} label={value} size="small" />
-                    ))}
-                  </Box>
-                )}
-              >
-                {amenity.Suboptions.map((suboption, index) => (
-                  <MenuItem 
-                    key={index} 
-                    value={suboption}
-                    sx={{
-                      backgroundColor: amenityValue.subOptions?.includes(suboption) 
-                        ? 'rgba(156, 39, 176, 0.08)' 
-                        : 'transparent'
-                    }}
-                  >
-                    <Checkbox 
-                      checked={amenityValue.subOptions?.includes(suboption) || false}
-                      sx={{ mr: 1 }}
-                    />
-                    {suboption}
-                  </MenuItem>
-                ))}
-              </Select>
+  multiple={amenity.name !== 'Fireplace'}
+  value={amenityValue.subOptions || []}
+  label="Select Additional Options"
+  onChange={(e) => {
+    // Get the current array of values
+    let value = typeof e.target.value === 'string' 
+      ? e.target.value.split(',') 
+      : e.target.value;
+
+    // --- MUTUAL EXCLUSION LOGIC ---
+    // Identify the item the user just clicked
+    const lastSelected = value[value.length - 1];
+
+    if (lastSelected === 'Free') {
+      // If "Free" was just selected, filter out "Paid"
+      value = value.filter(val => val !== 'Paid');
+    } else if (lastSelected === 'Paid') {
+      // If "Paid" was just selected, filter out "Free"
+      value = value.filter(val => val !== 'Free');
+    }
+    // ------------------------------
+
+    handleAmenityChange(category, amenity.name, {
+      ...amenityValue,
+      subOptions: value
+    });
+  }}
+  renderValue={(selected) => (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+      {selected.map((value) => (
+        <Chip key={value} label={value} size="small" />
+      ))}
+    </Box>
+  )}
+>
+  {amenity.Suboptions.map((suboption, index) => (
+    <MenuItem 
+      key={index} 
+      value={suboption}
+      sx={{
+        backgroundColor: amenityValue.subOptions?.includes(suboption) 
+          ? 'rgba(156, 39, 176, 0.08)' 
+          : 'transparent'
+      }}
+    >
+      <Checkbox 
+        checked={amenityValue.subOptions?.includes(suboption) || false}
+        sx={{ mr: 1 }}
+      />
+      {suboption}
+    </MenuItem>
+  ))}
+</Select>
             </FormControl>
           </Grid>
         )}

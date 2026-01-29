@@ -2,19 +2,42 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader } from "@mui/material"
-import { MapPin, Navigation, Star } from "lucide-react"
+import { 
+  MapPin, 
+  Star, 
+  Bus, 
+  Train, 
+  Plane, 
+  Map as MapIcon 
+} from "lucide-react"
 import GoogleMapWithPlaces from './GoogleMapWithPlaces'
 
 export default function LocationSection({ location }) {
+  // Categorized state including your specific transport types
   const [nearbyPlaces, setNearbyPlaces] = useState({
     restaurants: [],
     attractions: [],
-    transport: []
+    "Bus station": [],
+    "Railway station": [],
+    "Airport near Dharamshala": []
   })
 
   const handleNearbyPlacesFound = (places) => {
     setNearbyPlaces(places)
   }
+
+  // Helper to pick the right icon for the category
+const getCategoryIcon = (category) => {
+  const cat = category.toLowerCase();
+  // Match specific transport subcategories
+  if (cat.includes("bus")) return <Bus className="w-8 h-8 text-blue-500" />;
+  if (cat.includes("railway") || cat.includes("train")) return <Train className="w-8 h-8 text-emerald-500" />;
+  if (cat.includes("airport")) return <Plane className="w-8 h-8 text-purple-500" />;
+  
+  // Default fallbacks for other categories
+  if (cat.includes("restaurant")) return <MapIcon className="w-8 h-8 text-amber-500" />;
+  return <MapIcon className="w-8 h-8 text-gray-400" />;
+}
 
   return (
     <div className="space-y-6">
@@ -41,54 +64,52 @@ export default function LocationSection({ location }) {
                 <p className="text-gray-600">
                   {location?.street}, {location?.city}, {location?.state}, {location?.country} {location?.postalCode}
                 </p>
-                <p className="text-gray-600"></p>
               </div>
             </CardContent>
-        {/* <CardContent>
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-700">
-              Guests rave about the property's prime location near Varca beach, emphasizing its beautiful surroundings
-              and ease of access to both the beach and local attractions. Many appreciate the serene and peaceful
-              environment, making it ideal for relaxation. The accessibility to restaurants and shops is highlighted,
-              enhancing the overall experience. Overall, the location significantly contributes to guest satisfaction,
-              with numerous reviewers expressing an eagerness to return.
-            </p>
-          </div>
-        </CardContent> */}
-
           </Card>
-          
         </div>
 
-        {/* Nearby Places */}
+        {/* Nearby Places - Kept UI style same as your original */}
         <div className="w-full h-full bg-white p-4 overflow-y-auto">
-        <h2 className="text-lg font-bold mb-4">Nearby Places</h2>
-        {Object.entries(nearbyPlaces).map(([category, places]) => (
-          <div key={category} className="mb-6">
-            <h3 className="text-md font-semibold mb-2 capitalize">{category}</h3>
-            {places.map((place, index) => (
-              <div key={index} className="flex items-center mb-2">
-                {place.photoUrl && (
-                  <img
-                    src={place.photoUrl}
-                    alt={place.name}
-                    className="w-16 h-16 object-cover mr-2 rounded"
-                  />
-                )}
-                <div>
-                  <p className="font-medium">{place.name}</p>
-                  <p className="text-sm text-gray-600">{place.distance}</p>
-                  {place.rating && <div className='flex items-center'><Star className="h-3 w-3 me-2 fill-yellow-400 text-yellow-400" /> <p className="text-sm text-gray-500">Rating:  {place.rating} </p></div>}
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
+          <h2 className="text-lg font-bold mb-4">Nearby Places</h2>
+          {Object.entries(nearbyPlaces).map(([category, places]) => (
+            <div key={category} className="mb-6">
+              <h3 className="text-md font-semibold mb-2 capitalize">{category}</h3>
+              {places.length > 0 ? (
+                places.map((place, index) => (
+                  <div key={index} className="flex items-center mb-2">
+                    {/* Image with Icon Fallback */}
+                    <div className="w-16 h-16 mr-2 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded">
+                      {place.photoUrl ? (
+                        <img
+                          src={place.photoUrl}
+                          alt={place.name}
+                          className="w-full h-full object-cover rounded"
+                        />
+                      ) : (
+                        getCategoryIcon(category)
+                      )}
+                    </div>
+                    
+                    <div>
+                      <p className="font-medium">{place.name}</p>
+                      <p className="text-sm text-gray-600">{place.distance}</p>
+                      {place.rating && (
+                        <div className='flex items-center'>
+                          <Star className="h-3 w-3 me-2 fill-yellow-400 text-yellow-400" /> 
+                          <p className="text-sm text-gray-500">Rating: {place.rating}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-400 italic">No details available</p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-      </div>
-
-      {/* What Guests Said */}
-    
     </div>
   )
 }

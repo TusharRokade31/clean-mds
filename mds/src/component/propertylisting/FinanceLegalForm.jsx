@@ -40,6 +40,7 @@ import {
   updateLegalDetails,
   uploadRegistrationDocument
 } from '@/redux/features/property/propertySlice';
+import toast, { Toaster } from "react-hot-toast"; // Add this line
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -192,7 +193,7 @@ const handleFileUpload = async (e) => {
   try {
     await dispatch(completeFinanceLegalStep(propertyId)).unwrap();
     onComplete?.();
-    alert('Finance & Legal step completed successfully!');
+    toast.success('Finance & Legal step completed successfully!');
   } catch (error) {
     alert(`Validation errors:\n${error.errors?.join('\n') || error.message}`);
   }
@@ -220,6 +221,7 @@ const handleFileUpload = async (e) => {
 
   return (
     <Paper elevation={2} sx={{ p: 3,  mx: 'auto', mt: 2 }}>
+       <Toaster position="top-right" />
       <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
         <Tab 
           icon={<BankIcon />} 
@@ -283,25 +285,25 @@ const handleFileUpload = async (e) => {
                       required
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth required>
-                      <InputLabel>Bank Name</InputLabel>
-                      <Select
-                        value={financeData.bankDetails.bankName}
-                        label="Bank Name"
-                        onChange={(e) => handleFinanceChange('bankDetails', 'bankName', e.target.value)}
-                      >
-                        <MenuItem value="State Bank of India">State Bank of India</MenuItem>
-                        <MenuItem value="HDFC Bank">HDFC Bank</MenuItem>
-                        <MenuItem value="ICICI Bank">ICICI Bank</MenuItem>
-                        <MenuItem value="Axis Bank">Axis Bank</MenuItem>
-                        <MenuItem value="Punjab National Bank">Punjab National Bank</MenuItem>
-                        <MenuItem value="Bank of Baroda">Bank of Baroda</MenuItem>
-                        <MenuItem value="Canara Bank">Canara Bank</MenuItem>
-                        <MenuItem value="Union Bank of India">Union Bank of India</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
+                 <Grid item xs={12} md={6}>
+                  <FormControl fullWidth sx={{ width: 200 }} required>
+                    <InputLabel>Bank Name</InputLabel>
+                    <Select
+                      value={financeData.bankDetails.bankName}
+                      label="Bank Name"
+                      onChange={(e) => handleFinanceChange('bankDetails', 'bankName', e.target.value)}
+                    >
+                      <MenuItem value="State Bank of India">State Bank of India</MenuItem>
+                      <MenuItem value="HDFC Bank">HDFC Bank</MenuItem>
+                      <MenuItem value="ICICI Bank">ICICI Bank</MenuItem>
+                      <MenuItem value="Axis Bank">Axis Bank</MenuItem>
+                      <MenuItem value="Punjab National Bank">Punjab National Bank</MenuItem>
+                      <MenuItem value="Bank of Baroda">Bank of Baroda</MenuItem>
+                      <MenuItem value="Canara Bank">Canara Bank</MenuItem>
+                      <MenuItem value="Union Bank of India">Union Bank of India</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
                 </Grid>
               </CardContent>
             </Card>

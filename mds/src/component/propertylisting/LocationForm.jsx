@@ -586,7 +586,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
                 error={!!errors?.country}
                 helperText={errors?.country}
                 InputProps={{
-                  readOnly: true,
+                  readOnly: false,
                 }}
               />
             </Grid>
@@ -618,7 +618,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
                 error={!!errors?.state}
                 helperText={errors?.state}
                 InputProps={{
-                  readOnly: true,
+                  readOnly: false,
                 }}
               />
             </Grid>
@@ -650,7 +650,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
                 error={!!errors?.city}
                 helperText={errors?.city}
                 InputProps={{
-                  readOnly: true,
+                  readOnly: false,
                 }}
               />
             </Grid>

@@ -144,6 +144,11 @@ export default function BookingModal({ property, room, onClose }) {
               <label className="block text-sm font-medium mb-1">Adults</label>
               <input
                 type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                 min="1"
                 value={formData.guestCount.adults}
                 onChange={(e) => setFormData({
@@ -157,6 +162,11 @@ export default function BookingModal({ property, room, onClose }) {
               <label className="block text-sm font-medium mb-1">Children</label>
               <input
                 type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
                 min="0"
                 value={formData.guestCount.children}
                 onChange={(e) => setFormData({
@@ -173,6 +183,11 @@ export default function BookingModal({ property, room, onClose }) {
             <label className="block text-sm font-medium mb-1">Advance Payment</label>
             <input
               type="number"
+                    slotProps={{
+                      htmlInput: {
+                        onWheel: (e) => e.currentTarget.blur(),
+                      },
+                    }}
               min="0"
               value={formData.paidAmount}
               onChange={(e) => setFormData({...formData, paidAmount: parseFloat(e.target.value) || 0})}

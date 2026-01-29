@@ -64,7 +64,7 @@ export default function HotelDashboardLayout({ children }) {
         <nav className="space-y-1 px-2">
           <NavItem icon={<MapPinHouse className="h-5 w-5" />} label="Properties" />
           <NavItem icon={<MapPinPlus className="h-5 w-5" />} label="Onboarding" />
-          <NavItem icon={<NotebookText className="h-5 w-5" />} label="All Bookings" />
+          <NavItem icon={<NotebookText className="h-5 w-5" />} label="All-Bookings" />
           <NavItem icon={<BedDouble className="h-5 w-5" />} label="Occupancy" />
           
           {/* Booking Dropdown */}
