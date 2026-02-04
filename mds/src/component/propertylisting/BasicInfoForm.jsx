@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { checkEmailVerificationStatus, sendEmailOTP, verifyEmailOTP } from '@/redux/features/property/propertySlice';
 export default function BasicInfoForm({ formData, onChange, errors, propertyId, onEmailVerified }) {
   const dispatch = useDispatch();
-   const { isLoading, otpSent, emailVerified, error, currentProperty } = useSelector(state => state.property);
+   const { isLoading, error, currentProperty } = useSelector(state => state.property);
   
   
   const [showOTPDialog, setShowOTPDialog] = useState(false);
@@ -72,8 +72,25 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
   ];
   
   // const rentalForms = ['Entire place', 'Private room', 'Share room'];
-  const yearArray = Array.from({ length: 2026 - 1800 }, (_, i) => 2025 - i);
+
   const ratingArray = Array.from({ length: 5 }, (_, i) => 5 - i);
+
+
+  // 1. Base array of years
+const currentYear = new Date().getFullYear();
+const baseYears = Array.from({ length: currentYear - 1800 + 1 }, (_, i) => currentYear - i);
+
+// 2. Filtered years for "Property Built" 
+// (Should only show years up to the "Booking Since" year, if selected)
+const builtYearOptions = formData.bookingSince 
+  ? baseYears.filter(year => year <= parseInt(formData.bookingSince))
+  : baseYears;
+
+// 3. Filtered years for "Accepting Booking Since" 
+// (Should only show years from the "Property Built" year onwards)
+const bookingYearOptions = formData.propertyBuilt 
+  ? baseYears.filter(year => year >= parseInt(formData.propertyBuilt))
+  : baseYears;
 
   return (
     <div>
@@ -158,23 +175,6 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
           />
         </Grid>
         
-        {/* <Grid item size={{xs:12, md:4}}>
-          <FormControl fullWidth error={!!errors?.placeRating}>
-            <InputLabel>Property Rating</InputLabel>
-            <Select
-              value={formData.placeRating || ''}
-              onChange={(e) => onChange('placeRating', e.target.value)}
-              label="Property Rating"
-            >
-              {ratingArray.map(rating => (
-                <MenuItem key={rating} value={rating.toString()}>{rating}</MenuItem>
-              ))}
-            </Select>
-            {errors?.placeRating && (
-              <FormHelperText>{errors.placeRating}</FormHelperText>
-            )}
-          </FormControl>
-        </Grid> */}
         
         <Grid item size={{xs:12, md:4}}>
           <FormControl            
@@ -200,15 +200,15 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
               },
             }} fullWidth error={!!errors?.propertyBuilt}>
             <InputLabel>When was the property built?</InputLabel>
-            <Select
-              value={formData.propertyBuilt || ''}
-              onChange={(e) => onChange('propertyBuilt', e.target.value)}
-              label="When was the property built?"
-            >
-              {yearArray.map(year => (
-                <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
-              ))}
-            </Select>
+           <Select
+            value={formData.propertyBuilt || ''}
+            onChange={(e) => onChange('propertyBuilt', e.target.value)}
+            label="When was the property built?"
+          >
+            {builtYearOptions.map(year => (
+              <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
+            ))}
+          </Select>
             {errors?.propertyBuilt && (
               <FormHelperText>{errors.propertyBuilt}</FormHelperText>
             )}
@@ -244,7 +244,7 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
               onChange={(e) => onChange('bookingSince', e.target.value)}
               label="Accepting booking since?"
             >
-              {yearArray.map(year => (
+              {bookingYearOptions.map(year => (
                 <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
               ))}
             </Select>
@@ -406,51 +406,8 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
             }}
           />
         </Grid>
-
-          {/* <Grid item size={{xs:12, md:6}}>
-         <TextField
-            fullWidth
-            label="Email ID"
-            value={formData.email || ''}
-            onChange={(e) => onChange('email', e.target.value)}
-            error={!!errors?.email}
-            helperText={errors?.email}
-          />
         </Grid>
-
-        <Grid item size={{xs:12, md:6}}>
-         <TextField
-           type="number"
-            fullWidth
-            label="Mobile Number"
-            value={formData.mobileNumber || ''}
-            onChange={(e) => onChange('mobileNumber', e.target.value)}
-            error={!!errors?.mobileNumber}
-            helperText={errors?.mobileNumber}
-          />
-        </Grid> */}
-        </Grid>
-</div>
-        
-
-        
-        {/* <Grid item size={{xs:12, md:4}}>
-          <FormControl fullWidth error={!!errors?.rentalForm}>
-            <InputLabel>Rental Form</InputLabel>
-            <Select
-              value={formData.rentalForm || ''}
-              onChange={(e) => onChange('rentalForm', e.target.value)}
-              label="Rental Form"
-            >
-              {rentalForms.map(form => (
-                <MenuItem key={form} value={form}>{form}</MenuItem>
-              ))}
-            </Select>
-            {errors?.rentalForm && (
-              <FormHelperText>{errors.rentalForm}</FormHelperText>
-            )}
-          </FormControl>
-        </Grid> */}
+      </div>
       </Grid>
     </div>
   );

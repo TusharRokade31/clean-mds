@@ -9,12 +9,15 @@ import { Button, IconButton, Drawer } from "@mui/material";
 import { SwapVert, Tune, Menu, Close } from "@mui/icons-material";
 import { List, Map, Search } from "lucide-react";
 import { getPropertiesByQuery } from "@/redux/features/property/propertySlice";
+import MapModal from "@/component/hotel-listing/MapModal";
+
 
 export default function PropertyBookingApp() {
   const dispatch = useDispatch();
   const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [showMobileSortModal, setShowMobileSortModal] = useState(false);
   const [showMobileHeader, setShowMobileHeader] = useState(false); // New state
+  const [showMapModal, setShowMapModal] = useState(false);
   
   const { 
     searchResults, 
@@ -125,13 +128,14 @@ export default function PropertyBookingApp() {
               List
             </Button>
             <Button
-              variant="text"
-              size="small"
-              sx={{ color: '#666' }}
-            >
-              <Map className="w-4 h-4 mr-2" />
-              Map
-            </Button>
+        variant="text"
+        size="small"
+        onClick={() => setShowMapModal(true)} // Add this
+        sx={{ color: '#666' }}
+      >
+        <Map className="w-4 h-4 mr-2" />
+        Map
+      </Button>
           </div>
         </div>
 
@@ -158,9 +162,12 @@ export default function PropertyBookingApp() {
                 <Tune className="w-4 h-4 mr-1" />
                 Filter
               </Button>
-              <div className="bg-[#1035ac] text-white px-3 py-1 rounded-lg">
-                Map View
-              </div>
+              <div 
+        onClick={() => setShowMapModal(true)} // Add this
+        className="bg-[#1035ac] text-white px-3 py-1 rounded-lg cursor-pointer"
+      >
+        Map View
+      </div>
             </div>
           </div>
         </div>
@@ -181,13 +188,13 @@ export default function PropertyBookingApp() {
             properties={searchResults}
             isLoading={isSearchLoading}
             error={searchError}
-            hasMore={searchPagination.hasMore}
+            hasMore={searchPagination?.hasMore}
             showMobileSortModal={showMobileSortModal}
             setShowMobileSortModal={setShowMobileSortModal}
             onLoadMore={() => {
-              if (searchPagination.hasMore && !isSearchLoading) {
+              if (searchPagination?.hasMore && !isSearchLoading) {
                 dispatch(getPropertiesByQuery({
-                  // ...searchQuery,
+                  ...searchQuery,
                   skip: searchResults.length
                 }));
               }
@@ -218,6 +225,12 @@ export default function PropertyBookingApp() {
           Sort
         </Button>
       </div>
+
+      <MapModal 
+        open={showMapModal} 
+        onClose={() => setShowMapModal(false)} 
+        properties={searchResults} 
+      />
 
       <div className="lg:hidden pb-20"></div>
     </div>

@@ -26,11 +26,12 @@ const page = () => {
 <li>My Divine Stays does not store your card, UPI, or bank details</li>
 <li>A booking is considered confirmed only after successful payment</li>
 </ul>
-<h3><strong>Cancellations &amp; Refunds</strong></h3>
+<h3>Cancellation & Refund Policy</h3>
+<p>We understand that plans can change. Therefore, we offer the following cancellation policy to ensure fairness for both pilgrims and the dharamshala authorities:</p>
 <ul>
-<li>The respective dharamshalas set cancellation and refund policies</li>
-<li>Refunds, if applicable, are processed according to the displayed policy</li>
-<li>My Divine Stays acts only as a facilitator in this process</li>
+<li>Cancelling more than 3 days before check-in: 90% refund.</li>
+<li>Cancelling 3 days before check-in: 50% refund.</li>
+<li>Cancelling within 24 hours of check-in: 0% refund.</li>
 </ul>
 <h3><strong>User Responsibilities</strong></h3>
 <p>Users agree to:</p>

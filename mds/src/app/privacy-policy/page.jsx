@@ -50,16 +50,25 @@ const page = () => {
 <h2>Cookies &amp; Website Usage</h2>
 <p>My Divine Stays may use cookies to improve website functionality and user experience. Cookies help us understand website traffic and usage patterns, but do not collect sensitive personal information.</p>
 <p>You can manage or disable cookies through your browser settings.</p>
+
 <h2>Your Rights &amp; Choices</h2>
 <p>You have the right to:</p>
 <ul>
 <li>Access or update your personal information</li>
 </ul>
+
 <ul>
 <li>Request deletion of your data (subject to legal and booking requirements)</li>
 </ul>
 <ul>
 <li>Contact us for any privacy-related concerns</li>
+</ul>
+<h2>Cancellation & Refund Policy</h2>
+<p>We understand that plans can change. Therefore, we offer the following cancellation policy to ensure fairness for both pilgrims and the dharamshala authorities:</p>
+<ul>
+<li>Cancelling more than 3 days before check-in: 90% refund.</li>
+<li>Cancelling 3 days before check-in: 50% refund.</li>
+<li>Cancelling within 24 hours of check-in: 0% refund.</li>
 </ul>
 <h2>Third-Party Links</h2>
 <p>Our website may contain links to third-party websites. My Divine Stays is not responsible for the privacy practices of external sites. We encourage users to review their privacy policies separately.</p>

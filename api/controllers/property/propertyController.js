@@ -618,6 +618,8 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     
     // Add room to property
     property.rooms.push(roomData);
+
+    property.formProgress.step4Completed = false;
     
     await property.save();
     
@@ -685,6 +687,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     Object.keys(roomData).forEach(key => {
       property.rooms[roomIndex][key] = roomData[key];
     });
+    property.formProgress.step4Completed = false;
     
     await property.save();
     
@@ -2473,17 +2476,17 @@ const buildFilterMatch = (filters, checkin, checkout, persons) => {
 
   // Price range filter
   if (filters.priceRange && filters.priceRange.length > 0) {
-    const priceRanges = filters.priceRange.map(range => {
+    const priceConditions = filters.priceRange.map(range => {
       const [min, max] = range.split('-').map(Number);
       return {
-        'rooms.pricing.baseAdultsCharge': {
-          $gte: min,
-          $lte: max === undefined ? 999999 : max
+        'rooms.pricing.baseAdultsCharge': { 
+          $gte: min, 
+          $lte: max 
         }
       };
     });
-    if (priceRanges.length > 0) {
-      match.$or = priceRanges;
+    if (priceConditions.length > 0) {
+      match.$or = priceConditions;
     }
   }
 

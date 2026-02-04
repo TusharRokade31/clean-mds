@@ -15,18 +15,13 @@ import {
   CheckCircle,
 } from "lucide-react"
 import { useState } from "react"
-// If you aren't using the Card/Badge components anymore, you can remove them,
-// but I have kept Card/CardContent to maintain container structure.
 import { Card, CardContent } from "@mui/material" 
 
 export default function AmenitiesSection({ amenities }) {
-  // Toggle is handled differently now (usually opens a modal or expands the list)
-  // For this UI, we just need to know if we are expanding or just showing the count.
   const [isExpanded, setIsExpanded] = useState(false)
 
   const getAmenityIcon = (amenityName) => {
     const name = amenityName.toLowerCase()
-    // Adjusted icon size to w-5 h-5 for better visibility in this layout
     const iconClass = "h-5 w-5 text-gray-600" 
     
     switch (name) {
@@ -52,16 +47,22 @@ export default function AmenitiesSection({ amenities }) {
       .trim()
   }
 
-  // 1. Get all available amenities
+  // 1. Get all available amenities from both mandatory and basicFacilities
   const mandatoryAmenities = Object.entries(amenities?.mandatory || {})
     .filter(([_, amenity]) => amenity.available)
 
-  // 2. Determine how many to show (Visual reference shows about 3 items before the "+ More")
+  const basicFacilities = Object.entries(amenities?.basicFacilities || {})
+    .filter(([_, facility]) => facility.available)
+
+  // 2. Combine both arrays
+  const allAmenities = [...mandatoryAmenities, ...basicFacilities]
+
+  // 3. Determine how many to show
   const VISIBLE_COUNT = 3
   
-  // 3. Slice the array based on state (or keep it static if you want a modal later)
-  const visibleAmenities = isExpanded ? mandatoryAmenities : mandatoryAmenities.slice(0, VISIBLE_COUNT)
-  const remainingCount = mandatoryAmenities.length - VISIBLE_COUNT
+  // 4. Slice the array based on state
+  const visibleAmenities = isExpanded ? allAmenities : allAmenities.slice(0, VISIBLE_COUNT)
+  const remainingCount = allAmenities.length - VISIBLE_COUNT
 
   return (
     <Card elevation={0} className="border-none shadow-none"> 

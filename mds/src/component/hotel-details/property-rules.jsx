@@ -58,13 +58,13 @@ export default function PropertyRules() {
   ]
 
   const coupleRules = [
-    propertyRules.guestProfile.allowUnmarriedCouples 
+    propertyRules.guestProfile?.allowUnmarriedCouples 
       ? "Unmarried couples/guests with Local IDs are allowed" 
       : "Unmarried couples not allowed",
-    propertyRules.guestProfile.allowGuestsBelow18 
+    propertyRules.guestProfile?.allowGuestsBelow18 
       ? "Guests below 18 years are allowed" 
       : "Primary Guest should be atleast 18 years of age",
-    propertyRules.guestProfile.allowOnlyMaleGuests 
+    propertyRules.guestProfile?.allowOnlyMaleGuests 
       ? "Only male guests allowed" 
       : "Valid ID proof required for all guests",
   ]
@@ -92,7 +92,7 @@ export default function PropertyRules() {
     "All guests must provide valid identification",
     "Guest information must match booking details",
     "Maximum occupancy limits strictly enforced",
-    propertyRules.guestProfile.allowGuestsBelow18 
+    propertyRules.guestProfile?.allowGuestsBelow18 
       ? "Children below 18 years are allowed" 
       : "Children below 18 years not allowed without proper authorization",
   ]
@@ -108,7 +108,7 @@ export default function PropertyRules() {
     ).join(', ')}`,
   ]
 
-  const isCouplesFriendly = propertyRules.guestProfile.allowUnmarriedCouples
+  const isCouplesFriendly = propertyRules.guestProfile?.allowUnmarriedCouples
 
   return (
     <div className="space-y-6">
@@ -155,7 +155,7 @@ export default function PropertyRules() {
               <span className="font-medium">ID Requirements</span>
             </div>
             <p className="text-sm text-gray-600">
-              {propertyRules.guestProfile.allowGuestsBelow18 
+              {propertyRules.guestProfile?.allowGuestsBelow18 
                 ? "Guests of all ages are welcome." 
                 : "Primary Guest should be atleast 18 years of age."}
             </p>
@@ -297,6 +297,41 @@ export default function PropertyRules() {
           </div>
         </TabPanel>
       </Card>
+
+
+
+{/* Cancellation Policy Section */}
+<Card>
+  <CardContent className="p-6">
+    <div className="flex items-center gap-2 mb-6">
+     
+      {/* <h3 className="text-lg font-bold"></h3> */}
+      <h3 className="font-semibold flex items-center gap-2">
+                 <Shield className="h-5 w-5 text-blue-600" />
+                Cancellation Policy
+              </h3>
+    </div>
+
+  <div>
+                
+                <ul className="space-y-2">
+               
+                  <li className="flex items-start gap-2">
+                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 shrink-0"></span>
+                    <span className="text-sm text-gray-700">Cancelling more than 3 days before check-in: <strong>90% refund.</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 shrink-0"></span>
+                    <span className="text-sm text-gray-700">Cancelling 3 days before check-in: <strong>50% refund.</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-2 shrink-0"></span>
+                    <span className="text-sm text-gray-700">Cancelling within 24 hours of check-in: <strong>0% refund.</strong></span>
+                  </li>
+              </ul>
+              </div>
+  </CardContent>
+</Card>
     </div>
   )
 }

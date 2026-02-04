@@ -344,9 +344,13 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
   return (
     <Box>
       {/* Header */}
+       <Typography sx={{ marginBottom: "20px"}} variant="subtitle1" gutterBottom>
+                     <Divider className="py-5" />
+                     </Typography>
       <div className='flex justify-between items-center mb-4'>
+        
         <Typography variant="h5" gutterBottom>
-          Photos and Videos
+           Photos and Videos of the Property
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <input
@@ -438,7 +442,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
                       image={`${mediaItem.url}`}
                       alt={mediaItem.filename}
                       sx={{
-                        width: '100%',
+                        width: '50%',
                         height: '100%',
                         objectFit: 'cover'
                       }}
@@ -748,7 +752,6 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
                           <Checkbox
                             edge="start"
                             checked={editingMedia.tags.includes(tag)}
-                            onChange={() => handleTagToggle(tag)}
                             size="small"
                           />
                         </ListItemIcon>

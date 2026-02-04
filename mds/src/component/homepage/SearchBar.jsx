@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FiMapPin, FiCalendar, FiUsers, FiSearch, FiX, FiChevronLeft, FiChevronRight, FiClock } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { getPanchangam, Observer, tithiNames } from '@ishubhamx/panchangam-js';
-
 import { fetchSuggestions, clearSuggestions, getPropertiesByQuery } from '@/redux/features/property/propertySlice';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -22,6 +21,8 @@ export default function SearchBar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [recentSearches, setRecentSearches] = useState([]);
+const [holidayData, setHolidayData] = useState({});
+const [hoveredDateInfo, setHoveredDateInfo] = useState(null);
   const [guests, setGuests] = useState({
     adults: 2,
     children: 0,
@@ -46,6 +47,54 @@ export default function SearchBar() {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), today.getDate());
   };
+
+
+useEffect(() => {
+  const yearToFetch = currentMonth.getFullYear();
+  
+  // Added a safety check: holidayData && ...
+  if (holidayData && !holidayData[yearToFetch]) {
+    const fetchHolidays = async () => {
+      try {
+        const response = await fetch(`https://jayantur13.github.io/calendar-bharat/calendar/${yearToFetch}.json`);
+        if (!response.ok) throw new Error('Data not found for this year');
+        
+        const data = await response.json();
+        
+        setHolidayData(prev => ({
+          ...prev,
+          [yearToFetch]: data[yearToFetch.toString()]
+        }));
+      } catch (error) {
+        console.error(`Error fetching calendar data:`, error);
+        // Optional: Set an empty object for that year to prevent constant re-fetching on error
+        setHolidayData(prev => ({ ...prev, [yearToFetch]: {} }));
+      }
+    };
+    fetchHolidays();
+  }
+}, [currentMonth, holidayData]);
+
+
+const getHolidayKey = (date) => {
+  const monthName = date.toLocaleString('en-US', { month: 'long' });
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const weekday = date.toLocaleString('en-US', { weekday: 'long' });
+  return `${monthName} ${day}, ${year}, ${weekday}`;
+};
+
+const getDayHoliday = (date) => {
+  const year = date.getFullYear();
+  const yearData = holidayData[year];
+  
+  if (!yearData) return null;
+
+  const monthKey = `${date.toLocaleString('en-US', { month: 'long' })} ${year}`;
+  const dateKey = getHolidayKey(date);
+  
+  return yearData[monthKey]?.[dateKey] || null;
+};
 
   // Helper function to format date to YYYY-MM-DD string in local timezone
   const formatDateToLocalString = (date) => {
@@ -346,14 +395,14 @@ const renderCalendar = () => {
     
     const days = [];
     
-    // Previous month filler logic
-    const firstDayOfGrid = new Date(year, month, 0).getDate();
+    // Previous month filler
+    const lastDayPrevMonth = new Date(year, month, 0).getDate();
     for (let i = 0; i < firstDay; i++) {
-      const dayDate = new Date(year, month - 1, firstDayOfGrid - firstDay + i + 1);
-      days.push({ day: firstDayOfGrid - firstDay + i + 1, isCurrentMonth: false, date: dayDate, isPast: isPastDate(dayDate) });
+      const dayDate = new Date(year, month - 1, lastDayPrevMonth - firstDay + i + 1);
+      days.push({ day: lastDayPrevMonth - firstDay + i + 1, isCurrentMonth: false, date: dayDate, isPast: isPastDate(dayDate) });
     }
     
-    // Current month with Dynamic Hindu Data
+    // Current month
     for (let i = 1; i <= daysInMonth; i++) {
       const dayDate = new Date(year, month, i);
       days.push({
@@ -361,11 +410,11 @@ const renderCalendar = () => {
         isCurrentMonth: true,
         date: dayDate,
         isPast: isPastDate(dayDate),
-        panchang: getDayPanchang(dayDate) // Dynamic call
+        holiday: getDayHoliday(dayDate) 
       });
     }
     
-    // Fill remaining grid slots
+    // Remaining grid slots
     const remainingDays = 42 - days.length;
     for (let i = 1; i <= remainingDays; i++) {
       const dayDate = new Date(year, month + 1, i);
@@ -376,21 +425,27 @@ const renderCalendar = () => {
   };
 
   const monthData = renderMonthCalendar(currentDate);
-  // Get details for the selected check-in date
-  const selectedPanchang = selectedDates.checkin ? getDayPanchang(createDateFromString(selectedDates.checkin)) : null;
+
+  // Priority: 1. Hovered date info | 2. Selected check-in date info
+  const infoToDisplay = hoveredDateInfo || (selectedDates.checkin ? getDayHoliday(createDateFromString(selectedDates.checkin)) : null);
 
   return (
-    <div ref={calendarRef} className="absolute top-22 left-50 bg-white rounded-2xl shadow-lg p-6 z-2 w-[360px]">
+    <div ref={calendarRef} className="absolute top-22 left-50 bg-white rounded-2xl shadow-lg p-6 z-[60] w-[360px] border border-gray-100">
       <div className="flex justify-between items-center mb-4 text-gray-800">
-        <button onClick={prevMonth} className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-30" 
-          disabled={currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear()}>
+        <button 
+          onClick={prevMonth} 
+          className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-30 transition-colors" 
+          disabled={currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear()}
+        >
           <FiChevronLeft />
         </button>
-        <div className="font-semibold text-lg">{monthData.monthName} {monthData.year}</div>
-        <button onClick={nextMonth} className="p-2 rounded-full hover:bg-gray-100"><FiChevronRight /></button>
+        <div className="font-bold text-lg">{monthData.monthName} {monthData.year}</div>
+        <button onClick={nextMonth} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+          <FiChevronRight />
+        </button>
       </div>
       
-      <div className="grid grid-cols-7 mb-2 text-gray-500 font-medium text-xs">
+      <div className="grid grid-cols-7 mb-2 text-gray-400 font-bold text-[11px] uppercase tracking-wider">
         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => <div key={day} className="text-center">{day}</div>)}
       </div>
 
@@ -404,42 +459,50 @@ const renderCalendar = () => {
           
           return (
             <div key={index} 
-              className={`h-11 w-11 flex flex-col items-center justify-center rounded-full cursor-pointer relative text-sm
-                ${day.isCurrentMonth && !day.isPast ? 'hover:bg-gray-50' : 'text-gray-300'}
-                ${isCheckin || isCheckout ? 'bg-indigo-600 text-white !hover:bg-indigo-700' : ''}
-                ${isInRange ? 'bg-indigo-50 text-indigo-900' : ''}
+              className={`h-10 w-10 flex flex-col items-center justify-center rounded-full cursor-pointer relative text-sm transition-all
+                ${day.isCurrentMonth && !day.isPast ? 'hover:bg-indigo-50 text-gray-700' : 'text-gray-300 pointer-events-none'}
+                ${isCheckin || isCheckout ? 'bg-indigo-600 !text-white font-bold' : ''}
+                ${isInRange ? 'bg-indigo-50 !text-indigo-700' : ''}
               `}
+              onMouseEnter={() => day.isCurrentMonth && setHoveredDateInfo(day.holiday)}
+              onMouseLeave={() => setHoveredDateInfo(null)}
               onClick={() => !day.isPast && handleDateSelect(day.date)}
             >
-              <span className="font-semibold">{day.day}</span>
-              {/* Festival indicator */}
-              {day.isCurrentMonth && day.panchang?.isAuspicious && !isCheckin && (
-                <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+              <span className="z-10">{day.day}</span>
+              {/* Event Indicator Dot */}
+              {day.isCurrentMonth && day.holiday && !isCheckin && !isCheckout && (
+                <div className={`absolute bottom-1 w-1 h-1 rounded-full ${day.holiday.type === 'Government Holiday' ? 'bg-red-500' : 'bg-orange-400'}`}></div>
               )}
             </div>
           );
         })}
       </div>
       
-      {/* Kalnirnay-style Detail Box */}
-      <div className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-100 text-center min-h-[60px] flex flex-col justify-center">
-        {selectedPanchang ? (
-          <div className="animate-in fade-in slide-in-from-bottom-1">
-            <p className="text-xs font-bold text-orange-800 uppercase tracking-wide">
-              {selectedPanchang.festivals.join(", ") || "Regular Day"}
+      {/* Dynamic Detail Box */}
+      <div className="mt-5 p-4 bg-gray-50 rounded-xl border border-gray-100 text-center min-h-[80px] flex flex-col justify-center transition-all duration-300">
+        {infoToDisplay ? (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-widest mb-1">
+              {infoToDisplay.type}
             </p>
-            <p className="text-[10px] text-orange-600 mt-1 font-medium">
-              Tithi: {selectedPanchang.tithi}
+            <p className="text-sm font-semibold text-gray-800 leading-tight">
+              {infoToDisplay.event}
             </p>
+            {infoToDisplay.extras && (
+              <p className="text-[10px] text-gray-500 mt-1 italic">
+                {infoToDisplay.extras}
+              </p>
+            )}
           </div>
         ) : (
-          <p className="text-xs text-gray-400">Select a date to see Hindu Tithi and Festivals</p>
+          <p className="text-xs text-gray-400 italic">
+            Hover over a date or select your check-in <br/> to see festivals and holidays
+          </p>
         )}
       </div>
     </div>
   );
 };
-
   const adjustGuests = (type, action) => {
     const newGuests = {...guests};
     if (action === 'increase') {

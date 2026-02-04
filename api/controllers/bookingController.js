@@ -3,6 +3,8 @@
 import mongoose from 'mongoose';
 import Booking from '../models/BookingSchema.js';
 import Property from '../models/Property.js';
+import { sendBookingConfirmationEmail } from '../services/emailService.js';
+import PrivacyPolicy from '../models/PrivacyPolicy.js';
 
 // Utility function to calculate pricing
 const calculatePricing = (room, adults, children, totalDays, checkIn, checkOut) => {
@@ -530,49 +532,58 @@ getSelfBookings: async (req, res) => {
   },
 
   // status update
-  updateStatus: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { status } = req.body;
+updateStatus: async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
 
-      const booking = await Booking.findById(id);
-      if (!booking) {
-        return res.status(404).json({
-          success: false,
-          message: 'Booking not found',
-        });
-      }
+    // 1. Populate 'property' to get placeName and location details
+    const booking = await Booking.findById(id).populate('property');
 
-      // If no status provided, default based on current status
-      const newStatus = status || (booking.status === 'pending' ? 'confirmed' : booking.status);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
 
-      booking.status = newStatus;
-      await booking.save(); // Schema enum validation happens automatically
+    // 2. Fetch the specific policy for this property
+    const policy = await PrivacyPolicy.findOne({ property: booking.property._id, isActive: true });
 
-      res.json({
-        success: true,
-        message: `Booking status updated to ${booking.status} successfully`,
-        data: booking,
-      });
+    const oldStatus = booking.status;
+    const newStatus = status || (oldStatus === 'pending' ? 'confirmed' : oldStatus);
 
-    } catch (error) {
-      console.error('Status update error:', error);
-      
-      if (error.name === 'ValidationError') {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid status value. Valid statuses are: pending, confirmed, checked-in, checked-out, cancelled, no-show',
-          error: error.message,
-        });
-      }
+    booking.status = newStatus;
+    await booking.save();
 
-      res.status(500).json({
+    // 3. Trigger Email with both Booking and Policy data
+    if (newStatus === 'confirmed' && oldStatus !== 'confirmed') {
+      sendBookingConfirmationEmail(booking, policy).catch(err => 
+        console.error('Email Service Error:', err)
+      );
+    }
+
+    res.json({
+      success: true,
+      message: `Booking status updated to ${booking.status} successfully`,
+      data: booking,
+    });
+
+  } catch (error) {
+    console.error('Status update error:', error);
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
         success: false,
-        message: 'Error updating booking status',
+        message: 'Invalid status value. Valid statuses are: pending, confirmed, checked-in, checked-out, cancelled, no-show',
         error: error.message,
       });
     }
-  },
+
+    res.status(500).json({
+      success: false,
+      message: 'Error updating booking status',
+      error: error.message,
+    });
+  }
+},
 
   // Check-in guest
   checkIn: async (req, res) => {

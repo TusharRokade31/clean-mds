@@ -790,7 +790,6 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                           <Checkbox
                             edge="start"
                             checked={editingMedia.tags.includes(tag)}
-                            onChange={() => handleTagToggle(tag)}
                             size="small"
                           />
                         </ListItemIcon>

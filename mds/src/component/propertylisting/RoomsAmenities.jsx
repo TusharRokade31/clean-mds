@@ -240,8 +240,15 @@ const getRoomSelectedCount = (category) => {
 
     return (
         <Grid item xs={12}>
-            <Divider className="my-3" />
-            <Typography sx={{ marginTop: "10px" }} variant="subtitle1" gutterBottom>Room Amenities</Typography>
+            
+            
+
+            <Typography sx={{ marginTop: "10px"}} variant="subtitle1" gutterBottom>
+                <Divider className="py-5" />
+                </Typography>
+                <Typography sx={{ marginTop: "15px", }} variant="subtitle1" gutterBottom>
+                
+                Room Amenities</Typography>
 
             <Box sx={{ marginTop: "10px", width: '100%', bgcolor: 'background.paper' }}>
                 {/* Amenity Category Tabs */}

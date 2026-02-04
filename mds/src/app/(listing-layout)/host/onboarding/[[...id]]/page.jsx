@@ -35,6 +35,7 @@ import RoomMediaForm from "@/component/propertylisting/RoomMediaForm";
 import PoliciesFrom from "@/component/propertylisting/PoliciesFrom";
 import FinanceLegalForm from "@/component/propertylisting/FinanceLegalForm";
 import Link from "next/link";
+import toast, { Toaster } from "react-hot-toast";
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -66,6 +67,14 @@ export default function PropertyForm() {
   const { currentProperty, isLoading, error } = useSelector(
     (state) => state.property
   );
+
+  useEffect(() => {
+  if (error) {
+    toast.error(error);
+  }
+}, [error]);
+
+  console.log(error)
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [draftProperties, setDraftProperties] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
@@ -294,254 +303,6 @@ const handleCreateNew = () => {
     }
   }, [currentProperty]);
 
-  // Updated amenity data structure
-  // const amenityCategories = {
-  //   mandatory: {
-  //     title: "Mandatory",
-  //     items: [
-  //       {
-  //         name: "Air Conditioning",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Laundry",
-  //         options: ["Free", "Paid"],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Newspaper",
-  //         options: [],
-  //         Suboptions: ["Local Language", "English"],
-  //       },
-  //       {
-  //         name: "Parking",
-  //         options: ["Free", "Paid"],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Room service",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Smoke detector",
-  //         options: [],
-  //         Suboptions: ["In Room", "Lobby"],
-  //       },
-  //       {
-  //         name: "Wifi",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Restaurant/Bhojnalay",
-  //         options: [],
-  //         Suboptions: ["Jain food available"],
-  //       },
-  //       {
-  //         name: "CCTV",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Fire extinguishers",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Luggage assistance",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //     ],
-  //   },
-  //   basicFacilities: {
-  //     title: "Basic Facilities",
-  //     items: [
-  //       {
-  //         name: "Elevator/ Lift",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Housekeeping",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Kitchen",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Power backup",
-  //         options: ["Genset", "Inverter"],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Refrigerator",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Washing Machine",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //     ],
-  //   },
-  //   generalServices: {
-  //     title: "General Services",
-  //     items: [
-  //       {
-  //         name: "Bellboy service",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Caretaker",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Luggage storage",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Wheelchair",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //     ],
-  //   },
-  //   commonArea: {
-  //     title: "Common Area",
-  //     items: [
-  //       {
-  //         name: "Balcony/ Terrace",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Fireplace",
-  //         options: ["Indoor", "Outdoor", "Common"],
-  //         Suboptions: ["Free", "Paid"],
-  //       },
-  //       {
-  //         name: "Lawn",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Seating Area",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Prayer Room",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Sitout Area",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Bonfire Pit",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //     ],
-  //   },
-  //   foodBeverages: {
-  //     title: "Food and Beverages",
-  //     items: [
-  //       {
-  //         name: "Dining Area/Bhojnalay",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Food Options Available",
-  //         options: [],
-  //         Suboptions: ["Veg", "Jain"],
-  //       },
-  //       {
-  //         name: "Breakfast",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //     ],
-  //   },
-  //   healthWellness: {
-  //     title: "Health and Wellness",
-  //     items: [
-  //       {
-  //         name: "Activity Centre",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Yoga",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Meditation Room",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //     ],
-  //   },
-  //   security: {
-  //     title: "Security",
-  //     items: [
-  //       {
-  //         name: "Security alarms",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "Security Guard",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       // {
-  //       //   name: "Carbon Monoxide Detector",
-  //       //   options: [],
-  //       //   Suboptions: [],
-  //       // },
-  //     ],
-  //   },
-  //   mediaTechnology: {
-  //     title: "Media Technology",
-  //     items: [
-  //       {
-  //         name: "TV",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //     ],
-  //   },
-  //   paymentServices: {
-  //     title: "Payment Services",
-  //     items: [
-  //       {
-  //         name: "ATM",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //       {
-  //         name: "UPI",
-  //         options: [],
-  //         Suboptions: [],
-  //       },
-  //     ],
-  //   },
-  // };
 
   const amenityCategories = {
   basicFacilities: {
@@ -763,6 +524,7 @@ const validateMandatoryAmenities = () => {
     const errors = validateStep(activeTab);
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
+      toast.error("Please fix the validation errors before continuing.");
       return false;
     }
 
@@ -817,6 +579,7 @@ const validateMandatoryAmenities = () => {
 
       return success;
     } catch (error) {
+      toast.error("An unexpected error occurred.");
       console.log(error);
       setValidationErrors({ save: "Failed to save data" });
       return false;
@@ -854,8 +617,10 @@ const validateMandatoryAmenities = () => {
     );
   }
 
+  
   return (
     <>
+    <Toaster position="top-right" reverseOrder={false} />
       {/* Draft Properties Modal */}
       <Dialog open={showDraftModal} maxWidth="md">
         <DialogTitle>Continue Your Listing</DialogTitle>
@@ -897,7 +662,7 @@ const validateMandatoryAmenities = () => {
       </Dialog>
 
       <Paper className="max-w-7xl mx-auto my-8 p-4">
-        {console.log(error)}
+        
         {error?.message && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error?.message}

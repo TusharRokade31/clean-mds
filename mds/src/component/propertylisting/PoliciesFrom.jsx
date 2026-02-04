@@ -259,7 +259,7 @@ const handleSectionUpdate = async (section) => {
 
     const sectionNames = {
   checkInCheckOut: "Check-in & Check-out",
-  cancellationPolicy: "Cancellation Policy",
+  // cancellationPolicy: "Cancellation Policy",
   propertyRules: "Property Rules",
   propertyRestrictions: "Property Restrictions",
   petPolicy: "Pet Policy",
@@ -591,7 +591,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
               scrollButtons="auto"
             >
               <StyledTab label="Check-in & Check-out" />
-              <StyledTab label="Cancellation Policy" />
+              {/* <StyledTab label="Cancellation Policy" /> */}
               <StyledTab label="Property Rules" />
               <StyledTab label="Property Restrictions" />
               <StyledTab label="Pet Policy" />
@@ -727,8 +727,10 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
             </div>
           </TabPanel>
 
+
+          
           {/* Cancellation Policy Tab */}
-      <TabPanel value={activeTab} index={1}>
+      {/* <TabPanel value={activeTab} index={1}>
   <div className="space-y-4">
     <div>
       <Typography variant="h6" className="font-semibold text-gray-800">
@@ -754,7 +756,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                   <Typography className="text-gray-700 text-[15px] py-1">
                     {option.label}
                   </Typography>
-                  {/* Recommended Badge */}
+                  
                   {option.value === "free_cancellation_checkin" && (
                     <Box sx={{ 
                       bgcolor: '#f0fdf4', color: '#16a34a', fontSize: '10px', fontWeight: 'bold', 
@@ -768,10 +770,10 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
               className="m-0"
             />
 
-            {/* Render Timeline when selected */}
+            
             {formData.cancellationPolicy === option.value && (
               <>
-                {/* Custom Hour Input Logic */}
+                
                 {option.value === "free_cancellation_custom" && (
   <div className="ml-10 mb-2 flex items-center gap-2">
     <TextField
@@ -824,10 +826,12 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
       Save Cancellation Policy
     </Button>
   </div>
-</TabPanel>
+</TabPanel> */}
+
+
 
           {/* Property Rules Tab */}
-          <TabPanel value={activeTab} index={2}>
+          <TabPanel value={activeTab} index={1}>
             <div className="space-y-6">
               <div>
                 <Typography
@@ -1003,7 +1007,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
           </TabPanel>
 
           {/* Property Restrictions Tab */}
-          <TabPanel value={activeTab} index={3}>
+          <TabPanel value={activeTab} index={2}>
             <div className="space-y-6">
               <div>
                 <Typography
@@ -1093,7 +1097,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
           </TabPanel>
 
           {/* Pet Policy Tab */}
-          <TabPanel value={activeTab} index={4}>
+          <TabPanel value={activeTab} index={3}>
             <div className="space-y-6">
               <div>
                 <Typography
@@ -1136,7 +1140,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
           </TabPanel>
 
           {/* Custom Policies Tab */}
-          <TabPanel value={activeTab} index={5}>
+          <TabPanel value={activeTab} index={4}>
             <div className="space-y-6">
               <div>
                 <Typography
@@ -1239,7 +1243,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
           </TabPanel>
 
           {/* Meal Prices Tab */}
-         <TabPanel value={activeTab} index={6}>
+         <TabPanel value={activeTab} index={5}>
   <div className="space-y-6">
     <div>
       <Typography
@@ -1453,10 +1457,12 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
         </DialogTitle>
         <DialogContent>
           <div className="space-y-4 pt-2">
-            <TextField
+           <div className="mb-5">
+             <TextField
               fullWidth
               label="Policy Title"
-              className="mb-5"
+              
+              
               value={newCustomPolicy.title}
               onChange={(e) =>
                 setNewCustomPolicy((prev) => ({
@@ -1466,7 +1472,9 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
               }
               placeholder="e.g., Swimming Pool Rules"
             />
-            <TextField
+           </div>
+           <div>
+ <TextField
               fullWidth
               label="Policy Description"
               multiline
@@ -1480,6 +1488,8 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
               }
               placeholder="Describe the policy in detail..."
             />
+           </div>
+           
           </div>
         </DialogContent>
         <DialogActions>
