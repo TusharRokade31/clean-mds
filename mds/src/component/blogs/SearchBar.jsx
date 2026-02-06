@@ -29,7 +29,7 @@ export default function SearchBar({
           
           <Input
             type="text"
-            placeholder="Search articles, places, tips..."
+            placeholder="Search articles"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 pr-10 w-full border-gray-200 focus:border-[#1035ac] focus:ring-[#1035ac]"

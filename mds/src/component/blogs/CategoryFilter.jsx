@@ -70,7 +70,7 @@ const { categories} = useSelector(state => state.blog)
                 </span>
               )}
             </button>
-          {categories?.map((category) => (
+          {/* {categories?.map((category) => (
             
             <button
               key={category?._id}
@@ -81,7 +81,7 @@ const { categories} = useSelector(state => state.blog)
                   : "border-gray-200 bg-[#3741511c] py-3 px-5 rounded-lg hover:border-[#1035ac] hover:text-[#1035ac]"
               }`}
             >
-              {/* <span>{getCategoryIcon(category?.name)}</span> */}
+              <span>{getCategoryIcon(category?.name)}</span>
               <span>{category?.name}</span>
               {selectedCategory === category?.name && (
                 <span className="text-xs px-2 py-1 rounded-full bg-white/20 text-white">
@@ -89,7 +89,7 @@ const { categories} = useSelector(state => state.blog)
                 </span>
               )}
             </button>
-          ))}
+          ))} */}
         </div>
       )}
     </div>

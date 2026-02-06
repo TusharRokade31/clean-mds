@@ -5,6 +5,7 @@ import Link from "next/link";
 import logo from "../../public/assets/mds.png";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react"; // Import X icon from lucide-react
 import NavMenu from "./NavMenu";  // Import the NavMenu
 import SearchComponent from "./MobileSearchBar";
 import { useSelector } from "react-redux";
@@ -99,6 +100,15 @@ const Header = () => {
         transition={{ type: "spring", damping: 20 }}
         className="fixed top-0 right-0 h-screen w-64 bg-white shadow-lg z-50 lg:hidden overflow-y-auto" // raised to z-50
       >
+        {/* Close Button */}
+        <button
+          onClick={toggleMenu}
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          aria-label="Close menu"
+        >
+          <X className="w-6 h-6 text-gray-800" />
+        </button>
+
         <div className="flex flex-col pt-12 px-6 gap-6">
           <Link href="/about-us" onClick={toggleMenu} className="text-lg font-medium hover:text-indigo-600 transition-colors">
             About us

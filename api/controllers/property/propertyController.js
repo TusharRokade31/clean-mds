@@ -744,6 +744,8 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     // Remove room
     property.rooms.splice(roomIndex, 1);
     property.formProgress.step4Completed = property.rooms.length > 0;
+
+     property.formProgress.step4Completed = false;
     
     await property.save();
     

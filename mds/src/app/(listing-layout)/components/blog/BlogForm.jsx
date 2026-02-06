@@ -90,6 +90,20 @@ const BlogForm = ({ isEdit = false }) => {
     }
   };
 
+  const handleImageChange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({
+        ...prev,
+        image: reader.result // This is the base64 string
+      }));
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
   const addTag = () => {
     const tag = tagInput.trim();
     if (tag && !formData.tags.includes(tag)) {
@@ -121,7 +135,7 @@ const BlogForm = ({ isEdit = false }) => {
         await dispatch(createBlog(formData)).unwrap();
       }
       
-      navigate.push('/host/bloglist');
+      navigate.push('/admin/bloglist');
     } catch (error) {
       console.error('Failed to save blog:', error);
     }
@@ -180,19 +194,18 @@ const BlogForm = ({ isEdit = false }) => {
           </div>
 
           {/* Featured Image */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Featured Image URL
-            </label>
-            <input
-              type="url"
-              name="image"
-              value={formData.image}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
+         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Featured Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+          {formData.image && (
+            <img src={formData.image} alt="Preview" className="mt-2 h-32 w-auto object-cover rounded" />
+          )}
+        </div>
 
           {/* Category */}
           <div>
@@ -202,7 +215,7 @@ const BlogForm = ({ isEdit = false }) => {
             <select
               name="category"
               value={formData.category}
-              onChange={handleInputChange}
+            onChange={handleInputChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
@@ -276,7 +289,7 @@ const BlogForm = ({ isEdit = false }) => {
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
             <button
               type="button"
-              onClick={() => navigate.push('/host/bloglist')}
+              onClick={() => navigate.push('/admin/bloglist')}
               className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
             >
               Cancel

@@ -36,7 +36,9 @@ const NavMenu = () => {
       {!isAuthenticated ? (
         <Link href="/login">
           <button className="rounded-full bg-[#4f46e5] cursor-pointer text-white py-2 px-4">
-            Log in
+             <h3>
+          Log in
+        </h3>
           </button>
         </Link>
       ) : (

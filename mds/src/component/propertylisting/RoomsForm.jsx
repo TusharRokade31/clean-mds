@@ -350,12 +350,12 @@ export default function RoomsForm({
 
     // Floor Bedding Validation
     if (currentRoomData.FloorBedding?.available) {
-      if (
-        !currentRoomData.FloorBedding.count ||
-        currentRoomData.FloorBedding.count < 1
-      ) {
-        errors.floorBedding = "Floor bedding count must be at least 1";
-      }
+      // if (
+      //   !currentRoomData.FloorBedding.count ||
+      //   currentRoomData.FloorBedding.count < 1
+      // ) {
+      //   errors.floorBedding = "Floor bedding count must be at least 1";
+      // }
     }
 
     // Occupancy Validation
@@ -413,13 +413,13 @@ export default function RoomsForm({
         "Base price is required and must be greater than 0";
     }
 
-    if (
-      !currentRoomData.pricing?.extraFloorBeddingCharge ||
-      currentRoomData.pricing.extraFloorBeddingCharge < 0
-    ) {
-      errors.extraFloorBeddingCharge =
-        "Extra floor bedding charge cannot be negative";
-    }
+    // if (
+    //   !currentRoomData.pricing?.extraFloorBeddingCharge ||
+    //   currentRoomData.pricing.extraFloorBeddingCharge < 0
+    // ) {
+    //   errors.extraFloorBeddingCharge =
+    //     "Extra floor bedding charge cannot be negative";
+    // }
 
     // if (
     //   !currentRoomData.pricing?.childCharge ||

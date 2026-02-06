@@ -4,37 +4,45 @@ import asyncHandler from '../../middleware/async.js';
 import Category from '../../models/Category.js';
 import ErrorResponse from '../../utils/errorResponse.js';
 import logger from '../../utils/logger.js';
+import { uploadToS3 } from '../../services/s3Service.js';
 
 
 // Create new blog post
 export const createBlog = asyncHandler(async (req, res) => {
   
-  const { title, content, image, tags, categories, status } = req.body;
+  const { title, content, image, tags, category, status } = req.body;
+
+  let imageUrl = image;
+
+  // If image is sent as a base64 string or file buffer from frontend
+  if (image && image.startsWith('data:image')) {
+    const buffer = Buffer.from(image.replace(/^data:image\/\w+;base64,/, ""), 'base64');
+    const mimetype = image.split(';')[0].split(':')[1];
+    const fileName = `blogs/${Date.now()}-${title.replace(/\s+/g, '-').toLowerCase()}`;
+    
+    // Using your s3Service
+    imageUrl = await uploadToS3({ buffer, mimetype }, fileName);
+  }
 
   const logDetails = {
   title: title || 'not provided',
   tags: tags || 'not provided',  
-  categories: categories || 'not provided',
+  category: category || 'not provided',
 };
   
 
   logger.info(`Create blog request received, meta: ${JSON.stringify(logDetails)}`);
 
-  // Validate category IDs and ensure not deleted
-  const validCategories = await Category.find({ name: { $in: categories }, isDeleted: false });
 
-  if (!validCategories.length) {
-    logger.warn(`Invalid categories in blog creation, meta: ${JSON.stringify(logDetails)}`);
-    throw ErrorResponse(400, 'Invalid category');
-  }
+
 
   const blog = await Blog.create({
     title,
     content,
     author: req.user._id,
-    image,
+    image: imageUrl,
     tags,
-    category: validCategories[0].id,
+    category: category,
     status,
     slug: title,
     readTime: estimateReadTime(content),

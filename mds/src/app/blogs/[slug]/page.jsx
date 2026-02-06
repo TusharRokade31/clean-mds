@@ -3,10 +3,10 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchBlogBySlug } from '@/redux/features/blog/blogSlice'
-import { Clock, Eye, ArrowLeft } from 'lucide-react'
+import { Eye, ArrowLeft, Calendar } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useHTMLContent } from '@/hooks/useHTMLContent'
-import '../blog-content.css' // Import your custom CSS
+import '../blog-content.css'
 
 export default function BlogDetail() {
   const dispatch = useDispatch()
@@ -45,69 +45,84 @@ export default function BlogDetail() {
   }
 
   return (
-    <div className="min-h-screen  w-full bg-white">
-      {/* Hero Header */}
-      <div className="bg-linear-to-r from-[#5d5fef] flex   items-center mx-auto h-[300px] w-6/12 mt-20 to-[#af4fe4] text-white px-6 py-12 ">
-        <div className="max-w-4xl mx-auto flex flex-col items-center text-center space-y-4">
-          <div className="text-6xl">🏨</div>
-          <div className="flex items-start text-sm space-x-4 opacity-90">
-            <span>{new Date(currentBlog.createdAt).toLocaleDateString()}</span>
-            <span>•</span>
-            <span><Clock className="inline w-4 h-4 mr-1" />{currentBlog.readTime} min read</span>
-            <span>•</span>
-            <span><Eye className="inline w-4 h-4 mr-1" />{currentBlog.views || '1,247'} views</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Blog Content */}
-      <div className="w-6/12 mx-auto px-4 border border-[#00000023] py-8">
+    <div className="min-h-screen w-full bg-white pb-20">
+      <div className="md:w-7/12 mx-auto px-4 mt-24">
+        {/* Navigation */}
         <button 
           onClick={() => window.history.back()}
-          className="flex items-center gap-2 text-[#1035ac] hover:text-[#0d2a8f] mb-6"
+          className="flex items-center gap-2 text-gray-500 hover:text-[#1035ac] mb-6 transition-colors text-sm font-medium"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Blogs
         </button>
 
-        {/* Tags */}
-        <div className="flex gap-2 flex-wrap mb-4">
-          {(currentBlog.tags || []).map((tag) => (
-            <span key={tag} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-              {tag}
+        {/* Hero Banner Section */}
+        <div className="relative w-full rounded-2xl overflow-hidden shadow-lg mb-8">
+          {currentBlog.image ? (
+            <div className="aspect-video w-full">
+              <img 
+                src={currentBlog.image} 
+                alt={currentBlog.title}
+                className="w-full h-full object-cover"
+              />
+              {/* Subtle overlay for text readability if you decide to put text on top later */}
+              <div className="absolute inset-0 bg-black/10" />
+            </div>
+          ) : (
+            <div className="h-[300px] bg-gradient-to-r from-[#5d5fef] to-[#af4fe4] flex items-center justify-center">
+              <span className="text-6xl">🏨</span>
+            </div>
+          )}
+        </div>
+
+        {/* Blog Meta & Title */}
+        <div className="space-y-4 mb-8">
+          <div className="flex gap-2 flex-wrap">
+            {(currentBlog.tags || []).map((tag) => (
+              <span key={tag} className="bg-blue-50 text-[#1035ac] px-3 py-1 rounded-md text-xs font-bold uppercase">
+                {tag}
+              </span>
+            ))}
+          </div>
+          
+          <h1 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight">
+            {currentBlog.title}
+          </h1>
+
+          <div className="flex items-center gap-6 text-sm text-gray-500 border-b border-gray-100 pb-6">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="w-4 h-4" />
+              {new Date(currentBlog.createdAt).toLocaleDateString()}
             </span>
-          ))}
-        </div>
-
-        {/* Title */}
-        <h1 className="text-3xl md:text-5xl font-bold mb-4">
-          {currentBlog.title}
-        </h1>
-
-        {/* Author */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-[#1035ac] text-white flex items-center justify-center font-semibold uppercase">
-            {currentBlog?.author?.name.charAt(0) || 'A'}
-          </div>
-          <div>
-            <p className="text-sm font-medium">{currentBlog?.author?.name || "Alpha Beta Solutions"}</p>
-            <p className="text-xs text-gray-500">Technology Consultant</p>
+            <span className="flex items-center gap-1.5">
+              <Eye className="w-4 h-4" />
+              {currentBlog.views || '1,247'} views
+            </span>
           </div>
         </div>
 
-        {/* Cover Image */}
-        {currentBlog.image && (
-          <img 
-            src={currentBlog.image} 
-            alt={currentBlog.title}
-            className="w-full h-64 object-cover rounded-xl mb-6"
-          />
-        )}
+        {/* Author Section - Redesigned */}
+        {/* <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl mb-10">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#1035ac] text-white flex items-center justify-center font-bold text-lg">
+              {currentBlog?.author?.name.charAt(0) || 'A'}
+            </div>
+            <div>
+              <p className="text-base font-bold text-gray-900 leading-none">
+                {currentBlog?.author?.name || "Alpha Beta Solutions"}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">Technology Consultant</p>
+            </div>
+          </div>
+          <div className="hidden sm:block px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600">
+            Author
+          </div>
+        </div> */}
 
         {/* Blog Content */}
-        <div className="blog-content max-w-none text-gray-800">
-  {truncatedContent}
-</div>
+        <div className="blog-content max-w-none text-gray-800 leading-relaxed">
+          {truncatedContent}
+        </div>
       </div>
     </div>
   )
