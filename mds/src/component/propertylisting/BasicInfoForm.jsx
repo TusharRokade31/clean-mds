@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { checkEmailVerificationStatus, sendEmailOTP, verifyEmailOTP } from '@/redux/features/property/propertySlice';
+import toast from 'react-hot-toast';
 export default function BasicInfoForm({ formData, onChange, errors, propertyId, onEmailVerified }) {
   const dispatch = useDispatch();
    const { isLoading, error, currentProperty } = useSelector(state => state.property);
@@ -28,7 +29,7 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
 
   const handleSendOTP = async () => {
     if (!formData.email) {
-      alert('Please enter email address first');
+      toast.error('Please enter email address first');
       return;
     }
     
@@ -57,13 +58,14 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
       setOtp('');
       
       // Call the callback to update basic info in parent component
-      if (onEmailVerified) {
-        await onEmailVerified();
-      }
+      // if (onEmailVerified) {
+      //   await onEmailVerified();
+      // }
       
-      alert('Email verified successfully!');
+      toast.success('Email verified successfully!');
     } catch (error) {
       console.error('Failed to verify OTP:', error);
+      toast.error('Failed to verify OTP. Please try again.');
     }
   };
 

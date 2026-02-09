@@ -593,8 +593,9 @@ const handleAddRoom = async () => {
   } catch (error) {
     console.error("Failed to add room:", error);
     toast.error("Failed to create room. Please try again.");
-  } finally {
     setIsSubmitting(false);
+  } finally {
+    // setIsSubmitting(false);
     // Note: You might want to keep isSubmitting true if you want to 
     // keep the upload buttons active as per your previous logic
   }
@@ -688,7 +689,7 @@ const handleAddRoom = async () => {
 
   const handleSaveEdit = async () => {
     if (!editingMedia || !editingMedia.tags || editingMedia.tags.length === 0) {
-      alert("Please select at least one tag before saving.");
+      toast.error("Please select at least one tag before saving.");
       return;
     }
 
@@ -862,15 +863,16 @@ const isAmenitiesComplete = () => {
   };
 
 const handleAddNewForm = () => {
+     setIsSubmitting(false); // Re-enable the Save button for the new room
     setIsAddingRoom(false);
     setIsEditingRoom(false);
-    // Ensure this is false so the UI doesn't think the whole process is over
     setIsComplete(false); 
     setEditingRoomIndex(-1);
     setCurrentRoomData(getInitialRoomData());
     setFormErrors({});
     setSelectedAmenityTab(0);
     setCurrentRoomId(null);
+    setValidationError("");
     setValidationError("");
 
     setTimeout(() => {
@@ -1016,7 +1018,8 @@ const handleAddNewForm = () => {
               variant="contained"
               startIcon={<CloudUpload />}
               onClick={() => fileInputRef.current?.click()}
-              disabled={!isSubmitting && !isEditingRoom}
+              // disabled={!isSubmitting && !isEditingRoom}
+              disabled={!currentRoomId || isFileSubmiting}
             >
               {console.log(isEditingRoom, "isEdting room")}
               {!isSubmitting
@@ -2383,7 +2386,7 @@ const handleAddNewForm = () => {
          <Button
   variant="contained"
   color="primary"
-  disabled={isSubmitting}
+  disabled={isSubmitting && !isEditingRoom} 
   onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
 >
   {isEditingRoom ? 'Update Room' : 'Save Room'}

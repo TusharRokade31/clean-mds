@@ -145,7 +145,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
     if (!editingMedia) return;
 
     if (!editingMedia.tags || editingMedia.tags.length === 0) {
-      alert('Please select at least one tag before saving.');
+      toast.error('Please select at least one tag before saving.');
       return;
     }
 

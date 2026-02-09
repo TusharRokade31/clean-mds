@@ -10,6 +10,7 @@ import { TextField, Popover, Box, Typography, IconButton, Divider } from '@mui/m
 import { Add, Remove } from '@mui/icons-material';
 import { useDebounce } from '@/hooks/useDebounce';
 import { fetchSuggestions, clearSuggestions, getPropertiesByQuery, setSearchQuery } from "@/redux/features/property/propertySlice";
+import toast from "react-hot-toast";
 
 export function SearchBar() {
   const dispatch = useDispatch();
@@ -140,12 +141,12 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
 
   const handleSearch = () => {
     if (!locationQuery.trim()) {
-      alert("Please enter a location");
+      toast.error("Please enter a location");
       return;
     }
 
     if (!searchParams.checkin || !searchParams.checkout) {
-      alert("Please select check-in and check-out dates");
+      toast.error("Please select check-in and check-out dates");
       return;
     }
     

@@ -6,6 +6,7 @@ import { getAllProperties, getDraftProperties, deleteProperty, resetCurrentPrope
 import { useRouter } from 'next/navigation'
 import Link from "next/link"
 import { Edit, Trash2, Plus, Check, X, Search } from "lucide-react"
+import toast from "react-hot-toast"
 
 export default function Listing() {
   const dispatch = useDispatch()
@@ -55,10 +56,10 @@ export default function Listing() {
         await dispatch(deleteProperty(id)).unwrap()
         dispatch(getAllProperties())
         dispatch(getDraftProperties())
-        alert('Property deleted successfully!')
+        toast.success('Property deleted successfully!')
       } catch (error) {
         console.error('Delete failed:', error)
-        alert('Failed to delete property: ' + (error.message || 'Unknown error'))
+        toast.error('Failed to delete property: ' + (error.message || 'Unknown error'))
       } finally {
         setDeleteLoading(null)
       }
@@ -79,10 +80,10 @@ export default function Listing() {
       await dispatch(changePropertyStatus({ id: selectedProperty._id, status: newStatus })).unwrap()
       dispatch(getAllProperties())
       dispatch(getDraftProperties())
-      alert(`Property ${reviewAction === 'approve' ? 'approved' : 'rejected'} successfully!`)
+      toast.success(`Property ${reviewAction === 'approve' ? 'approved' : 'rejected'} successfully!`)
     } catch (error) {
       console.error('Review failed:', error)
-      alert(`Failed to ${reviewAction} property: ` + (error.message || 'Unknown error'))
+      toast.error(`Failed to ${reviewAction} property: ` + (error.message || 'Unknown error'))
     } finally {
       setReviewLoading(null)
       setShowReviewPopup(false)
@@ -120,10 +121,10 @@ export default function Listing() {
       await dispatch(changePropertyStatus({ id: property._id, status: newStatus })).unwrap()
       dispatch(getAllProperties())
       dispatch(getDraftProperties())
-      alert('Status updated successfully!')
+      toast.success('Status updated successfully!')
     } catch (error) {
       console.error('Status update failed:', error)
-      alert('Failed to update status: ' + (error.message || 'Unknown error'))
+      toast.error('Failed to update status: ' + (error.message || 'Unknown error'))
     } finally {
       setStatusLoading(null)
     }

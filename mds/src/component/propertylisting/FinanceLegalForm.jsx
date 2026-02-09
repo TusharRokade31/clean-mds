@@ -195,7 +195,7 @@ const handleFileUpload = async (e) => {
     onComplete?.();
     toast.success('Finance & Legal step completed successfully!');
   } catch (error) {
-    alert(`Validation errors:\n${error.errors?.join('\n') || error.message}`);
+    toast.error(`Validation errors:\n${error.errors?.join('\n') || error.message}`);
   }
   };
 

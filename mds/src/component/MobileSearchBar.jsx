@@ -8,6 +8,7 @@ import { IoLocationOutline } from 'react-icons/io5';
 import { useRouter } from 'next/navigation';
 import { fetchSuggestions, clearSuggestions, getPropertiesByQuery } from '@/redux/features/property/propertySlice';
 import { useDebounce } from '@/hooks/useDebounce';
+import toast from 'react-hot-toast';
 
 export default function SearchComponent() {
   const dispatch = useDispatch();
@@ -317,12 +318,12 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
 
   const handleSearch = () => {
     if (!selectedLocation) {
-      alert('Please select a location from the suggestions');
+      toast.error('Please select a location from the suggestions');
       return;
     }
 
     if (!selectedDates.checkin || !selectedDates.checkout) {
-      alert('Please select check-in and check-out dates');
+      toast.error('Please select check-in and check-out dates');
       return;
     }
 

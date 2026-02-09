@@ -200,7 +200,7 @@ const BookingConfirmationDialog = ({
       
     } catch (error) {
       console.error('Booking confirmation failed:', error)
-      alert('Failed to process booking. Please try again.')
+      toast.error('Failed to process booking. Please try again.')
     }
   }
 

@@ -29,6 +29,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import PropertyDetailsModal from "../../components/properties/PropertyDetailsModal";
+import toast from "react-hot-toast";
 
 export default function Listing() {
   const dispatch = useDispatch();
@@ -111,10 +112,10 @@ export default function Listing() {
         const result = await dispatch(deleteProperty(id)).unwrap();
         dispatch(getAllProperties());
         dispatch(getDraftProperties());
-        alert("Property deleted successfully!");
+        toast.success("Property deleted successfully!");
       } catch (error) {
         console.error("Delete failed:", error);
-        alert("Failed to delete property: " + (error.message || "Unknown error"));
+        toast.error("Failed to delete property: " + (error.message || "Unknown error"));
       } finally {
         setDeleteLoading(null);
       }
@@ -144,12 +145,12 @@ export default function Listing() {
       dispatch(getAllProperties());
       dispatch(getDraftProperties());
 
-      alert(
+      toast.success(
         `Property ${reviewAction === "approve" ? "approved" : "rejected"} successfully!`
       );
     } catch (error) {
       console.error("Review failed:", error);
-      alert(
+      toast.error(
         `Failed to ${reviewAction} property: ` + (error.message || "Unknown error")
       );
     } finally {

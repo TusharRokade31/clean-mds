@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { getPanchangam, Observer, tithiNames } from '@ishubhamx/panchangam-js';
 import { fetchSuggestions, clearSuggestions, getPropertiesByQuery } from '@/redux/features/property/propertySlice';
 import { useDebounce } from '@/hooks/useDebounce';
+import toast from 'react-hot-toast';
 
 export default function SearchBar() {
 
@@ -300,12 +301,12 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
   // Handle search button click
 const handleSearch = async () => {
   if (!selectedLocation) {
-    alert('Please select a location from the suggestions');
+    toast.error('Please select a location from the suggestions');
     return;
   }
 
   if (!selectedDates.checkin || !selectedDates.checkout) {
-    alert('Please select check-in and check-out dates');
+    toast.error('Please select check-in and check-out dates');
     return;
   }
 
@@ -346,7 +347,7 @@ const handleSearch = async () => {
     
   } catch (error) {
     console.error('Search failed:', error);
-    alert('Failed to search properties. Please try again.');
+    toast.error('Failed to search properties. Please try again.');
   }
 };
 

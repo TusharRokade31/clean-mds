@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useRouter } from "next/navigation"
 import { createBooking } from "@/redux/features/bookings/bookingSlice"
+import toast from "react-hot-toast"
 // import { createBooking } from "../redux/features/bookings/bookingSlice"
 
 export default function BookingPage({ property, selectedRoom }) {
@@ -119,7 +120,7 @@ console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calcul
     e.preventDefault()
     
     if (!agreeTerms) {
-      alert("Please agree to the terms and conditions")
+      toast.error("Please agree to the terms and conditions")
       return
     }
 

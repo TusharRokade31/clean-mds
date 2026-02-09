@@ -17,7 +17,8 @@ const page = () => {
 </ul> */}
 <p>If you ever have a question or concern regarding a payment, our support team is always available to assist you.</p>
 <p><em>My Divine Stays does not operate or manage any dharamshala. We only provide a secure online booking system to simplify reservations.</em></p>
-<h3>Note - All bookings are final. No refunds will be issued once a booking is confirmed, even in case of cancellation.</h3></div>
+<h3>Refund Policy</h3>
+<p>All bookings are final. No refunds will be issued once a booking is confirmed, even in case of cancellation.</p></div>
   )
 }
 

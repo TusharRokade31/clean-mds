@@ -62,7 +62,8 @@ const page = () => {
 <p>For questions related to these Terms of Service:</p>
 <p>📧 Email: mydivinestay@gmail.com<br />📞 Phone / WhatsApp: +91 9819719930</p>
 <p><em>My Divine Stays provides a digital booking platform only. Accommodation services are offered independently by listed dharamshalas.</em></p>
-<h3>Note - All bookings are final. No refunds will be issued once a booking is confirmed, even in case of cancellation.</h3>
+<h3>Refund Policy</h3>
+<p>All bookings are final. No refunds will be issued once a booking is confirmed, even in case of cancellation.</p>
 </div>
   )
 }
