@@ -232,7 +232,7 @@ const PropertySchema = new Schema({
   // Step 1 - Basic Info
   propertyType: {
     type: String,
-    required: [true, 'Property type is required'],
+    required: [false, 'Property type is required'],
     enum: [
       'Dharamshala (Basic spiritual lodging run by religious trusts or communities)',
       'Dharamshala', 
@@ -240,25 +240,26 @@ const PropertySchema = new Schema({
       'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 
       'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)',
     ],
+    default: 'Dharamshala',  
   },
   placeName: {
     type: String,
-    required: [true, 'Place name is required'],
+    required: [false, 'Place name is required'],
   },
   placeRating: {
     type: String,
   },
   propertyBuilt: {
     type: String,
-    required: [true, 'Property built year is required'],
+    required: [false, 'Property built year is required'],
   },
   bookingSince: {
     type: String,
-    required: [true, 'Booking since date is required'],
+    required: [false, 'Booking since date is required'],
   },
   email: {
     type: String,
-    required: [true, 'Email is required'],
+    required: [false, 'Email is required'],
   },
   emailVerified: {
     type: Boolean,
@@ -266,7 +267,7 @@ const PropertySchema = new Schema({
   },
   mobileNumber: {
     type: String,
-    required: [true, 'Mobile Number is required'],
+    required: [false, 'Mobile Number is required'],
   },
   landline: {
     type: String,
@@ -274,32 +275,33 @@ const PropertySchema = new Schema({
   rentalForm: {
     type: String,
     enum: ['Entire place', 'Private room', 'Share room'],
+    default: 'Entire place', 
   },
   
   // Step 2 - Location
   location: {
     houseName: { 
       type: String, 
-      required: [true, 'House/Building Name is required'], 
+      required: [false, 'House/Building Name is required'], 
     },
     country: { 
       type: String, 
-      required: [true, 'Country is required'], 
+      required: [false, 'Country is required'], 
     },
     street: { 
       type: String, 
-      required: [true, 'Street address is required'], 
+      required: [false, 'Street address is required'], 
     },
     roomNumber: { 
       type: String, 
     },
     city: { 
       type: String, 
-      required: [true, 'City is required'], 
+      required: [false, 'City is required'], 
     },
     state: { 
       type: String, 
-      required: [true, 'State is required'], 
+      required: [false, 'State is required'], 
     },
     stateRef: { 
       type: Schema.Types.ObjectId, 
@@ -311,7 +313,7 @@ const PropertySchema = new Schema({
     },
     postalCode: { 
       type: String, 
-      required: [true, 'Postal code is required'], 
+      required: [false, 'Postal code is required'], 
     },
     coordinates: {
       lat: { type: Number },

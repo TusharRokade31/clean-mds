@@ -440,8 +440,6 @@ const validateMandatoryAmenities = () => {
           errors.propertyType = "Property type is required";
         if (!formData.basicInfo.placeName)
           errors.placeName = "Place name is required";
-        if (!formData.basicInfo.placeRating)
-          errors.placeRating = "Rating is required";
         if (!formData.basicInfo.propertyBuilt)
           errors.propertyBuilt = "Built year is required";
         if (!formData.basicInfo.bookingSince)
@@ -523,6 +521,7 @@ const validateMandatoryAmenities = () => {
 
     const errors = validateStep(activeTab);
     if (Object.keys(errors).length > 0) {
+      console.log("Validation errors:", errors);
       setValidationErrors(errors);
       toast.error("Please fix the validation errors before continuing.");
       return false;

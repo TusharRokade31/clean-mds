@@ -382,7 +382,7 @@ export const completeFinanceLegalStep = async (req, res) => {
       property.status = 'pending'; // Change status to pending for review
     }
 
-    await property.save();
+    await property.save({ validateBeforeSave: false });
 
     res.status(200).json({
       success: true,

@@ -127,26 +127,9 @@ export const getProperty = async (req, res) => {
 export const initializeProperty = async (req, res) => {
   try {
     const userId = req.user._id;
-    console.log(req.user, "propertyMange")
-    const { forceNew } = req.body; // Add this parameter
+    const { forceNew } = req.body;
 
-    // If not forcing new, check for recent draft creation (within last 5 seconds)
     if (!forceNew) {
-      const recentDraft = await Property.findOne({ 
-        owner: userId, 
-        'formProgress.formCompleted': false,
-        createdAt: { $gte: new Date(Date.now() - 5000) }, // 5 seconds ago
-      });
-
-      if (recentDraft) {
-        return res.status(200).json({
-          success: true,
-          message: 'Recent draft found',
-          property: recentDraft,
-        });
-      }
-
-      // Check for any existing draft
       const existingDraft = await Property.findOne({ 
         owner: userId, 
         'formProgress.formCompleted': false, 
@@ -161,24 +144,24 @@ export const initializeProperty = async (req, res) => {
       }
     }
 
-    // Create a new draft with required fields initialized
-    const newProperty = await Property.create({
+    // Create with minimal required data - no placeholder values needed
+const newProperty = await Property.create({
       owner: userId,
       propertyType: 'Dharamshala',
-      placeName: 'Draft Property',
-      placeRating: '5.0',
-      propertyBuilt: '2024',
-      bookingSince: '2024-01-01',
+      placeName: '',
+      placeRating: '',
+      propertyBuilt: '',
+      bookingSince: '',
       rentalForm: 'Entire place',
-      email: 'example@gmail.com',
-      mobileNumber: '0123456789',
+      email: '',
+      mobileNumber: '',
       location: {
-        houseName: 'House/Building Name',
-        country: 'India',
-        street: 'Draft Street',
-        city: 'Draft City',
-        state: 'Draft State',
-        postalCode: '000000',
+        houseName: '',
+        country: '',
+        street: '',
+        city: '',
+        state: '',
+        postalCode: '',
       },
       amenities: {
         mandatory: new Map(),
@@ -204,6 +187,9 @@ export const initializeProperty = async (req, res) => {
         formCompleted: false,
       },
     });
+
+    // Save without validation for initial draft
+    await newProperty.save({ validateBeforeSave: false });
 
     return res.status(201).json({
       success: true,
@@ -324,7 +310,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
 
     if (property) {
       property.emailVerified = true;
-      await property.save();
+      await property.save({ validateBeforeSave: false });
     }
 
     return res.status(200).json({
@@ -427,9 +413,9 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     property.email = email;
     property.mobileNumber = mobileNumber;
     property.landline = landline;
-    property.formProgress.step1Completed = true;
+   
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
 
     // Clean up verified OTP records
     await OTP.deleteMany({ email, propertyId, verified: true });
@@ -515,9 +501,10 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     
     // Update property with location info
     property.location = locationData;
+    property.formProgress.step1Completed = true;
     property.formProgress.step2Completed = true;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -568,7 +555,7 @@ export const saveAmenities = async (req, res) => {
     property.amenities = amenities;
     property.formProgress.step3Completed = true;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -621,7 +608,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
 
     property.formProgress.step4Completed = false;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(201).json({
       success: true,
@@ -689,7 +676,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     });
     property.formProgress.step4Completed = false;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -747,7 +734,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
 
      property.formProgress.step4Completed = false;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -787,7 +774,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     // Mark step 4 as completed
     property.formProgress.step4Completed = true;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -865,7 +852,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
       });
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(201).json({
       success: true,
@@ -965,7 +952,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
       }
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -1086,7 +1073,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
       console.log('Could not delete file:', fileError.message);
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -1175,7 +1162,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
       });
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(201).json({
       success: true,
@@ -1285,7 +1272,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
       }
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -1365,7 +1352,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
       console.log('Could not delete file:', fileError.message);
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -1509,7 +1496,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     // Mark step 5 as completed
     property.formProgress.step5Completed = true;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -1556,7 +1543,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     
     // Mark property as complete
     property.formProgress.formCompleted = true;
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -1636,7 +1623,7 @@ export const reviewProperty = async (req, res) => {
     }
     property.updatedAt = Date.now();
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     res.status(200).json({
       success: true,
@@ -1727,7 +1714,7 @@ export const changePropertyStatus = async (req, res) => {
     property.status = status;
     property.updatedAt = Date.now();
 
-    await property.save();
+    await property.save({ validateBeforeSave: false });
 
     return res.status(200).json({
       success: true,

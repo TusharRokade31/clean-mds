@@ -716,14 +716,14 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                 />
               </div> */}
 
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="primary"
                 onClick={() => handleSectionUpdate("checkInCheckOut")}
                 className="mt-4"
               >
                 Save Check-in/Check-out Settings
-              </Button>
+              </Button> */}
             </div>
           </TabPanel>
 
@@ -995,14 +995,14 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                 </div>
               </Paper>
 
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="primary"
                 sx={{ mt: 3 }}
                 onClick={() => handleSectionUpdate("propertyRules")}
               >
                 Save Property Rules
-              </Button>
+              </Button> */}
             </div>
           </TabPanel>
 
@@ -1085,14 +1085,14 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                   />
                 </div>
               </div>
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="primary"
                 sx={{ mt: 3 }}
                 onClick={() => handleSectionUpdate("propertyRestrictions")}
               >
                 Save Property Restrictions
-              </Button>
+              </Button> */}
             </div>
           </TabPanel>
 
@@ -1128,14 +1128,14 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                 />
               </div>
 
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="primary"
                 sx={{ mt: 3 }}
                 onClick={() => handleSectionUpdate("petPolicy")}
               >
                 Save Pet Policy
-              </Button>
+              </Button> */}
             </div>
           </TabPanel>
 
@@ -1231,14 +1231,14 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                 )}
               </Paper>
 
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="primary"
                 sx={{ mt: 3 }}
                 onClick={() => handleSectionUpdate("customPolicies")}
               >
                 Save Custom Policies
-              </Button>
+              </Button> */}
             </div>
           </TabPanel>
 
@@ -1420,27 +1420,66 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
         </CardContent>
       </Card>
 
-      <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
-          onClick={handleSave}
-          className="px-8 py-3"
-        >
-          Save All Changes
-        </Button>
+     <div className="flex flex-col sm:flex-row justify-between items-center mt-8 pt-6 border-t border-gray-200 gap-4">
+  <div className="flex flex-wrap gap-4">
+    {/* Global Save Button */}
+    <Button
+      variant="contained"
+      color="primary"
+      size="large"
+      onClick={handleSave}
+      className="px-8 py-3"
+    >
+      Save All Changes
+    </Button>
+    
+  </div>
+  {/* Dynamic Section-Specific Save Button */}
+    {activeTab !== 5 && ( // Hide if on Meal Prices if you prefer the Complete button there
+      <Button
+        variant="outlined"
+        color="primary"
+        size="large"
+        onClick={() => {
+          const sectionMap = [
+            "checkInCheckOut",
+            "propertyRules",
+            "propertyRestrictions",
+            "petPolicy",
+            "customPolicies",
+            "mealPrices"
+          ];
+          handleSectionUpdate(sectionMap[activeTab]);
+        }}
+        className="px-8 py-3"
+      >
+        {(() => {
+          switch (activeTab) {
+            case 0: return "Save Check-in/Check-out";
+            case 1: return "Save Property Rules";
+            case 2: return "Save Property Restrictions";
+            case 3: return "Save Pet Policy";
+            case 4: return "Save Custom Policies";
+            case 5: return "Save Meal Prices";
+            default: return "Save Section";
+          }
+        })()}
+      </Button>
+    )}
 
-        <Button
-          variant="contained"
-          // color="success"
-          size="large"
-          onClick={handleCompleteStep}
-          className="px-8 py-3"
-        >
-          Complete Policy And Rules
-        </Button>
-      </div>
+  {/* Completion Button */}
+  {activeTab === 5 && (
+    <Button
+      variant="contained"
+      
+      size="large"
+      onClick={handleCompleteStep}
+      className="px-8 py-3"
+    >
+      Complete Policy And Rules
+    </Button>
+  )}
+</div>
 
       <Dialog
         open={customPolicyDialog}

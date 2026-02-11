@@ -378,7 +378,7 @@ export const completePrivacyPolicyStep = async (req, res) => {
     if (guestProfile.allowUnmarriedCouples === undefined || 
         guestProfile.allowGuestsBelow18 === undefined || 
         guestProfile.allowOnlyMaleGuests === undefined) {
-      validationErrors.push('Guest profile preferences must be set');
+      validationErrors.push('Property Rules Guest profile preferences must be set');
     }
 
     // Check identity proofs
@@ -417,7 +417,7 @@ export const completePrivacyPolicyStep = async (req, res) => {
 
     // Update property step completion
     property.formProgress.step6Completed = true;
-    await property.save();
+    await property.save({ validateBeforeSave: false });
 
     res.status(200).json({
       success: true,

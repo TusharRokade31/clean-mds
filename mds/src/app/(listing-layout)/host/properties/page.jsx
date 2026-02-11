@@ -247,7 +247,7 @@ export default function Listing() {
                 )}
               </td>
               <td className="whitespace-nowrap px-6 py-4 text-sm space-x-2">
-                {canChangeStatus(property) && (
+                { (
                   <div>
                     <select
                       value={property.status}

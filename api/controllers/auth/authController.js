@@ -97,7 +97,7 @@ export const verifyEmailOTP = async (req, res) => {
 
     if (property) {
       property.emailVerified = true;
-      await property.save();
+      await property.save({ validateBeforeSave: false });
     }
 
     return res.status(200).json({
@@ -164,7 +164,7 @@ export const saveAmenities = async (req, res) => {
     property.amenities = amenities;
     property.formProgress.step3Completed = true;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,

@@ -96,6 +96,7 @@ const FinanceLegalForm = ({ propertyId, onComplete }) => {
   
   const [selectedFile, setSelectedFile] = useState(null);
   const [accountNumberError, setAccountNumberError] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(false);
 
   useEffect(() => {
     if (propertyId) {
@@ -199,9 +200,40 @@ const handleFileUpload = async (e) => {
   }
   };
 
-  const handleFileSelect = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
+const handleFileSelect = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // Validate file size (15MB limit)
+  if (file.size > 15 * 1024 * 1024) {
+    toast.error('File size must be less than 15MB');
+    return;
+  }
+  
+  // Validate file type
+  const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+  if (!allowedTypes.includes(file.type)) {
+    toast.error('Only PDF, PNG, JPG, and JPEG files are allowed');
+    return;
+  }
+  
+  setUploadProgress(true);
+  
+  const formData = new FormData();
+  formData.append('registrationDocument', file);
+  
+  try {
+    await dispatch(uploadRegistrationDocument({ 
+      propertyId, 
+      formData 
+    })).unwrap();
+    toast.success('Document uploaded successfully!');
+  } catch (error) {
+    toast.error(error.message || 'Failed to upload document');
+  } finally {
+    setUploadProgress(false);
+  }
+};
 
   if (isLoading) {
     return (
@@ -390,48 +422,121 @@ const handleFileUpload = async (e) => {
       )}
 
       {activeTab === 1 && (
-        <Box>
-          <Typography variant="h5" gutterBottom>
-            Ownership Details
+  <Box>
+    <Typography variant="h5" gutterBottom>
+      Ownership Details
+    </Typography>
+    <Typography variant="body2" color="text.secondary" paragraph>
+      Provide documents that prove your ownership
+    </Typography>
+    
+    <Box component="form" onSubmit={handleLegalSubmit}>
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <FormControl fullWidth required sx={{ mb: 3 }}>
+            <InputLabel>Type of ownership does the property have?</InputLabel>
+            <Select
+              value={legalData.ownershipDetails.ownershipType}
+              label="Type of ownership does the property have?"
+              onChange={(e) => handleLegalChange('ownershipDetails', 'ownershipType', e.target.value)}
+            >
+              <MenuItem value="My Own property">My Own property</MenuItem>
+              <MenuItem value="Leased property">Leased property</MenuItem>
+              <MenuItem value="Family property">Family property</MenuItem>
+              <MenuItem value="Partnership">Partnership</MenuItem>
+              <MenuItem value="Trust property">Trust property</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Typography variant="h6" gutterBottom>
+            Upload Registration Document
           </Typography>
           <Typography variant="body2" color="text.secondary" paragraph>
-            Provide documents that prove your ownership
+            The address on the registration document should match with the property address
           </Typography>
-          
-          <Box component="form" onSubmit={handleLegalSubmit}>
-            <Card sx={{ mb: 3 }}>
+
+          {currentFinanceLegal?.legal?.ownershipDetails?.propertyAddress && (
+            <Alert severity="info" icon={<LocationIcon />} sx={{ mb: 2 }}>
+              Your property address: {currentFinanceLegal.legal.ownershipDetails.propertyAddress}
+            </Alert>
+          )}
+
+          {/* Show uploaded document if exists */}
+          {currentFinanceLegal?.legal?.ownershipDetails?.registrationDocument?.url ? (
+            <Card sx={{ mb: 3, border: '2px solid', borderColor: 'success.main' }}>
               <CardContent>
-                <FormControl fullWidth required sx={{ mb: 3 }}>
-                  <InputLabel>Type of ownership does the property have?</InputLabel>
-                  <Select
-                    value={legalData.ownershipDetails.ownershipType}
-                    label="Type of ownership does the property have?"
-                    onChange={(e) => handleLegalChange('ownershipDetails', 'ownershipType', e.target.value)}
-                  >
-                    <MenuItem value="My Own property">My Own property</MenuItem>
-                    <MenuItem value="Leased property">Leased property</MenuItem>
-                    <MenuItem value="Family property">Family property</MenuItem>
-                    <MenuItem value="Partnership">Partnership</MenuItem>
-                    <MenuItem value="Trust property">Trust property</MenuItem>
-                  </Select>
-                </FormControl>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <CheckCircleIcon sx={{ color: 'success.main', fontSize: 40 }} />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h6" color="success.main" gutterBottom>
+                      Document Uploaded Successfully
+                    </Typography>
+                    <Typography variant="body2" gutterBottom>
+                      <strong>File:</strong> {currentFinanceLegal.legal.ownershipDetails.registrationDocument.originalName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <strong>Uploaded:</strong> {new Date(currentFinanceLegal.legal.ownershipDetails.registrationDocument.uploadedAt).toLocaleString()}
+                    </Typography>
+                    
+                    {/* View document button */}
+                    <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                      <Button
+                        variant="outlined"
+                        href={currentFinanceLegal.legal.ownershipDetails.registrationDocument.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View Document
+                      </Button>
+                      
+                      {/* Upload new document button */}
+                      <Button
+                        component="label"
+                        variant="outlined"
+                        startIcon={<CloudUploadIcon />}
+                        disabled={uploadProgress}
+                      >
+                        {uploadProgress ? 'Uploading...' : 'Upload New Document'}
+                        <VisuallyHiddenInput
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg"
+                          onChange={handleFileSelect}
+                        />
+                      </Button>
+                    </Box>
+                  </Box>
+                </Box>
 
-                <Divider sx={{ my: 3 }} />
-
-                <Typography variant="h6" gutterBottom>
-                  Upload Registration Document
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  The address on the registration document should match with the property address
-                </Typography>
-
-                {currentFinanceLegal?.legal?.ownershipDetails?.propertyAddress && (
-                  <Alert severity="info" icon={<LocationIcon />} sx={{ mb: 2 }}>
-                    Your property address: {currentFinanceLegal.legal.ownershipDetails.propertyAddress}
-                  </Alert>
+                {/* Preview for images */}
+                {currentFinanceLegal.legal.ownershipDetails.registrationDocument.originalName?.match(/\.(jpg|jpeg|png)$/i) && (
+                  <Box sx={{ mt: 2 }}>
+                    <img 
+                      src={currentFinanceLegal.legal.ownershipDetails.registrationDocument.url}
+                      alt="Registration Document"
+                      style={{ 
+                        maxWidth: '100%', 
+                        maxHeight: '400px', 
+                        objectFit: 'contain',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px'
+                      }}
+                    />
+                  </Box>
                 )}
-
-                <UploadArea>
+              </CardContent>
+            </Card>
+          ) : (
+            /* Upload area - only show if no document uploaded */
+            <UploadArea>
+              {uploadProgress ? (
+                <Box>
+                  <CircularProgress sx={{ mb: 2 }} />
+                  <Typography variant="h6">Uploading document...</Typography>
+                </Box>
+              ) : (
+                <>
                   <CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
                   <Typography variant="h6" gutterBottom>
                     Drag & Drop the Registration Document
@@ -454,51 +559,26 @@ const handleFileUpload = async (e) => {
                   <Typography variant="caption" display="block" sx={{ mt: 1 }}>
                     (Upload PDF/PNG/JPG/JPEG files of up to 15 MB)
                   </Typography>
-                </UploadArea>
+                </>
+              )}
+            </UploadArea>
+          )}
+        </CardContent>
+      </Card>
 
-                {selectedFile && (
-                  <Box sx={{ mt: 2 }}>
-                    <Alert severity="success" sx={{ mb: 2 }}>
-                      Selected: {selectedFile.name}
-                    </Alert>
-                    <Button 
-                      variant="outlined" 
-                      onClick={handleFileUpload} 
-                      disabled={isLoading}
-                      startIcon={<CloudUploadIcon />}
-                    >
-                      Upload Document
-                    </Button>
-                  </Box>
-                )}
+      <Button 
+        type="submit" 
+        variant="contained" 
+        size="large"
+        disabled={isLoading}
+        sx={{ mt: 2 }}
+      >
+        Save Ownership Details
+      </Button>
+    </Box>
+  </Box>
+)}
 
-                {currentFinanceLegal?.legal?.ownershipDetails?.registrationDocument?.url && (
-                  <Alert severity="success" sx={{ mt: 2 }}>
-                    <Box>
-                      <Typography variant="body2">
-                        ✅ Document uploaded: {currentFinanceLegal.legal.ownershipDetails.registrationDocument.originalName}
-                      </Typography>
-                      <Typography variant="caption">
-                        Uploaded on: {new Date(currentFinanceLegal.legal.ownershipDetails.registrationDocument.uploadedAt).toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-
-            <Button 
-              type="submit" 
-              variant="contained" 
-              size="large"
-              disabled={isLoading}
-              sx={{ mt: 2 }}
-            >
-              Save Ownership Details
-            </Button>
-          </Box>
-        </Box>
-      )}
 
       <Box sx={{ mt: 4, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'space-between' }}>
   <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>

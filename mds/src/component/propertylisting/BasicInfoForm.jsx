@@ -58,9 +58,9 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
       setOtp('');
       
       // Call the callback to update basic info in parent component
-      // if (onEmailVerified) {
-      //   await onEmailVerified();
-      // }
+      if (onEmailVerified) {
+        await onEmailVerified();
+      }
       
       toast.success('Email verified successfully!');
     } catch (error) {
@@ -75,7 +75,7 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
   
   // const rentalForms = ['Entire place', 'Private room', 'Share room'];
 
-  const ratingArray = Array.from({ length: 5 }, (_, i) => 5 - i);
+ const ratingArray = Array.from({ length: 5 }, (_, i) => 5 - i);
 
 
   // 1. Base array of years
