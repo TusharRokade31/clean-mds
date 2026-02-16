@@ -247,7 +247,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
   };
 
   // Tag Group Card Component
-  const TagGroupCard = ({ tag, mediaItems }) => {
+ const TagGroupCard = ({ tag, mediaItems }) => {
     const firstImage = mediaItems[0];
     const imageCount = mediaItems.filter(item => item.type === 'image').length;
     const videoCount = mediaItems.filter(item => item.type === 'video').length;
@@ -255,103 +255,100 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
     return (
       <Card 
         sx={{
-          width: 280,
-          height: 200,
+          width: 260,
           position: 'relative',
           cursor: 'pointer',
-          border: '1px solid #e0e0e0',
-          borderRadius: 2,
-          overflow: 'hidden',
+          borderRadius: 3,
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflow: 'visible', // For the stacked effect
+          background: 'transparent',
+          boxShadow: 'none',
           '&:hover': {
-            transform: 'scale(1.02)',
-            transition: 'transform 0.2s ease-in-out',
-            boxShadow: 3
+            transform: 'translateY(-4px)',
+            '& .image-container': { boxShadow: 6 }
           }
         }}
         onClick={() => handleTagGroupClick(tag, mediaItems)}
       >
-        {firstImage.type === 'image' ? (
-          <CardMedia
-            component="img"
-            image={`${firstImage.url}`}
-            alt={firstImage.filename}
-            sx={{
-              width: '100%',
-              height: '70%',
-              objectFit: 'cover'
-            }}
+        {/* Decorative Stacked Layers */}
+        <Box sx={{ 
+          position: 'absolute', top: -6, left: 10, right: 10, height: '10px', 
+          bgcolor: '#e0e0e0', borderRadius: '8px 8px 0 0', zRef: 0 
+        }} />
+        
+        <Box 
+          className="image-container"
+          sx={{
+            height: 180,
+            width: '100%',
+            bgcolor: '#f5f5f5', // Background for "contain" images
+            borderRadius: 3,
+            overflow: 'hidden',
+            position: 'relative',
+            zIndex: 1,
+            border: '1px solid #eee',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {firstImage.type === 'image' ? (
+            <CardMedia
+              component="img"
+              image={firstImage.url}
+              alt={firstImage.filename}
+              sx={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain' // PREVENTS CUTTING
+              }}
+            />
+          ) : (
+            <video
+              src={firstImage.url}
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+              muted
+            />
+          )}
+          
+          <Badge 
+            badgeContent={mediaItems.length} 
+            color="primary"
+            sx={{ position: 'absolute', top: 12, right: 12 }}
           />
-        ) : (
-          <video
-            src={`${firstImage.url}`}
-            style={{
-              width: '100%',
-              height: '70%',
-              objectFit: 'cover'
-            }}
-            muted
-            loop
-            autoPlay
-            preload="metadata"
-          />
-        )}
+        </Box>
 
-        <CardContent sx={{ height: '30%', p: 1.5 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+        <Box sx={{ p: 1.5, textAlign: 'center' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#333', mb: 0.5 }}>
             {tag}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            {imageCount > 0 && (
-              <Chip 
-                label={`${imageCount} Images`} 
-                size="small" 
-                color="primary" 
-                variant="outlined"
-                sx={{ fontSize: '0.7rem' }}
-              />
-            )}
-            {videoCount > 0 && (
-              <Chip 
-                label={`${videoCount} Videos`} 
-                size="small" 
-                color="secondary" 
-                variant="outlined"
-                sx={{ fontSize: '0.7rem' }}
-              />
-            )}
-          </Box>
-        </CardContent>
-
-        {/* Total count badge */}
-        <Badge 
-          badgeContent={mediaItems.length} 
-          color="primary"
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            '& .MuiBadge-badge': {
-              fontSize: '0.75rem',
-              minWidth: 20,
-              height: 20
-            }
-          }}
-        />
+          <Typography variant="caption" color="text.secondary">
+            {imageCount} {imageCount === 1 ? 'Photo' : 'Photos'} 
+            {videoCount > 0 && ` • ${videoCount} Videos`}
+          </Typography>
+        </Box>
       </Card>
     );
   };
-
   return (
     <Box>
       {/* Header */}
        <Typography sx={{ marginBottom: "20px"}} variant="subtitle1" gutterBottom>
                      <Divider className="py-5" />
                      </Typography>
+                      <Typography variant="h5" gutterBottom>
+           Upload Photos and Videos of the Property
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+                Upload photos and videos for each room to showcase their unique features.
+                Each media item must have at least one tag to help guests understand what they're viewing.
+              </Typography>
+        </Typography>
       <div className='flex justify-between items-center mb-4'>
         
-        <Typography variant="h5" gutterBottom>
-           Photos and Videos of the Property
+       <Typography variant="h5" gutterBottom>
+           
         </Typography>
+       
         <Box sx={{ display: 'flex', gap: 2 }}>
           <input
             ref={fileInputRef}
@@ -499,128 +496,82 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
       )}
 
       {/* Tag Group Dialog */}
-      <Dialog open={tagGroupDialog} onClose={() => setTagGroupDialog(false)} maxWidth="lg" fullWidth>
-        <DialogTitle sx={{ pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">
-            {selectedTagGroup?.tag} ({selectedTagGroup?.mediaItems.length} items)
-          </Typography>
-          <IconButton onClick={() => setTagGroupDialog(false)}>
+      <Dialog 
+        open={tagGroupDialog} 
+        onClose={() => setTagGroupDialog(false)} 
+        maxWidth="lg" 
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 4, bgcolor: '#fafafa' } }}
+      >
+        <DialogTitle sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>{selectedTagGroup?.tag}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Viewing {selectedImageIndex + 1} of {selectedTagGroup?.mediaItems.length}
+            </Typography>
+          </Box>
+          <IconButton onClick={() => setTagGroupDialog(false)} sx={{ bgcolor: '#eee' }}>
             <Close />
           </IconButton>
         </DialogTitle>
-        <DialogContent>
+        
+        <DialogContent sx={{ p: 0}}> {/* Dark background for focus */}
           {selectedTagGroup && (
-            <Grid container spacing={3}>
-              {/* Main Image Display */}
-              <Grid item size={{xs:12,md:8}}>
-                <Box sx={{ position: 'relative' }}>
-                  {selectedTagGroup.mediaItems[selectedImageIndex]?.type === 'image' ? (
-                    <img
-                      src={`${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
-                      alt={selectedTagGroup.mediaItems[selectedImageIndex].filename}
-                      style={{
-                        width: '100%',
-                        height: '500px',
-                        objectFit: 'cover',
-                        borderRadius: '8px'
-                      }}
-                    />
-                  ) : (
-                    <video
-                      src={`${selectedTagGroup.mediaItems[selectedImageIndex].url}`}
-                      style={{
-                        width: '100%',
-                        height: '500px',
-                        objectFit: 'cover',
-                        borderRadius: '8px'
-                      }}
-                      controls
-                    />
-                  )}
-                  
-                  {/* Navigation arrows */}
-                  {selectedImageIndex > 0 && (
-                    <IconButton
-                      sx={{
-                        position: 'absolute',
-                        left: 16,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        bgcolor: 'rgba(0,0,0,0.5)',
-                        color: 'white',
-                        '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
-                      }}
-                      onClick={previousImage}
-                    >
-                      <ArrowBack />
-                    </IconButton>
-                  )}
-                  
-                  {selectedImageIndex < selectedTagGroup.mediaItems.length - 1 && (
-                    <IconButton
-                      sx={{
-                        position: 'absolute',
-                        right: 16,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        bgcolor: 'rgba(0,0,0,0.5)',
-                        color: 'white',
-                        '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
-                      }}
-                      onClick={nextImage}
-                    >
-                      <ArrowForward />
-                    </IconButton>
-                  )}
-
-                  {/* Image counter */}
-                  <Chip
-                    label={`${selectedImageIndex + 1} / ${selectedTagGroup.mediaItems.length}`}
-                    sx={{
-                      position: 'absolute',
-                      bottom: 16,
-                      right: 16,
-                      bgcolor: 'rgba(0,0,0,0.7)',
-                      color: 'white'
-                    }}
-                  />
-                </Box>
-
-                {/* Action buttons for current image */}
-                <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                  {selectedTagGroup.mediaItems[selectedImageIndex]?.type === 'image' && (
-                    <Button
-                      variant="outlined"
-                      startIcon={<Star />}
-                      onClick={() => handleSetCoverFromGroup(selectedTagGroup.mediaItems[selectedImageIndex])}
-                      disabled={selectedTagGroup.mediaItems[selectedImageIndex]?.isCover}
-                    >
-                      {selectedTagGroup.mediaItems[selectedImageIndex]?.isCover ? 'Cover Photo' : 'Set as Cover'}
-                    </Button>
-                  )}
-                  
-                  <Button
-                    variant="outlined"
-                    startIcon={<Edit />}
-                    onClick={() => handleEditMedia(selectedTagGroup.mediaItems[selectedImageIndex])}
-                  >
-                    Edit Tags
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    startIcon={<Delete />}
-                    onClick={() => handleDeleteMedia(selectedTagGroup.mediaItems[selectedImageIndex]._id)}
-                  >
-                    Delete
-                  </Button>
-                </Box>
-              </Grid>
-
-            </Grid>
+            <Box sx={{ 
+              position: 'relative', 
+              height: '70vh', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              overflow: 'hidden'
+            }}>
+              {selectedTagGroup.mediaItems[selectedImageIndex]?.type === 'image' ? (
+                <img
+                  src={selectedTagGroup.mediaItems[selectedImageIndex].url}
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain' // NO CUTTING
+                  }}
+                />
+              ) : (
+                <video
+                  src={selectedTagGroup.mediaItems[selectedImageIndex].url}
+                  style={{ maxWidth: '100%', maxHeight: '100%' }}
+                  controls
+                />
+              )}
+              
+              {/* Navigation */}
+              <IconButton
+                onClick={previousImage}
+                disabled={selectedImageIndex === 0}
+                sx={{ position: 'absolute', left: 20, color: 'white', bgcolor: 'rgba(255,255,255,0.1)', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
+              >
+                <ArrowBack />
+              </IconButton>
+              
+              <IconButton
+                onClick={nextImage}
+                disabled={selectedImageIndex === selectedTagGroup.mediaItems.length - 1}
+                sx={{ position: 'absolute', right: 20, color: 'white', bgcolor: 'rgba(255,255,255,0.1)', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
+              >
+                <ArrowForward />
+              </IconButton>
+            </Box>
           )}
         </DialogContent>
+        
+        <DialogActions sx={{ p: 2, bgcolor: 'white' }}>
+          <Button 
+             startIcon={<Edit />} 
+             onClick={() => handleEditMedia(selectedTagGroup.mediaItems[selectedImageIndex])}
+          >
+            Edit Media
+          </Button>
+          <Box sx={{ flexGrow: 1 }} />
+          <Button onClick={() => setTagGroupDialog(false)}>Close Gallery</Button>
+        </DialogActions>
       </Dialog>
 
       {/* Edit Dialog (existing) */}

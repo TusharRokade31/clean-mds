@@ -8,17 +8,18 @@ const page = () => {
 <p>Every transaction is <strong>encrypted </strong>and protected using advanced security measures, so your payment information remains private and safe at all times.</p>
 <p>Once a booking is completed, pilgrims receive a <strong>clear booking confirmation</strong>, and dharamshalas receive accurate booking details for verification. This maintains transparency on both sides and avoids confusion or misuse.</p>
 <p>My Divine Stays acts only as a <strong>technology platform</strong> that facilitates bookings and payments. We do not collect or misuse any personal or financial data beyond what is required to complete the booking securely.</p>
-{/* <p><strong>Cancellation &amp; Refund Policy:</strong></p>
+<p><strong>Cancellation &amp; Refund Policy:</strong></p>
 <p>We understand that plans can change. Therefore, we offer the following cancellation policy to ensure fairness for both pilgrims and the dharamshala authorities:</p>
 <ul>
 <li>Cancelling more than 3 days before check-in: 90% refund.</li>
 <li>Cancelling 3 days before check-in: 50% refund.</li>
 <li>Cancelling within 24 hours of check-in: 0% refund.</li>
-</ul> */}
+</ul>
 <p>If you ever have a question or concern regarding a payment, our support team is always available to assist you.</p>
 <p><em>My Divine Stays does not operate or manage any dharamshala. We only provide a secure online booking system to simplify reservations.</em></p>
-<h3>Refund Policy</h3>
-<p>All bookings are final. No refunds will be issued once a booking is confirmed, even in case of cancellation.</p></div>
+{/* <h3>Refund Policy</h3>
+<p>All bookings are final. No refunds will be issued once a booking is confirmed, even in case of cancellation.</p> */}
+</div>
   )
 }
 

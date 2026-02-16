@@ -63,13 +63,13 @@ const page = () => {
 <ul>
 <li>Contact us for any privacy-related concerns</li>
 </ul>
-{/* <h2>Cancellation & Refund Policy</h2>
+<h2>Cancellation & Refund Policy</h2>
 <p>We understand that plans can change. Therefore, we offer the following cancellation policy to ensure fairness for both pilgrims and the dharamshala authorities:</p>
 <ul>
 <li>Cancelling more than 3 days before check-in: 90% refund.</li>
 <li>Cancelling 3 days before check-in: 50% refund.</li>
 <li>Cancelling within 24 hours of check-in: 0% refund.</li>
-</ul> */}
+</ul>
 <h2>Third-Party Links</h2>
 <p>Our website may contain links to third-party websites. My Divine Stays is not responsible for the privacy practices of external sites. We encourage users to review their privacy policies separately.</p>
 
@@ -82,8 +82,8 @@ const page = () => {
 <p>📞 Phone / WhatsApp: +91 9819719930</p>
 
 <p><em>My Divine Stays is a technology platform that enables online bookings for verified dharamshalas. We do not own or operate any dharamshala.</em></p>
-<h2>Refund Policy</h2>
-<p>All bookings are final. No refunds will be issued once a booking is confirmed, even in case of cancellation.</p>
+{/* <h2>Refund Policy</h2>
+<p>All bookings are final. No refunds will be issued once a booking is confirmed, even in case of cancellation.</p> */}
     </div>
   )
 }

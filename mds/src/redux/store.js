@@ -5,6 +5,7 @@ import locationReducer from './features/location/locationSlice';
 import propertyReducer from './features/property/propertySlice';
 import privacyPolicyReducer from './features/privacyPolicy/privacyPolicySlice';
 import bookingReducer from './features/bookings/bookingSlice';
+import paymentReducer from './features/payments/paymentSlice';
 import roomReducer from './features/rooms/roomSlice';
 import wishlistReducer from './features/wishlist/wishlistSlice';
 import blogReducer from './features/blog/blogSlice';
@@ -18,6 +19,7 @@ export const store = configureStore({
     property: propertyReducer,
     privacyPolicy: privacyPolicyReducer,
     booking: bookingReducer,
+    payment: paymentReducer,
     rooms: roomReducer,
     wishlist: wishlistReducer,
     blog: blogReducer,

@@ -121,11 +121,11 @@ const BookingDashboard = () => {
 
   const handlePropertyChange = (property) => {
     setSelectedProperty(property);
-    if (property) {
-      localStorage.setItem("selectedProperty", JSON.stringify(property));
-    } else {
-      localStorage.removeItem("selectedProperty");
-    }
+    // if (property) {
+    //   localStorage.setItem("selectedProperty", JSON.stringify(property));
+    // } else {
+    //   localStorage.removeItem("selectedProperty");
+    // }
     // Reset filters when changing property
     dispatch(resetFilters());
   };

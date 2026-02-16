@@ -5,12 +5,19 @@ import { useDispatch, useSelector } from "react-redux"
 import { useRouter } from "next/navigation"
 import { createBooking } from "@/redux/features/bookings/bookingSlice"
 import toast from "react-hot-toast"
+import { clearPaymentUrl, initiatePhonePePayment } from "@/redux/features/payments/paymentSlice"
 // import { createBooking } from "../redux/features/bookings/bookingSlice"
 
 export default function BookingPage({ property, selectedRoom }) {
   const dispatch = useDispatch()
   const router = useRouter()
-  const { isCreating, error } = useSelector((state) => state.booking)
+   const { isCreating, error: bookingError } = useSelector((state) => state.booking)
+const { 
+    isInitiating, 
+    paymentUrl, 
+    merchantTransactionId,
+    error: paymentError 
+  } = useSelector((state) => state.payment)
   
   // Get booking details from localStorage
   const [bookingDetails, setBookingDetails] = useState(null)
@@ -35,6 +42,23 @@ export default function BookingPage({ property, selectedRoom }) {
   const [paymentMethod, setPaymentMethod] = useState("upi")
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [pricingDetails, setPricingDetails] = useState(null)
+
+  useEffect(() => {
+    dispatch(clearPaymentUrl())
+  }, [dispatch])
+
+   useEffect(() => {
+    if (paymentUrl && merchantTransactionId) {
+      // Store transaction ID for verification
+      localStorage.setItem('pendingPayment', JSON.stringify({
+        merchantTransactionId,
+        timestamp: Date.now()
+      }))
+      
+      // Redirect to PhonePe payment page
+      window.location.href = paymentUrl
+    }
+  }, [paymentUrl, merchantTransactionId])
 
   useEffect(() => {
     // Get search details from localStorage
@@ -116,7 +140,7 @@ console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calcul
     }
   }
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (!agreeTerms) {
@@ -140,25 +164,37 @@ console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calcul
     }
 
     try {
-      const result = await dispatch(createBooking(bookingData)).unwrap()
-      // Store booking details for payment processing
-      localStorage.setItem('currentBooking', JSON.stringify(result))
-      router.push(`/booking-confirmation/${result.bookingId}`)
+      // Create booking first
+      const bookingResult = await dispatch(createBooking(bookingData)).unwrap()
+      toast.success('Booking created successfully!')
+      
+      // Store booking details
+      localStorage.setItem('currentBooking', JSON.stringify(bookingResult))
+
+      // Initiate payment
+      const paymentData = {
+        bookingId: bookingResult._id,
+        amount: pricingDetails.totalAmount,
+        phone: guestDetails.phone
+      }
+
+      await dispatch(initiatePhonePePayment(paymentData)).unwrap()
+      toast.loading('Redirecting to payment gateway...')
+      
     } catch (error) {
-      console.error('Booking failed:', error)
+      console.error('Booking/Payment failed:', error)
+      toast.error(error || 'Something went wrong')
     }
   }
 
-  if (!bookingDetails || !pricingDetails) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading booking details...</p>
-        </div>
-      </div>
-    )
-  }
+   useEffect(() => {
+    if (bookingError) {
+      toast.error(bookingError)
+    }
+    if (paymentError) {
+      toast.error(paymentError)
+    }
+  }, [bookingError, paymentError])
 
   return (
     <div className="min-h-screen bg-gray-50 py-28">
@@ -507,28 +543,28 @@ console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calcul
                   </div>
                 </div>
 
-                <button
-                  onClick={handleSubmit}
-                  disabled={isCreating || !agreeTerms}
-                  className="w-full mt-6 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  {isCreating ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                      Proceed to Payment
-                    </>
-                  )}
-                </button>
+                 <button
+        onClick={handleSubmit}
+        disabled={isCreating || isInitiating || !agreeTerms}
+        className="w-full mt-6 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+      >
+        {(isCreating || isInitiating) ? (
+          <>
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {isCreating ? 'Creating Booking...' : 'Initiating Payment...'}
+          </>
+        ) : (
+          <>
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            Proceed to Payment
+          </>
+        )}
+      </button>
 
                 <div className="mt-3 flex items-center justify-center text-sm text-gray-500">
                   <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
