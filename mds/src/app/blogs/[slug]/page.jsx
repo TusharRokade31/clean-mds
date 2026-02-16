@@ -6,6 +6,7 @@ import { fetchBlogBySlug } from '@/redux/features/blog/blogSlice'
 import { Eye, ArrowLeft, Calendar } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useHTMLContent } from '@/hooks/useHTMLContent'
+import Head from 'next/head'
 import '../blog-content.css'
 
 export default function BlogDetail() {
@@ -19,6 +20,73 @@ export default function BlogDetail() {
       dispatch(fetchBlogBySlug(params.slug))
     }
   }, [dispatch, params.slug])
+
+  // Update meta tags when blog data is loaded
+  useEffect(() => {
+    if (currentBlog) {
+      // Update document title
+      document.title = currentBlog.seoTitle || currentBlog.title || 'Blog Post'
+      
+      // Update meta description
+      const metaDescription = document.querySelector('meta[name="description"]')
+      if (metaDescription) {
+        metaDescription.setAttribute('content', currentBlog.seoDescription || '')
+      } else {
+        const meta = document.createElement('meta')
+        meta.name = 'description'
+        meta.content = currentBlog.seoDescription || ''
+        document.head.appendChild(meta)
+      }
+
+      // Update canonical URL
+      const canonical = document.querySelector('link[rel="canonical"]')
+      const canonicalUrl = `${window.location.origin}/blog/${params.slug}`
+      if (canonical) {
+        canonical.setAttribute('href', canonicalUrl)
+      } else {
+        const link = document.createElement('link')
+        link.rel = 'canonical'
+        link.href = canonicalUrl
+        document.head.appendChild(link)
+      }
+
+      // Update Open Graph tags
+      updateMetaTag('og:title', currentBlog.seoTitle || currentBlog.title)
+      updateMetaTag('og:description', currentBlog.seoDescription || '')
+      updateMetaTag('og:image', currentBlog.image || '')
+      updateMetaTag('og:url', canonicalUrl)
+      updateMetaTag('og:type', 'article')
+
+      // Update Twitter Card tags
+      updateMetaTag('twitter:card', 'summary_large_image')
+      updateMetaTag('twitter:title', currentBlog.seoTitle || currentBlog.title)
+      updateMetaTag('twitter:description', currentBlog.seoDescription || '')
+      updateMetaTag('twitter:image', currentBlog.image || '')
+    }
+  }, [currentBlog, params.slug])
+
+  // Helper function to update meta tags
+  const updateMetaTag = (property, content) => {
+    if (!content) return
+    
+    let metaTag = document.querySelector(`meta[property="${property}"]`)
+    if (!metaTag) {
+      metaTag = document.querySelector(`meta[name="${property}"]`)
+    }
+    
+    if (metaTag) {
+      metaTag.setAttribute('content', content)
+    } else {
+      const meta = document.createElement('meta')
+      if (property.startsWith('og:') || property.startsWith('twitter:')) {
+        meta.setAttribute('property', property)
+      } else {
+        meta.setAttribute('name', property)
+      }
+      meta.content = content
+      document.head.appendChild(meta)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -70,7 +138,7 @@ export default function BlogDetail() {
             </div>
           ) : (
             <div className="h-[300px] bg-gradient-to-r from-[#5d5fef] to-[#af4fe4] flex items-center justify-center">
-              <span className="text-6xl">🏨</span>
+              <span className="text-6xl">🎨</span>
             </div>
           )}
         </div>
@@ -100,24 +168,6 @@ export default function BlogDetail() {
             </span>
           </div>
         </div>
-
-        {/* Author Section - Redesigned */}
-        {/* <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl mb-10">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#1035ac] text-white flex items-center justify-center font-bold text-lg">
-              {currentBlog?.author?.name.charAt(0) || 'A'}
-            </div>
-            <div>
-              <p className="text-base font-bold text-gray-900 leading-none">
-                {currentBlog?.author?.name || "Alpha Beta Solutions"}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Technology Consultant</p>
-            </div>
-          </div>
-          <div className="hidden sm:block px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600">
-            Author
-          </div>
-        </div> */}
 
         {/* Blog Content */}
         <div className="blog-content max-w-none text-gray-800 leading-relaxed">

@@ -69,6 +69,7 @@ import {
   uploadRegistrationDocument,
   deleteFinanceLegal,
   completeFinanceLegalStep,
+  deleteRegistrationDocument,
 } from '../controllers/financeLegalController.js';
 
 
@@ -403,6 +404,11 @@ router.post('/:propertyId/legal/upload-document',
   protect,
   upload.single('registrationDocument'),
   uploadRegistrationDocument,
+);
+
+router.delete('/:propertyId/legal/document/:documentId',
+  protect,
+  deleteRegistrationDocument,
 );
 
 

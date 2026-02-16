@@ -1,6 +1,17 @@
 import React from 'react'
 import "../policy.css"
 
+
+
+export const metadata = {
+    title: "Terms of Service | Rules You Must Know Before Booking",
+    description: "Know your rights and responsibilities before booking. Read My Divine Stays Terms of Service for clear guidelines to stay secure and avoid surprises.",
+    alternates: {
+        canonical: "https://mydivinestays.com/terms-of-service/",
+      },
+};
+
+
 const page = () => {
   return (
     <div  className='legal-container legal-content my-24 px-20'><h2><strong>Terms of Service</strong></h2>

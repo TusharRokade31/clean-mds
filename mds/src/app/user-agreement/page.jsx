@@ -1,6 +1,14 @@
 import React from 'react'
 import "../policy.css"
 
+export const metadata = {
+    title: "User Agreement | Essential Guidelines for All Users",
+    description: "Read the User Agreement to understand your rights and responsibilities. Book confidently on My Divine Stays knowing the rules are clear and transparent.",
+    alternates: {
+        canonical: "https://mydivinestays.com/user-agreement/",
+    },
+};
+
 const page = () => {
   return (
     <div className='legal-container legal-content my-24 px-20'><h2><strong>User Agreement (Terms of Use)</strong></h2>

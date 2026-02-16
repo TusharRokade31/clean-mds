@@ -235,9 +235,20 @@ const handleSave = async () => {
 };
 
 const handleSectionUpdate = async (section) => {
-  // Reset errors for this section initially
+  // 1. Reset errors initially
   setValidationErrors({});
 
+  // 2. SKIP API REQUEST FOR CUSTOM POLICIES
+  // If it's customPolicies, we just jump to the next tab without calling the dispatch
+  if (section === "customPolicies") {
+    if (activeTab < 6) {
+      setActiveTab((prev) => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    return; // Exit the function early
+  }
+
+  // 3. Validation for Property Rules (existing logic)
   if (section === "propertyRules") {
     const profile = formData.propertyRules?.guestProfile;
     const identityProofs = formData.propertyRules?.acceptableIdentityProofs || [];
@@ -251,22 +262,20 @@ const handleSectionUpdate = async (section) => {
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       toast.error("Please fill in all required property rules.");
-      return; // Stop here; highlighting happens via the state
+      return; 
     }
   }
 
+  // 4. API Request for all other sections
   try {
-
     const sectionNames = {
-  checkInCheckOut: "Check-in & Check-out",
-  // cancellationPolicy: "Cancellation Policy",
-  propertyRules: "Property Rules",
-  propertyRestrictions: "Property Restrictions",
-  petPolicy: "Pet Policy",
-  customPolicies: "Custom Policies",
-  mealPrices: "Meal Prices"
-};
-
+      checkInCheckOut: "Check-in & Check-out",
+      propertyRules: "Property Rules",
+      propertyRestrictions: "Property Restrictions",
+      petPolicy: "Pet Policy",
+      customPolicies: "Custom Policies",
+      mealPrices: "Meal Prices"
+    };
 
     let sectionData = section === "cancellationPolicy" ? formData.cancellationPolicy : formData[section];
 
@@ -278,9 +287,8 @@ const handleSectionUpdate = async (section) => {
       })
     ).unwrap();
 
-    // Use the custom name from the mapping
-const sectionName = sectionNames[section] || section;
-toast.success(`${sectionName} updated successfully!`);
+    const sectionName = sectionNames[section] || section;
+    toast.success(`${sectionName} updated successfully!`);
 
     if (activeTab < 6) {
       setActiveTab((prev) => prev + 1);
@@ -562,6 +570,63 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
     </Box>
   );
 };
+
+const renderMealSection = (type, label) => {
+    const mealData = formData.mealPrices?.[type] || {};
+    const isAvailable = mealData.available || false;
+    const priceValue = (mealData.price === 0 || mealData.price === null || mealData.price === undefined) 
+      ? "" 
+      : mealData.price;
+
+    return (
+      <Paper className="border border-gray-200" elevation={0} sx={{ mb: 3 }}>
+        <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
+          <Typography variant="subtitle1" className="font-semibold text-gray-800">
+            {label}
+          </Typography>
+          <Switch
+            checked={isAvailable}
+            onChange={(e) =>
+              handleNestedInputChange("mealPrices", type, "available", e.target.checked)
+            }
+            color="primary"
+          />
+        </div>
+        
+        {isAvailable && (
+          <div className="p-4 space-y-4">
+            <TextField
+              fullWidth
+              label="Price per person"
+              type="number"
+              // Prevents scrolling from changing the number
+              slotProps={{
+                htmlInput: {
+                  onWheel: (e) => e.currentTarget.blur(),
+                },
+              }}
+              // Ensures "0" doesn't show up if the value is empty
+              value={priceValue}
+              onChange={(e) => {
+                const val = e.target.value;
+                handleNestedInputChange(
+                  "mealPrices",
+                  type,
+                  "price",
+                  val === "" ? "" : parseInt(val, 10)
+                );
+              }}
+              InputProps={{
+                startAdornment: (
+                  <Typography sx={{ mr: 1, color: 'text.secondary' }}>₹</Typography>
+                ),
+              }}
+            />
+          </div>
+        )}
+      </Paper>
+    );
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -1257,155 +1322,9 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
       </Typography>
     </div>
 
-    {/* Breakfast */}
-    <Paper className="border border-gray-200" elevation={0}>
-      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-        <Typography
-          variant="subtitle1"
-          className="font-semibold text-gray-800"
-        >
-          Breakfast
-        </Typography>
-        <Switch
-          checked={formData.mealPrices?.breakfast?.available || false}
-          onChange={(e) =>
-            handleNestedInputChange(
-              "mealPrices",
-              "breakfast",
-              "available",
-              e.target.checked
-            )
-          }
-          color="primary"
-        />
-      </div>
-      {formData.mealPrices?.breakfast?.available && (
-        <div className="p-4 space-y-4">
-          <TextField
-            fullWidth
-            label="Price per person"
-            type="number"
-            slotProps={{
-              htmlInput: {
-                onWheel: (e) => e.currentTarget.blur(),
-              },
-            }}
-            value={formData.mealPrices?.breakfast?.price ?? ""}
-            onChange={(e) =>
-              handleNestedInputChange(
-                "mealPrices",
-                "breakfast",
-                "price",
-                e.target.value === "" ? "" : parseInt(e.target.value)
-              )
-            }
-            InputProps={{
-              startAdornment: <Typography>₹</Typography>,
-            }}
-          />
-        </div>
-      )}
-    </Paper>
-
-    {/* Lunch */}
-    <Paper className="border border-gray-200" elevation={0}>
-      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-        <Typography
-          variant="subtitle1"
-          className="font-semibold text-gray-800"
-        >
-          Lunch
-        </Typography>
-        <Switch
-          checked={formData.mealPrices?.lunch?.available || false}
-          onChange={(e) =>
-            handleNestedInputChange(
-              "mealPrices",
-              "lunch",
-              "available",
-              e.target.checked
-            )
-          }
-          color="primary"
-        />
-      </div>
-      {formData.mealPrices?.lunch?.available && (
-        <div className="p-4 space-y-4">
-          <TextField
-            fullWidth
-            label="Price per person"
-            type="number"
-            slotProps={{
-              htmlInput: {
-                onWheel: (e) => e.currentTarget.blur(),
-              },
-            }}
-            value={formData.mealPrices?.lunch?.price ?? ""}
-            onChange={(e) =>
-              handleNestedInputChange(
-                "mealPrices",
-                "lunch",
-                "price",
-                e.target.value === "" ? "" : parseInt(e.target.value)
-              )
-            }
-            InputProps={{
-              startAdornment: <Typography>₹</Typography>,
-            }}
-          />
-        </div>
-      )}
-    </Paper>
-
-    {/* Dinner */}
-    <Paper className="border border-gray-200" elevation={0}>
-      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-        <Typography
-          variant="subtitle1"
-          className="font-semibold text-gray-800"
-        >
-          Dinner
-        </Typography>
-        <Switch
-          checked={formData.mealPrices?.dinner?.available || false}
-          onChange={(e) =>
-            handleNestedInputChange(
-              "mealPrices",
-              "dinner",
-              "available",
-              e.target.checked
-            )
-          }
-          color="primary"
-        />
-      </div>
-      {formData.mealPrices?.dinner?.available && (
-        <div className="p-4 space-y-4">
-          <TextField
-            fullWidth
-            label="Price per person"
-            type="number"
-            slotProps={{
-              htmlInput: {
-                onWheel: (e) => e.currentTarget.blur(),
-              },
-            }}
-            value={formData.mealPrices?.dinner?.price ?? ""}
-            onChange={(e) =>
-              handleNestedInputChange(
-                "mealPrices",
-                "dinner",
-                "price",
-                e.target.value === "" ? "" : parseInt(e.target.value)
-              )
-            }
-            InputProps={{
-              startAdornment: <Typography>₹</Typography>,
-            }}
-          />
-        </div>
-      )}
-    </Paper>
+   {renderMealSection("breakfast", "Breakfast")}
+      {renderMealSection("lunch", "Lunch")}
+      {renderMealSection("dinner", "Dinner")}
 
     <Button
       variant="outlined"

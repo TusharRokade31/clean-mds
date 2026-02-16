@@ -20,7 +20,7 @@ const alice = Alice({
   variable: '--font-alice',
 })
 
-export const metadata = {
+const metadata = {
   title: "My Divine Stays",
   description: "My Divine Stays - Manage Your Dharamshala Bookings Effortlessly",
   verification: {

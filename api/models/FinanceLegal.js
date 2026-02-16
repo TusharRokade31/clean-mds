@@ -80,6 +80,28 @@ const OwnershipDetailsSchema = new Schema({
     required: [true, 'Ownership type is required'],
     enum: ['My Own property', 'Leased property', 'Family property', 'Partnership', 'Trust property'],
   },
+  
+  // NEW: Array of documents
+  registrationDocuments: [{
+    filename: {
+      type: String,
+      required: true,
+    },
+    originalName: {
+      type: String,
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
+  
+  // OLD: Keep for backward compatibility (will be removed after migration)
   registrationDocument: {
     filename: {
       type: String,
@@ -98,11 +120,28 @@ const OwnershipDetailsSchema = new Schema({
       default: Date.now,
     },
   },
+  
   propertyAddress: {
     type: String,
     required: [true, 'Property address is required'],
   },
 }, { _id: false });
+
+// Virtual to handle backward compatibility
+OwnershipDetailsSchema.virtual('allDocuments').get(function() {
+  const docs = [...(this.registrationDocuments || [])];
+  
+  // Include old single document if it exists and has URL
+  if (this.registrationDocument && this.registrationDocument.url) {
+    // Check if it's not already in the new array
+    const existsInNew = docs.some(doc => doc.url === this.registrationDocument.url);
+    if (!existsInNew) {
+      docs.push(this.registrationDocument);
+    }
+  }
+  
+  return docs;
+});
 
 const FinanceLegalSchema = new Schema({
   property: {
@@ -140,10 +179,34 @@ const FinanceLegalSchema = new Schema({
   },
 }, {
   timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
 // Index for faster queries
 FinanceLegalSchema.index({ property: 1, owner: 1 });
+
+// Pre-save hook to auto-migrate old document to new array
+FinanceLegalSchema.pre('save', function(next) {
+  if (this.legal && this.legal.ownershipDetails) {
+    const oldDoc = this.legal.ownershipDetails.registrationDocument;
+    const newDocs = this.legal.ownershipDetails.registrationDocuments || [];
+    
+    // If old document exists and new array is empty, migrate it
+    if (oldDoc && oldDoc.url && newDocs.length === 0) {
+      this.legal.ownershipDetails.registrationDocuments = [{
+        filename: oldDoc.filename || '',
+        originalName: oldDoc.originalName || '',
+        url: oldDoc.url || '',
+        uploadedAt: oldDoc.uploadedAt || new Date(),
+      }];
+      
+      // Clear old document
+      this.legal.ownershipDetails.registrationDocument = undefined;
+    }
+  }
+  next();
+});
 
 const FinanceLegal = mongoose.model('FinanceLegal', FinanceLegalSchema);
 

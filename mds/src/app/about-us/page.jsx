@@ -1,3 +1,4 @@
+
 import Image from "next/image"
 import React from 'react'
 import {
@@ -5,6 +6,17 @@ import {
   ChatBubbleLeftEllipsisIcon,
   EnvelopeIcon,
 } from '@heroicons/react/24/outline'
+
+
+
+export const metadata = {
+    title: "About My Divine Stays – Spiritual Journeys",
+    description: "Discover the vision behind My Divine Stays, where soulful journeys, pilgrim stays, and sacred travel experiences connect you to deeper meaning.",
+    alternates: {
+        canonical: "https://mydivinestays.com/about-us/",
+      },
+};
+
 
 
 export default function GetInTouch() {

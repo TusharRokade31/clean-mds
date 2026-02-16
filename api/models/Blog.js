@@ -63,6 +63,14 @@ const blogSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  seoTitle: {
+    type: String,
+    trim: true,
+  },
+  seoDescription: {
+    type: String,
+    trim: true,
+  },
 }, {
   timestamps: true,
 });
@@ -77,6 +85,10 @@ blogSchema.pre('save', function(next) {
   }
   next();
 });
+
+// Add indexes
+blogSchema.index({ createdAt: -1 });
+blogSchema.index({ status: 1, isDeleted: 1, createdAt: -1 }); 
 
 export const Blog = mongoose.model('Blog', blogSchema);
 

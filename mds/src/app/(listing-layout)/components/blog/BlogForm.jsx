@@ -24,6 +24,8 @@ const BlogForm = ({ isEdit = false }) => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
+    seoTitle: '',        // New
+    seoDescription: '',
     image: '',
     tags: [],
     category: '', // Changed from categories array to single category ID
@@ -60,6 +62,8 @@ const BlogForm = ({ isEdit = false }) => {
       setFormData({
         title: currentBlog.title || '',
         content: currentBlog.content || '',
+        seoTitle: currentBlog.seoTitle || '',
+        seoDescription: currentBlog.seoDescription || '',
         image: currentBlog.image || '',
         tags: currentBlog.tags || [],
         category: categoryId, // Store category ID
@@ -266,6 +270,34 @@ const BlogForm = ({ isEdit = false }) => {
               >
                 Add Tag
               </button>
+            </div>
+          </div>
+
+          <div className="border-t pt-6 mt-6">
+            <h3 className="text-lg font-medium mb-4">SEO Settings</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Meta Title</label>
+                <input
+                  type="text"
+                  name="seoTitle"
+                  value={formData.seoTitle}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  placeholder="Search engine title..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Meta Description</label>
+                <textarea
+                  name="seoDescription"
+                  value={formData.seoDescription}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  rows="3"
+                  placeholder="Brief summary for search results..."
+                />
+              </div>
             </div>
           </div>
 

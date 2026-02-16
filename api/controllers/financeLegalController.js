@@ -232,26 +232,43 @@ export const uploadRegistrationDocument = async (req, res) => {
       });
     }
 
+    // AUTO-MIGRATION: Migrate old document if exists
+    if (financeLegal.legal?.ownershipDetails?.registrationDocument?.url) {
+      const oldDoc = financeLegal.legal.ownershipDetails.registrationDocument;
+      const newDocs = financeLegal.legal.ownershipDetails.registrationDocuments || [];
+      
+      if (newDocs.length === 0) {
+        financeLegal.legal.ownershipDetails.registrationDocuments = [{
+          filename: oldDoc.filename || '',
+          originalName: oldDoc.originalName || '',
+          url: oldDoc.url || '',
+          uploadedAt: oldDoc.uploadedAt || new Date(),
+        }];
+      }
+      
+      financeLegal.legal.ownershipDetails.registrationDocument = undefined;
+    }
+
     // S3 file information
     const documentData = {
-      filename: req.file.key, // S3 key
+      filename: req.file.key,
       originalName: req.file.originalname,
-      url: req.file.location, // S3 URL
+      url: req.file.location,
       uploadedAt: new Date(),
     };
 
-    // Delete old document from S3 if exists
-    if (financeLegal.legal.ownershipDetails.registrationDocument?.url) {
-      const oldKey = extractS3Key(financeLegal.legal.ownershipDetails.registrationDocument.url);
-      await deleteFromS3(oldKey);
+    // Initialize array if it doesn't exist
+    if (!financeLegal.legal.ownershipDetails.registrationDocuments) {
+      financeLegal.legal.ownershipDetails.registrationDocuments = [];
     }
 
-    financeLegal.legal.ownershipDetails.registrationDocument = documentData;
+    // Add new document to array
+    financeLegal.legal.ownershipDetails.registrationDocuments.push(documentData);
 
     const legalComplete = Boolean(
       financeLegal.legal.ownershipDetails.ownershipType &&
       financeLegal.legal.ownershipDetails.propertyAddress &&
-      financeLegal.legal.ownershipDetails.registrationDocument.url,
+      financeLegal.legal.ownershipDetails.registrationDocuments.length > 0,
     );
 
     financeLegal.legalCompleted = legalComplete;
@@ -265,6 +282,71 @@ export const uploadRegistrationDocument = async (req, res) => {
 
   } catch (error) {
     console.error('Upload document error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+};
+
+// Delete registration document
+export const deleteRegistrationDocument = async (req, res) => {
+  try {
+    const { propertyId, documentId } = req.params;
+
+    let financeLegal = await FinanceLegal.findOne({ 
+      property: propertyId,
+      owner: req.user._id, 
+    });
+
+    if (!financeLegal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Finance legal data not found',
+      });
+    }
+
+    // Find document in array
+    const documentIndex = financeLegal.legal.ownershipDetails.registrationDocuments.findIndex(
+      doc => doc._id.toString() === documentId
+    );
+
+    if (documentIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Document not found',
+      });
+    }
+
+    // Get document to delete from S3
+    const documentToDelete = financeLegal.legal.ownershipDetails.registrationDocuments[documentIndex];
+    const s3Key = extractS3Key(documentToDelete.url);
+    
+    // Delete from S3
+    await deleteFromS3(s3Key);
+
+    // Remove from array
+    financeLegal.legal.ownershipDetails.registrationDocuments.splice(documentIndex, 1);
+
+    // Update completion status
+    const legalComplete = Boolean(
+      financeLegal.legal.ownershipDetails.ownershipType &&
+      financeLegal.legal.ownershipDetails.propertyAddress &&
+      financeLegal.legal.ownershipDetails.registrationDocuments.length > 0,
+    );
+
+    financeLegal.legalCompleted = legalComplete;
+    await financeLegal.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Document deleted successfully',
+      data: financeLegal,
+    });
+
+  } catch (error) {
+    console.error('Delete document error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',

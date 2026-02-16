@@ -10,7 +10,7 @@ import { uploadToS3 } from '../../services/s3Service.js';
 // Create new blog post
 export const createBlog = asyncHandler(async (req, res) => {
   
-  const { title, content, image, tags, category, status } = req.body;
+  const { title, content, image, tags, category, status, seoTitle, seoDescription } = req.body;
 
   let imageUrl = image;
 
@@ -45,6 +45,8 @@ export const createBlog = asyncHandler(async (req, res) => {
     category: category,
     status,
     slug: title,
+    seoTitle: seoTitle || title, // Fallback to title
+    seoDescription: seoDescription || content.substring(0, 160), // Fallback to content snippet
     readTime: estimateReadTime(content),
   });
 
@@ -184,10 +186,6 @@ export const deleteBlog = asyncHandler(async (req, res) => {
     throw new ErrorResponse('Blog not found', 404);
   }
 
-  // Check if user is authorized
-  if (blog.author.toString() !== req.user._id.toString()) {
-    throw new ErrorResponse('Not authorized to delete this blog', 403);
-  }
  
   blog.isDeleted = true;
 
