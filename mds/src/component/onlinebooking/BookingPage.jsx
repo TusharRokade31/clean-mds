@@ -21,6 +21,7 @@ const {
   
   // Get booking details from localStorage
   const [bookingDetails, setBookingDetails] = useState(null)
+  console.log(bookingDetails)
   const [guestDetails, setGuestDetails] = useState({
     firstName: "",
     lastName: "",
@@ -68,10 +69,10 @@ const {
       const checkinDate = new Date(lastSearchQuery.checkin)
       const checkoutDate = new Date(lastSearchQuery.checkout)
       const totalDays = Math.ceil((checkoutDate - checkinDate) / (1000 * 60 * 60 * 24))
-      const persons = parseInt(lastSearchQuery.persons) || 2
+      const persons = parseInt(lastSearchQuery?.persons) || 2
       
       // Calculate adults and children (assuming all are adults for now)
-      const adults = Math.min(persons, selectedRoom.occupancy.maximumAdults)
+      const adults = Math.min(persons, selectedRoom?.occupancy?.maximumAdults || 2)
       const children = Math.max(0, persons - adults)
 
       const pricing = calculatePricing(selectedRoom, adults, children, totalDays)
@@ -155,8 +156,8 @@ console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calcul
       checkIn: bookingDetails.checkin,
       checkOut: bookingDetails.checkout,
       guestCount: {
-        adults: bookingDetails.adults,
-        children: bookingDetails.children
+        adults: bookingDetails?.adults,
+        children: bookingDetails?.children
       },
       paymentMethod,
       specialRequests,
@@ -196,6 +197,20 @@ console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calcul
     }
   }, [bookingError, paymentError])
 
+  if (!bookingDetails || !pricingDetails) {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <svg className="animate-spin h-10 w-10 text-blue-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p className="text-gray-600">Loading booking details...</p>
+      </div>
+    </div>
+  )
+}
+
   return (
     <div className="min-h-screen bg-gray-50 py-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -219,7 +234,7 @@ console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calcul
                     </div>
                     <div>
                       <span className="text-gray-500">Guests:</span>
-                      <p className="font-medium">{bookingDetails.adults + bookingDetails.children} Adults</p>
+                      <p className="font-medium">{bookingDetails?.adults + bookingDetails?.children} Adults</p>
                     </div>
                     <div>
                       <span className="text-gray-500">Check-in:</span>
@@ -609,13 +624,15 @@ console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calcul
         </div>
       </div>
 
-      {/* Error Display */}
-      {error && (
-        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <strong className="font-bold">Error!</strong>
-          <span className="block sm:inline"> {error}</span>
-        </div>
-      )}
+     
+      {(bookingError || paymentError) && (
+  <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+    <strong className="font-bold">Error!! </strong>
+    <span className="block sm:inline">{bookingError || paymentError}</span>
+  </div>
+)}
     </div>
+
+    
   )
 }
