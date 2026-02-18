@@ -279,6 +279,14 @@ uploadRegistrationDocument: async (propertyId, formData) => {
   return response.data;
 },
 
+deleteRegistrationDocument: async (propertyId, documentId) => {
+  const response = await axiosInstance.delete(
+        `/finance-legal/${propertyId}/legal/document/${documentId}`
+      );
+  return response.data;
+},
+
+
 completeFinanceLegalStep: async (propertyId) => {
   const response = await axiosInstance.post(`/properties/${propertyId}/legal/complete-step`);
   return response.data;

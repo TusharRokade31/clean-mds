@@ -9,26 +9,21 @@ export default function FeaturedArticle({ article }) {
   const truncatedContent = useHTMLContent(article.content, { maxLength: 250 })
   return (
     <section className=" ">
-      <div className="container mx-auto rounded-3xl">
+      <div className="container mx-auto  rounded-3xl">
         <div className="grid lg:grid-cols-2 gap-8  shadow-2xl rounded-3xl  items-center">
-          <div className="bg-linear-to-br from-purple-500 rounded-tl-3xl rounded-bl-3xl to-purple-700 p-8 flex items-center justify-center h-full">
-            <div className="text-6xl">🕉️</div>
-          </div>
+          <div className="w-full h-full min-h-[300px] lg:min-h-full overflow-hidden rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl">
+  <img 
+    src={article.image} 
+    className="w-full h-full object-cover block" 
+    alt={article.title} 
+  />
+</div>
 
           <div className="space-y-6">
 
-            <div className="space-y-4 py-4">
-              <div className="flex items-center gap-2 ">
-                <Badge variant="outline" className="border-blue-300 ">
-                  {/* {article.category} */}
-                  
-                </Badge>
-                <span>•</span>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{article.readTime} min read</span>
-                </div>
-              </div>
+            <div className="space-y-4 px-5 py-4">
+             
+             
 
               <h2 className="text-3xl md:text-4xl font-bold leading-tight">{article.title}</h2>
 

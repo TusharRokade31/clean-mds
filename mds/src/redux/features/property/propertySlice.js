@@ -617,6 +617,21 @@ export const uploadRegistrationDocument = createAsyncThunk(
   }
 );
 
+// Add new action
+export const deleteRegistrationDocument = createAsyncThunk(
+  'property/deleteRegistrationDocument',
+  async ({ propertyId, documentId }, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.deleteRegistrationDocument(propertyId, documentId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+
+
 // Add to your propertySlice.js
 export const completeFinanceLegalStep = createAsyncThunk(
   'property/completeFinanceLegalStep',
@@ -1202,10 +1217,14 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
   builder.addCase(uploadRegistrationDocument.fulfilled, (state, action) => {
     state.isLoading = false;
     state.currentFinanceLegal = action.payload;
+  })
+  builder.addCase(deleteRegistrationDocument.fulfilled, (state, action) => {
+    state.isLoading = false;
+    state.currentFinanceLegal = action.payload;
   });
 
 // Handle pending and rejected states
-[getFinanceLegal, updateFinanceDetails, updateLegalDetails, uploadRegistrationDocument].forEach(thunk => {
+[getFinanceLegal, updateFinanceDetails, updateLegalDetails, uploadRegistrationDocument, deleteRegistrationDocument].forEach(thunk => {
 
     builder.addCase(thunk.pending, (state) => {
       state.isLoading = true;

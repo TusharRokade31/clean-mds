@@ -2,6 +2,7 @@
 "use client"
 import { useRef, useState } from "react"
 import logo from "../../../public/mds.svg";
+import toast from "react-hot-toast";
 
 export default function BookingInvoice({ booking, onClose }) {
   const invoiceRef = useRef()
@@ -47,7 +48,7 @@ const handleDownload = async () => {
     await html2pdf().set(opt).from(element).save();
   } catch (error) {
     console.error("Error generating PDF:", error);
-    alert("Failed to generate invoice. Please try again.");
+    toast.error("Failed to generate invoice. Please try again.");
   } finally {
     setIsDownloading(false);
   }

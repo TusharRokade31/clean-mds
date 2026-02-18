@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateFilters, resetFilters } from '@/redux/features/bookings/bookingSlice';
+import toast from 'react-hot-toast';
 
 const BookingFilters = ({ selectedProperty, bookings }) => {
   const dispatch = useDispatch();
@@ -61,7 +62,7 @@ const BookingFilters = ({ selectedProperty, bookings }) => {
   // 1. CSV Export Logic
   const handleExportCSV = () => {
     if (!bookings || bookings.length === 0) {
-      alert("No data available to export");
+      toast.error("No data available to export");
       return;
     }
 

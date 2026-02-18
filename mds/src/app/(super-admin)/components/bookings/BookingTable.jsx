@@ -235,10 +235,10 @@ const BookingTable = ({   bookings = [],
                   <TableCell>
                     <Box>
                       <Typography variant="body2" fontWeight="medium">
-                        {booking.property.placeName}
+                        {booking.property?.placeName || 'N/A'}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {booking.property.propertyType}
+                        {booking.property?.propertyType || 'N/A'}
                       </Typography>
                     </Box>
                   </TableCell>

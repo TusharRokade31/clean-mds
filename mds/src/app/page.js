@@ -9,6 +9,17 @@ import SectionClientSay from "../component/homepage/SectionClientSay";
 import StaysType from "../component/homepage/StaysType";
 import FeaturedStays2 from "@/component/homepage/FeaturedStays2";
 
+
+export const metadata = {
+    title: "MDS - Dharamshala Booking Online | Temple & Ashram Accommodation",
+    description: "Book your spiritual stay with ease. Find verified Dharamshala, Temple Accommodation, and Ashram Accommodation online across India. Secure & simple booking!",
+    alternates: {
+        canonical: "https://mydivinestays.com/",
+      },
+};
+
+
+
 export default function Home() {
   return (
    <>

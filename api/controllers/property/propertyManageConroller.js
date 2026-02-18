@@ -158,7 +158,7 @@ export const saveBasicInfo = async (req, res) => {
     property.landline = landline;
     property.formProgress.step1Completed = true;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
 
     // Clean up verified OTP records for this email and property
     await OTP.deleteMany({ email, propertyId, verified: true });
@@ -236,7 +236,7 @@ export const saveLocation = async (req, res) => {
     };
     property.formProgress.step2Completed = true;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -277,7 +277,7 @@ export const saveAmenities = async (req, res) => {
     property.amenities = amenities;
     property.formProgress.step3Completed = true;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -316,7 +316,7 @@ export const addRoom = async (req, res) => {
     // Add room to property
     property.rooms.push(roomData);
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(201).json({
       success: true,
@@ -366,7 +366,7 @@ export const updateRoom = async (req, res) => {
       property.rooms[roomIndex][key] = roomData[key];
     });
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -408,7 +408,7 @@ export const deleteRoom = async (req, res) => {
     property.rooms.splice(roomIndex, 1);
     property.formProgress.step4Completed = property.rooms.length > 0;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -442,7 +442,7 @@ export const completeRoomsStep = async (req, res) => {
     // Mark step 4 as completed
     property.formProgress.step4Completed = true;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -511,7 +511,7 @@ export const uploadPropertyMedia = async (req, res) => {
       });
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(201).json({
       success: true,
@@ -601,7 +601,7 @@ export const updateMediaItem = async (req, res) => {
       }
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -712,7 +712,7 @@ export const deleteMediaItem = async (req, res) => {
       console.log('Could not delete file:', fileError.message);
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -792,7 +792,7 @@ export const uploadRoomMedia = async (req, res) => {
       });
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(201).json({
       success: true,
@@ -895,7 +895,7 @@ export const updateRoomMediaItem = async (req, res) => {
       }
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -973,7 +973,7 @@ export const deleteRoomMediaItem = async (req, res) => {
       console.log('Could not delete file:', fileError.message);
     }
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -1115,7 +1115,7 @@ export const completeMediaStep = async (req, res) => {
     // Mark step 5 as completed
     property.formProgress.step5Completed = true;
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -1160,7 +1160,7 @@ export const completePropertyListing = async (req, res) => {
     
     // Mark property as complete
     property.formProgress.formCompleted = true;
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     return res.status(200).json({
       success: true,
@@ -1204,7 +1204,7 @@ export const reviewProperty = async (req, res) => {
     property.status = status;
     property.updatedAt = Date.now();
     
-    await property.save();
+    await property.save({ validateBeforeSave: false });
     
     res.status(200).json({
       success: true,

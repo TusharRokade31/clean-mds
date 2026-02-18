@@ -69,6 +69,7 @@ import {
   uploadRegistrationDocument,
   deleteFinanceLegal,
   completeFinanceLegalStep,
+  deleteRegistrationDocument,
 } from '../controllers/financeLegalController.js';
 
 
@@ -107,7 +108,6 @@ router.put(
   [
     check('propertyType', 'Property type is required').not().isEmpty(),
     check('placeName', 'Place name is required').not().isEmpty(),
-    check('placeRating', 'Place rating is required').not().isEmpty(),
     check('propertyBuilt', 'Property built year is required').not().isEmpty(),
     check('bookingSince', 'Booking since date is required').not().isEmpty(),
     check('rentalForm', 'Rental form is required').not().isEmpty(),
@@ -404,6 +404,11 @@ router.post('/:propertyId/legal/upload-document',
   protect,
   upload.single('registrationDocument'),
   uploadRegistrationDocument,
+);
+
+router.delete('/:propertyId/legal/document/:documentId',
+  protect,
+  deleteRegistrationDocument,
 );
 
 

@@ -14,12 +14,13 @@ import { fetchAllBookings, updateFilters, resetFilters, fetchBookingById,
     checkInGuest,
     checkOutGuest,
     cancelBooking,
-    clearBookingError } from '@/redux/features/bookings/bookingSlice';
-import BookingStats from '../../components/bookings/BookingStats';
-import BookingFilters from '../../components/bookings/BookingFilters';
-import BookingTable from '../../components/bookings/BookingTable';
-import PropertySelector from '../../components/bookings/PropertySelector';
-import BookingModals from '../../components/bookings/BookingModals';
+    clearBookingError, 
+    updateStatus} from '@/redux/features/bookings/bookingSlice';
+import BookingStats from '@/app/(super-admin)/components/bookings/BookingStats';
+import BookingTable from '@/app/(super-admin)/components/bookings/BookingTable';
+import PropertySelector from '@/app/(super-admin)/components/bookings//PropertySelector';
+import BookingModals from '@/app/(super-admin)/components/bookings/BookingModals';
+import BookingFilters from '@/app/(super-admin)/components/bookings/BookingFilters';
 
 
 const BookingDashboard = () => {
@@ -120,11 +121,11 @@ const BookingDashboard = () => {
 
   const handlePropertyChange = (property) => {
     setSelectedProperty(property);
-    if (property) {
-      localStorage.setItem("selectedProperty", JSON.stringify(property));
-    } else {
-      localStorage.removeItem("selectedProperty");
-    }
+    // if (property) {
+    //   localStorage.setItem("selectedProperty", JSON.stringify(property));
+    // } else {
+    //   localStorage.removeItem("selectedProperty");
+    // }
     // Reset filters when changing property
     dispatch(resetFilters());
   };
@@ -171,6 +172,15 @@ const BookingDashboard = () => {
     setCancelDialog(true);
     // handleActionsClose();
   };
+
+    const handleConfirmStatusUpdate = (bookingId) => {
+      if (bookingId) {
+        dispatch(updateStatus({
+          id: bookingId,
+          status: "confirmed"
+        }));
+      }
+    };
 
   const handleCheckIn = (bookingId) => {
     dispatch(checkInGuest(bookingId));
@@ -266,6 +276,7 @@ const BookingDashboard = () => {
           onUpdatePayment={handlePaymentUpdate}
           onCancelBooking={handleCancelBooking}
           onCheckIn={handleCheckIn}
+          onConfirm={handleConfirmStatusUpdate}
           onCheckOut={handleCheckOut}
         />
 

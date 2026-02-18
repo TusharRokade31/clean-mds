@@ -4,6 +4,7 @@ import {
 } from '@mui/material';
 import { useEffect, useState, useRef } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
+import toast from 'react-hot-toast';
 
 export default function LocationForm({ formData, onChange, errors, onSave }) {
   const [states, setStates] = useState([]);
@@ -133,7 +134,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by this browser.');
+      toast.error('Geolocation is not supported by this browser.');
       return;
     }
 
@@ -186,7 +187,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
             errorMessage += 'Please ensure location services are enabled.';
             break;
         }
-        alert(errorMessage);
+        toast.error(errorMessage);
       },
       options
     );

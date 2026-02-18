@@ -189,7 +189,7 @@ export const roomController = {
         }
       }
 
-      await property.save();
+      await property.save({ validateBeforeSave: false });
 
       // Get updated room with current booking
       const currentBooking = await Booking.findOne({

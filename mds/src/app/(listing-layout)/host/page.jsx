@@ -1,5 +1,5 @@
 "use client"
-import { Box, Card, CardContent, Typography, Grid, CircularProgress, Alert, Button } from "@mui/material"
+import { Box, Card, CardContent, Typography, Grid, CircularProgress, Alert, Button, FormControl, InputLabel, Select, MenuItem } from "@mui/material"
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -18,81 +18,8 @@ import {
 } from "recharts"
 import { ArrowUpward, ArrowDownward, Refresh } from "@mui/icons-material"
 import { clearError, fetchDashboardStats, fetchRecentBookings, refreshAllDashboardData, selectDashboardError, selectDashboardLoading, selectLastUpdated, selectMetricCards, selectReservationTrend, selectRoomAvailability } from "@/redux/features/stats/dashboardSlice"
+import { getAllProperties } from "@/redux/features/property/propertySlice"
 
-// Dummy data - replace with API calls
-// const metricCardsData = [
-//   {
-//     title: "New Booking",
-//     value: "1,879",
-//     change: 7.5,
-//     chartType: "bar",
-//     chartData: [
-//       { value: 45 },
-//       { value: 52 },
-//       { value: 48 },
-//       { value: 61 },
-//       { value: 55 },
-//       { value: 67 },
-//       { value: 43 },
-//       { value: 49 },
-//       { value: 65 },
-//     ],
-//   },
-//   {
-//     title: "Available Rooms",
-//     value: "55",
-//     change: -5.7,
-//     chartType: "donut",
-//     chartData: [
-//       { name: "Available", value: 55, color: "#4CAF50" },
-//       { name: "Occupied", value: 45, color: "#FF9800" },
-//     ],
-//   },
-//   {
-//     title: "Revenue",
-//     value: "$2,287",
-//     change: 5.3,
-//     chartType: "line",
-//     chartData: [
-//       { value: 2100 },
-//       { value: 2150 },
-//       { value: 2200 },
-//       { value: 2180 },
-//       { value: 2250 },
-//       { value: 2287 },
-//       { value: 2300 },
-//     ],
-//   },
-//   {
-//     title: "Checkout",
-//     value: "567",
-//     change: -2.4,
-//     chartType: "pie",
-//     chartData: [
-//       { name: "Completed", value: 400, color: "#4CAF50" },
-//       { name: "Pending", value: 100, color: "#2196F3" },
-//       { name: "Cancelled", value: 67, color: "#F44336" },
-//     ],
-//   },
-// ]
-
-// const roomAvailabilityData = {
-//   occupied: 125,
-//   reserved: 87,
-//   available: 57,
-//   notReady: 25,
-// }
-
-// const reservationData = [
-//   { date: "01 Jan", booked: 44, cancelled: 12 },
-//   { date: "02 Jan", booked: 55, cancelled: 23 },
-//   { date: "03 Jan", booked: 41, cancelled: 20 },
-//   { date: "04 Jan", booked: 67, cancelled: 18 },
-//   { date: "05 Jan", booked: 22, cancelled: 13 },
-//   { date: "06 Jan", booked: 43, cancelled: 27 },
-//   { date: "07 Jan", booked: 55, cancelled: 12 },
-//   { date: "08 Jan", booked: 64, cancelled: 8 },
-// ]
 
 // Component for metric cards
 const MetricCard = ({ data }) => {
@@ -265,35 +192,68 @@ const HotelDashboard = () => {
   const isLoading = useSelector(selectDashboardLoading);
   const error = useSelector(selectDashboardError);
   const lastUpdated = useSelector(selectLastUpdated);
+  
+  // Get properties from the property slice
+  const { properties } = useSelector((state) => ({
+    properties: state.property.properties,
+  }));
 
   // Local state
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Get selected property from localStorage and fetch data
+  // Fetch properties on component mount
   useEffect(() => {
+    dispatch(getAllProperties());
+  }, [dispatch]);
+
+  // Initialize selected property
+  useEffect(() => {
+    // Try to get from localStorage first
     const storedProperty = localStorage.getItem('selectedProperty');
     
     if (storedProperty) {
       try {
         const property = JSON.parse(storedProperty);
         setSelectedProperty(property);
-        
-        // Fetch dashboard data
-        dispatch(fetchDashboardStats({ 
-          propertyId: property.id || property._id 
-        }));
-        
-        dispatch(fetchRecentBookings({ 
-          propertyId: property.id || property._id, 
-          limit: 5 
-        }));
-        
+        fetchDashboardData(property);
       } catch (err) {
         console.error('Error parsing selected property:', err);
       }
+    } else if (properties && properties.length > 0) {
+      // If no stored property, select the first published one
+      const firstPublishedProperty = properties.find(p => p.status === 'published') || properties[0];
+      setSelectedProperty(firstPublishedProperty);
+      localStorage.setItem('selectedProperty', JSON.stringify(firstPublishedProperty));
+      fetchDashboardData(firstPublishedProperty);
     }
-  }, [dispatch]);
+  }, [properties]);
+
+  // Function to fetch dashboard data for a property
+  const fetchDashboardData = (property) => {
+    if (!property) return;
+    
+    dispatch(fetchDashboardStats({ 
+      propertyId: property.id || property._id 
+    }));
+    
+    dispatch(fetchRecentBookings({ 
+      propertyId: property.id || property._id, 
+      limit: 5 
+    }));
+  };
+
+  // Handle property selection change
+  const handlePropertyChange = (event) => {
+    const propertyId = event.target.value;
+    const property = properties.find(p => (p.id || p._id) === propertyId);
+    
+    if (property) {
+      setSelectedProperty(property);
+      localStorage.setItem('selectedProperty', JSON.stringify(property));
+      fetchDashboardData(property);
+    }
+  };
 
   // Handle manual refresh
   const handleRefresh = async () => {
@@ -315,6 +275,9 @@ const HotelDashboard = () => {
   const handleClearError = () => {
     dispatch(clearError());
   };
+
+  // Get published properties for dropdown
+  const availableProperties = properties?.filter(p => p.status === 'published') || [];
 
   // Loading state
   if (isLoading && !metricCardsData.length) {
@@ -346,12 +309,12 @@ const HotelDashboard = () => {
     );
   }
 
-  // No property selected
-  if (!selectedProperty) {
+  // No properties available
+  if (!availableProperties.length) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="h6" color="text.secondary">
-          Please select a property to view dashboard
+          No published properties found. Please publish a property first.
         </Typography>
       </Box>
     );
@@ -388,27 +351,89 @@ const HotelDashboard = () => {
 
   return (
     <Box sx={{ p: 3, backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-      {/* Header with refresh button */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      {/* Header with property dropdown and refresh button */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h4" fontWeight="bold">
-          {selectedProperty.placeName || selectedProperty.name} Dashboard
+          Property Dashboard
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+          {/* Property Selection Dropdown */}
+          <FormControl sx={{ minWidth: 250 }}>
+            <InputLabel id="property-select-label">Select Property</InputLabel>
+            <Select
+              labelId="property-select-label"
+              value={selectedProperty ? (selectedProperty.id || selectedProperty._id) : ''}
+              label="Select Property"
+              onChange={handlePropertyChange}
+              size="small"
+            >
+              {availableProperties.map((property) => (
+                <MenuItem key={property.id || property._id} value={property.id || property._id}>
+                  <Box>
+                    <Typography variant="body2" fontWeight="medium">
+                      {property.placeName}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {property.location?.city}, {property.location?.state}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Last Updated Info */}
           {lastUpdated && (
             <Typography variant="caption" color="text.secondary">
               Last updated: {new Date(lastUpdated).toLocaleTimeString()}
             </Typography>
           )}
+          
+          {/* Refresh Button */}
           <Button
             variant="outlined"
             onClick={handleRefresh}
-            disabled={refreshing}
+            disabled={refreshing || !selectedProperty}
             startIcon={refreshing ? <CircularProgress size={16} /> : <Refresh />}
           >
             Refresh
           </Button>
         </Box>
       </Box>
+
+      {/* Selected Property Info Card */}
+      {selectedProperty && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box>
+                <Typography variant="h6" fontWeight="bold">
+                  {selectedProperty.placeName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {selectedProperty.propertyType} • {selectedProperty.location?.city}, {selectedProperty.location?.state}
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'right' }}>
+                <Typography variant="caption" color="text.secondary">
+                  Status
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: selectedProperty.status === 'published' ? 'success.main' : 'warning.main',
+                    textTransform: 'capitalize',
+                    fontWeight: 'medium'
+                  }}
+                >
+                  {selectedProperty.status}
+                </Typography>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Metric Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -419,7 +444,7 @@ const HotelDashboard = () => {
         ))}
       </Grid>
 
-      {/* Bottom Section */}
+      {/* Bottom Section - Charts */}
       <Grid container spacing={3}>
         {/* Room Availability */}
         <Grid item size={{xs:12, md:6}}>
@@ -558,5 +583,4 @@ const HotelDashboard = () => {
   );
 };
 
-
-export default HotelDashboard
+export default HotelDashboard;

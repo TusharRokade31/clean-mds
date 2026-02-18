@@ -270,11 +270,14 @@ export const createOrUpdatePrivacyPolicy = async (req, res) => {
         errors: errors.array(),
       });
     }
-    
+
     const { propertyId } = req.params;
-    const policyData = req.body;
     
-    // Check if property exists
+    // 1. Destructure to strip out metadata that causes duplicate key errors
+    // We explicitly pull out _id and __v so they aren't spread into the new document
+    const { _id, __v, createdAt, updatedAt, ...policyData } = req.body;
+
+    // 2. Check if property exists
     const property = await Property.findById(propertyId);
     if (!property) {
       return res.status(404).json({
@@ -282,33 +285,41 @@ export const createOrUpdatePrivacyPolicy = async (req, res) => {
         message: 'Property not found',
       });
     }
-    
-    // Deactivate existing policy
+
+    // 3. Find the current active version to increment the version number
+    const latestPolicy = await PrivacyPolicy.findOne({ 
+      property: propertyId, 
+      isActive: true 
+    }).sort({ version: -1 });
+
+    const nextVersion = latestPolicy ? latestPolicy.version + 1 : 1;
+
+    // 4. Deactivate ALL existing policies for this property
     await PrivacyPolicy.updateMany(
       { property: propertyId },
-      { isActive: false },
+      { isActive: false }
     );
-    
-    // Create new policy
+
+    // 5. Create new policy (Mongoose will now generate a fresh _id)
     const newPrivacyPolicy = new PrivacyPolicy({
       ...policyData,
       property: propertyId,
       createdBy: req.user?.id || property.owner,
       isActive: true,
-      version: 1,
+      version: nextVersion,
       effectiveDate: new Date(),
     });
-    
+
     await newPrivacyPolicy.save();
-    
-    // Populate the response
+
+    // 6. Populate the response for the frontend
     const populatedPolicy = await PrivacyPolicy.findById(newPrivacyPolicy._id)
       .populate('property', 'placeName propertyType')
       .populate('createdBy', 'name email');
-    
+
     res.status(201).json({
       success: true,
-      message: 'Privacy policy created/updated successfully',
+      message: 'Privacy policy updated (new version created)',
       data: populatedPolicy,
     });
   } catch (error) {
@@ -367,7 +378,7 @@ export const completePrivacyPolicyStep = async (req, res) => {
     if (guestProfile.allowUnmarriedCouples === undefined || 
         guestProfile.allowGuestsBelow18 === undefined || 
         guestProfile.allowOnlyMaleGuests === undefined) {
-      validationErrors.push('Guest profile preferences must be set');
+      validationErrors.push('Property Rules Guest profile preferences must be set');
     }
 
     // Check identity proofs
@@ -406,7 +417,7 @@ export const completePrivacyPolicyStep = async (req, res) => {
 
     // Update property step completion
     property.formProgress.step6Completed = true;
-    await property.save();
+    await property.save({ validateBeforeSave: false });
 
     res.status(200).json({
       success: true,

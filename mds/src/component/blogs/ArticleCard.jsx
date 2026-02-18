@@ -36,16 +36,14 @@ export default function ArticleCard({ article }) {
   const truncatedContent = useHTMLContent(article.content, { maxLength: 150 })
 
   return (
-    <div className="overflow-hidden hover:shadow-lg hover:-translate-2 border border-[#1034ac23] transition-shadow duration-300">
-      <div className={`h-32 bg-linear-to-br ${getCategoryColor(article.category)} flex items-center justify-center`}>
-        {article.image ? (
-          // <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
-          <img src={`${staticImg.src}`} alt={article.title} className="w-full h-full object-cover" />
-        ) : (
-          <div className="text-4xl">{getCategoryIcon(article.category)}</div>
-        )}
-      </div>
-
+    <div className="overflow-hidden rounded-xl hover:shadow-lg hover:-translate-2 border border-[#1034ac23] transition-shadow duration-300">
+      <div className="relative w-full aspect-video overflow-hidden"> 
+  <img 
+    src={article.image || staticImg.src} 
+    alt={article.title} 
+    className="absolute inset-0 w-full h-full object-cover" 
+  />
+</div>
       <div className="p-3">
         <div className="flex items-center gap-2 text-sm mb-2">
           <Clock className="w-4 h-4" />

@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useGoogleLogin } from "@react-oauth/google";
 import { googleLoginUser } from "@/redux/features/auth/authSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { Eye, EyeOff } from "lucide-react";
 
 const loginSocials = [
   // {
@@ -33,6 +34,7 @@ const loginSocials = [
 const PageLogin = ({}) => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const [showpassword, setshowpassword] = useState("password");
 
 const googleLogin = useGoogleLogin({
   onSuccess: async (tokenResponse) => {
@@ -180,14 +182,27 @@ const handleSubmit = async (e) => {
                   {"Forgot password?"}
                 </Link>
               </div>
+              <div className="relative w-full mt-1">
               <input
-                type="password"
+                type={showpassword} // Uses your existing state
                 name="password"
-                className="mt-1 w-full border border-[#e5e7eb] py-3 px-4 rounded-2xl focus-within:outline-2 focus-within:outline-indigo-200"
+                className="w-full border border-[#e5e7eb] py-3 px-4 pr-12 rounded-2xl focus-within:outline-2 focus-within:outline-indigo-200"
                 value={credentials.password}
                 onChange={handleChange}
                 required
               />
+              <button
+                type="button" // Prevents form submission
+                onClick={() => setshowpassword(showpassword === "password" ? "text" : "password")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 transition-colors"
+              >
+                {showpassword === "password" ? (
+                  <Eye size={20} strokeWidth={2} />
+                ) : (
+                  <EyeOff size={20} strokeWidth={2} />
+                )}
+              </button>
+            </div>
             </label>
             <button
               type="submit"

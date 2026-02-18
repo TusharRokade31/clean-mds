@@ -24,6 +24,8 @@ const BlogForm = ({ isEdit = false }) => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
+    seoTitle: '',        // New
+    seoDescription: '',
     image: '',
     tags: [],
     category: '', // Changed from categories array to single category ID
@@ -89,6 +91,20 @@ const BlogForm = ({ isEdit = false }) => {
       addTag();
     }
   };
+
+  const handleImageChange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({
+        ...prev,
+        image: reader.result // This is the base64 string
+      }));
+    };
+    reader.readAsDataURL(file);
+  }
+};
 
   const addTag = () => {
     const tag = tagInput.trim();
@@ -180,19 +196,18 @@ const BlogForm = ({ isEdit = false }) => {
           </div>
 
           {/* Featured Image */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Featured Image URL
-            </label>
-            <input
-              type="url"
-              name="image"
-              value={formData.image}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
+         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Featured Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+          {formData.image && (
+            <img src={formData.image} alt="Preview" className="mt-2 h-32 w-auto object-cover rounded" />
+          )}
+        </div>
 
           {/* Category */}
           <div>
@@ -202,7 +217,7 @@ const BlogForm = ({ isEdit = false }) => {
             <select
               name="category"
               value={formData.category}
-              onChange={handleInputChange}
+            onChange={handleInputChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
@@ -253,6 +268,34 @@ const BlogForm = ({ isEdit = false }) => {
               >
                 Add Tag
               </button>
+            </div>
+          </div>
+
+          <div className="border-t pt-6 mt-6">
+            <h3 className="text-lg font-medium mb-4">SEO Settings</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Meta Title</label>
+                <input
+                  type="text"
+                  name="seoTitle"
+                  value={formData.seoTitle}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Search engine title..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Meta Description</label>
+                <textarea
+                  name="seoDescription"
+                  value={formData.seoDescription}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  rows="3"
+                  placeholder="Brief summary for search results..."
+                />
+              </div>
             </div>
           </div>
 

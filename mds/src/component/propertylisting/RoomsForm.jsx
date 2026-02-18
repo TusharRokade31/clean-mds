@@ -71,6 +71,7 @@ import {
   completeRoomsStep,
 } from "@/redux/features/property/propertySlice";
 import RoomsAmenities from "./RoomsAmenities";
+import toast from "react-hot-toast";
 
 export default function RoomsForm({
   rooms = [],
@@ -349,12 +350,12 @@ export default function RoomsForm({
 
     // Floor Bedding Validation
     if (currentRoomData.FloorBedding?.available) {
-      if (
-        !currentRoomData.FloorBedding.count ||
-        currentRoomData.FloorBedding.count < 1
-      ) {
-        errors.floorBedding = "Floor bedding count must be at least 1";
-      }
+      // if (
+      //   !currentRoomData.FloorBedding.count ||
+      //   currentRoomData.FloorBedding.count < 1
+      // ) {
+      //   errors.floorBedding = "Floor bedding count must be at least 1";
+      // }
     }
 
     // Occupancy Validation
@@ -412,20 +413,20 @@ export default function RoomsForm({
         "Base price is required and must be greater than 0";
     }
 
-    if (
-      !currentRoomData.pricing?.extraFloorBeddingCharge ||
-      currentRoomData.pricing.extraFloorBeddingCharge < 0
-    ) {
-      errors.extraFloorBeddingCharge =
-        "Extra floor bedding charge cannot be negative";
-    }
+    // if (
+    //   !currentRoomData.pricing?.extraFloorBeddingCharge ||
+    //   currentRoomData.pricing.extraFloorBeddingCharge < 0
+    // ) {
+    //   errors.extraFloorBeddingCharge =
+    //     "Extra floor bedding charge cannot be negative";
+    // }
 
-    if (
-      !currentRoomData.pricing?.childCharge ||
-      currentRoomData.pricing.childCharge < 0
-    ) {
-      errors.childCharge = "Child charge cannot be negative";
-    }
+    // if (
+    //   !currentRoomData.pricing?.childCharge ||
+    //   currentRoomData.pricing.childCharge < 0
+    // ) {
+    //   errors.childCharge = "Child charge cannot be negative";
+    // }
 
     // Availability Validation
 
@@ -512,41 +513,93 @@ export default function RoomsForm({
     setValidationError("Please fill in all required fields correctly.");
   };
 
-  const handleAddRoom = async () => {
-    if (!validateRoomData()) return;
+const handleCompleteRooms = (propertyId) => {
+  // Check if there are any rooms added at all
+  if (localRooms.length === 0) {
+    toast.error("Please add at least one room before completing.");
+    return;
+  }
 
-    setIsSubmitting(true);
-    console.log(propertyId);
-    try {
-      console.log(propertyId);
-      const result = await dispatch(
-        addRooms({
-          id: propertyId,
-          data: currentRoomData,
-        }),
-      ).unwrap();
+  // Validate that every room has at least one image
+  const roomsMissingImages = localRooms.filter(room => {
+    const images = room.media?.images || [];
+    return images.length === 0;
+  });
 
-      console.log(result.room);
-      setIsComplete(true);
+  if (roomsMissingImages.length > 0) {
+    const missingNames = roomsMissingImages.map(r => r.roomName).join(", ");
+    toast.error(`Please upload at least one image for: ${missingNames}`, {
+      duration: 5000,
+      icon: '📸',
+    });
+    return;
+  }
 
-      if (result.room) {
-        const roomID = result.room._id;
-        // localStorage.setItem('roomID', roomID)
-        // Room created successfully, now move to media upload step
-        setCurrentRoomId(roomID);
+  // If validation passes
+  dispatch(completeRoomsStep(propertyId));
+  onComplete?.();
+};
 
-        // Update local rooms
-        const updatedRooms = [...localRooms, result.room];
-        setLocalRooms(updatedRooms);
-        onAddRoom(updatedRooms);
-      }
-    } catch (error) {
-      console.error("Failed to add room:", error);
-      setValidationError("Failed to create room. Please try again.");
-    } finally {
-      // setIsSubmitting(false);
+const handleAddRoom = async () => {
+
+    // 2. Validate basic room data
+  if (!validateRoomData()) {
+    toast.error("Please fill in all required fields.");
+    return;
+  }
+  
+  // 1. Validate Amenities first (The "Toast" error)
+  // const amenityValidation = validateRoomAmenities();
+  // if (!amenityValidation.valid) {
+  //   toast.error(amenityValidation.message, {
+  //     duration: 4000,
+  //     position: "top-center",
+  //   });
+  //   return;
+  // }
+
+
+
+  setIsSubmitting(true);
+  try {
+    const result = await dispatch(
+      addRooms({
+        id: propertyId,
+        data: currentRoomData,
+      }),
+    ).unwrap();
+
+    // setIsComplete(true);
+
+    if (result.room) {
+      const roomID = result.room._id;
+      setCurrentRoomId(roomID);
+
+      const updatedRooms = [...localRooms, result.room];
+      setLocalRooms(updatedRooms);
+      onAddRoom(updatedRooms);
+      
+      toast.success("Room saved successfully!");
+
+      // 3. AUTO-SCROLL TO MEDIA SECTION
+      // Timeout ensures the DOM renders the media section before scrolling
+      setTimeout(() => {
+        const mediaSection = document.getElementById("media-upload-anchor");
+        if (mediaSection) {
+          mediaSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 300);
     }
-  };
+  } catch (error) {
+    console.error("Failed to add room:", error);
+    toast.error("Failed to create room. Please try again.");
+    setIsSubmitting(false);
+  } finally {
+    // setIsSubmitting(false);
+    // Note: You might want to keep isSubmitting true if you want to 
+    // keep the upload buttons active as per your previous logic
+  }
+};
 
   // Media upload functions
   const handleFileSelect = async (event) => {
@@ -636,7 +689,7 @@ export default function RoomsForm({
 
   const handleSaveEdit = async () => {
     if (!editingMedia || !editingMedia.tags || editingMedia.tags.length === 0) {
-      alert("Please select at least one tag before saving.");
+      toast.error("Please select at least one tag before saving.");
       return;
     }
 
@@ -662,6 +715,40 @@ export default function RoomsForm({
       console.error("Update failed:", error);
     }
   };
+
+
+
+//   const validateRoomAmenities = () => {
+//   const categories = roomAmenityCategories;
+//   const roomAmenities = currentRoomData.amenities;
+  
+//   for (const [catKey, category] of Object.entries(categories)) {
+//     for (const item of category.items) {
+//       const sanitizedKey = item.name.replace(/[^a-zA-Z0-9]/g, '');
+//       const savedValue = roomAmenities?.[catKey]?.[sanitizedKey];
+
+//       // Check if 'available' is specifically true or false
+//       if (savedValue?.available === undefined) {
+//         return {
+//           valid: false,
+//           message: `Please select Yes or No for ${item.name} in ${category.title}`,
+//           categoryKey: catKey
+//         };
+//       }
+//     }
+//   }
+//   return { valid: true };
+// };
+
+
+const isAmenitiesComplete = () => {
+  return Object.entries(roomAmenityCategories).every(([catKey, category]) => 
+    category.items.every(item => {
+      const key = item.name.replace(/[^a-zA-Z0-9]/g, '');
+      return currentRoomData.amenities?.[catKey]?.[key]?.available !== undefined;
+    })
+  );
+};
 
   const handleTagToggle = (tag) => {
     if (!editingMedia) return;
@@ -775,24 +862,23 @@ export default function RoomsForm({
     setValidationError("");
   };
 
-  const handleAddNewForm = () => {
-    // 1. Immediately set to true (or false, depending on your logic)
+const handleAddNewForm = () => {
+     setIsSubmitting(false); // Re-enable the Save button for the new room
     setIsAddingRoom(false);
     setIsEditingRoom(false);
-    setIsComplete(false);
+    setIsComplete(false); 
     setEditingRoomIndex(-1);
     setCurrentRoomData(getInitialRoomData());
     setFormErrors({});
     setSelectedAmenityTab(0);
     setCurrentRoomId(null);
     setValidationError("");
+    setValidationError("");
 
-    // 2. Wait for 1000ms (1 second)
     setTimeout(() => {
-      // 3. Set it back to false
       setIsAddingRoom(true);
-    }, 1000);
-  };
+    }, 100); // Reduced delay for snappier UX
+};
 
   // Tag Group Card Component
   const TagGroupCard = ({ tag, mediaItems }) => {
@@ -892,9 +978,11 @@ export default function RoomsForm({
 
     return (
       <Box>
-        <Typography variant="h5" gutterBottom>
+        <div id="media-upload-anchor" style={{ marginTop: "-100px", paddingTop: "100px" }}> 
+          <Typography variant="h5" gutterBottom>
           Upload Media for {currentRoom.roomName}
         </Typography>
+        </div>
 
         <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
           Upload photos and videos for this room. Each media item must have at
@@ -930,7 +1018,8 @@ export default function RoomsForm({
               variant="contained"
               startIcon={<CloudUpload />}
               onClick={() => fileInputRef.current?.click()}
-              disabled={!isSubmitting && !isEditingRoom}
+              // disabled={!isSubmitting && !isEditingRoom}
+              disabled={!currentRoomId || isFileSubmiting}
             >
               {console.log(isEditingRoom, "isEdting room")}
               {!isSubmitting
@@ -1143,6 +1232,7 @@ export default function RoomsForm({
     }));
   };
 
+  
   const addBed = () => {
     setCurrentRoomData((prev) => ({
       ...prev,
@@ -2272,7 +2362,7 @@ export default function RoomsForm({
           </Grid>
         </Grid>
 
-        <Divider className="my-3" />
+        
 
         {/* Room Amenities */}
         <RoomsAmenities
@@ -2293,26 +2383,26 @@ export default function RoomsForm({
             Back
           </Button>
 
-          {/* <Button
-            variant="contained"
-            color="primary"
-            disabled={Object.keys(currentRoomData.amenities.mandatory).length > 0 || isSubmitting || isCompleted}
-            onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
-          >
-            {isEditingRoom ? 'Update Room' : 'Save Room'}
-          </Button> */}
+         <Button
+  variant="contained"
+  color="primary"
+  disabled={isSubmitting && !isEditingRoom} 
+  onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
+>
+  {isEditingRoom ? 'Update Room' : 'Save Room'}
+</Button>
 
-          <Button
+          {/* <Button
             variant="contained"
             color="primary"
             disabled={isSubmitting}
             onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
           >
             {isEditingRoom ? "Update Room" : "Save Room"}
-          </Button>
+          </Button> */}
         </div>
 
-        <div className="my-5">{renderMediaUploadStep()}</div>
+        <div id="media-upload-section" className="my-5">{renderMediaUploadStep()}</div>
 
         {!isEditingRoom && (
           <div className="flex justify-end mt-4 gap-2">
@@ -2330,8 +2420,7 @@ export default function RoomsForm({
               color="primary"
               disabled={localRooms.length == 0}
               onClick={() => {
-                dispatch(completeRoomsStep(propertyId));
-                onComplete?.();
+                handleCompleteRooms(propertyId)
               }}
             >
               Next
@@ -2460,8 +2549,7 @@ export default function RoomsForm({
           disabled={localRooms.length == 0}
           variant="contained"
           onClick={() => {
-            dispatch(completeRoomsStep(propertyId));
-            onComplete?.();
+            handleCompleteRooms(propertyId)
           }}
           sx={{ mt: 2 }}
         >

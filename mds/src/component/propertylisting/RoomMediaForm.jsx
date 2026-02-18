@@ -17,6 +17,7 @@ import {
   uploadRoomMedia, updateRoomMediaItem, deleteRoomMediaItem,
   getRoomMedia
 } from '@/redux/features/property/propertySlice';
+import toast from 'react-hot-toast';
 
 const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
   const dispatch = useDispatch();
@@ -146,7 +147,7 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
     if (!editingMedia) return;
 
     if (!editingMedia.tags || editingMedia.tags.length === 0) {
-      alert('Please select at least one tag before saving.');
+      toast.error('Please select at least one tag before saving.');
       return;
     }
 
@@ -790,7 +791,6 @@ const RoomMediaForm = ({ propertyId, onSave, onBack }) => {
                           <Checkbox
                             edge="start"
                             checked={editingMedia.tags.includes(tag)}
-                            onChange={() => handleTagToggle(tag)}
                             size="small"
                           />
                         </ListItemIcon>

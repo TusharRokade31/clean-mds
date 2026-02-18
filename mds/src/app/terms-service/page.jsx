@@ -1,6 +1,17 @@
 import React from 'react'
 import "../policy.css"
 
+
+
+export const metadata = {
+    title: "Terms of Service | Rules You Must Know Before Booking",
+    description: "Know your rights and responsibilities before booking. Read My Divine Stays Terms of Service for clear guidelines to stay secure and avoid surprises.",
+    alternates: {
+        canonical: "https://mydivinestays.com/terms-of-service/",
+      },
+};
+
+
 const page = () => {
   return (
     <div  className='legal-container legal-content my-24 px-20'><h2><strong>Terms of Service</strong></h2>
@@ -28,11 +39,13 @@ const page = () => {
 <li>My Divine Stays does not store sensitive financial information</li>
 <li>Transaction success depends on the payment gateway and user bank/provider</li>
 </ul>
-<h3><strong>Cancellations &amp; Refunds</strong></h3>
+
+<h3>Cancellation & Refund Policy</h3>
+<p>We understand that plans can change. Therefore, we offer the following cancellation policy to ensure fairness for both pilgrims and the dharamshala authorities:</p>
 <ul>
-<li>Cancellation and refund policies vary by dharamshala</li>
-<li>Refund eligibility is clearly displayed at the time of booking</li>
-<li>My Divine Stays facilitates communication but does not decide refund outcomes</li>
+<li>Cancelling more than 3 days before check-in: 90% refund.</li>
+<li>Cancelling 3 days before check-in: 50% refund.</li>
+<li>Cancelling within 24 hours of check-in: 0% refund.</li>
 </ul>
 <h3><strong>User Conduct at Dharamshalas</strong></h3>
 <p>Users are expected to:</p>
@@ -60,6 +73,8 @@ const page = () => {
 <p>For questions related to these Terms of Service:</p>
 <p>📧 Email: mydivinestay@gmail.com<br />📞 Phone / WhatsApp: +91 9819719930</p>
 <p><em>My Divine Stays provides a digital booking platform only. Accommodation services are offered independently by listed dharamshalas.</em></p>
+{/* <h3>Refund Policy</h3>
+<p>All bookings are final. No refunds will be issued once a booking is confirmed, even in case of cancellation.</p> */}
 </div>
   )
 }

@@ -235,9 +235,20 @@ const handleSave = async () => {
 };
 
 const handleSectionUpdate = async (section) => {
-  // Reset errors for this section initially
+  // 1. Reset errors initially
   setValidationErrors({});
 
+  // 2. SKIP API REQUEST FOR CUSTOM POLICIES
+  // If it's customPolicies, we just jump to the next tab without calling the dispatch
+  if (section === "customPolicies") {
+    if (activeTab < 6) {
+      setActiveTab((prev) => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    return; // Exit the function early
+  }
+
+  // 3. Validation for Property Rules (existing logic)
   if (section === "propertyRules") {
     const profile = formData.propertyRules?.guestProfile;
     const identityProofs = formData.propertyRules?.acceptableIdentityProofs || [];
@@ -251,22 +262,20 @@ const handleSectionUpdate = async (section) => {
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       toast.error("Please fill in all required property rules.");
-      return; // Stop here; highlighting happens via the state
+      return; 
     }
   }
 
+  // 4. API Request for all other sections
   try {
-
     const sectionNames = {
-  checkInCheckOut: "Check-in & Check-out",
-  cancellationPolicy: "Cancellation Policy",
-  propertyRules: "Property Rules",
-  propertyRestrictions: "Property Restrictions",
-  petPolicy: "Pet Policy",
-  customPolicies: "Custom Policies",
-  mealPrices: "Meal Prices"
-};
-
+      checkInCheckOut: "Check-in & Check-out",
+      propertyRules: "Property Rules",
+      propertyRestrictions: "Property Restrictions",
+      petPolicy: "Pet Policy",
+      customPolicies: "Custom Policies",
+      mealPrices: "Meal Prices"
+    };
 
     let sectionData = section === "cancellationPolicy" ? formData.cancellationPolicy : formData[section];
 
@@ -278,9 +287,8 @@ const handleSectionUpdate = async (section) => {
       })
     ).unwrap();
 
-    // Use the custom name from the mapping
-const sectionName = sectionNames[section] || section;
-toast.success(`${sectionName} updated successfully!`);
+    const sectionName = sectionNames[section] || section;
+    toast.success(`${sectionName} updated successfully!`);
 
     if (activeTab < 6) {
       setActiveTab((prev) => prev + 1);
@@ -563,6 +571,63 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
   );
 };
 
+const renderMealSection = (type, label) => {
+    const mealData = formData.mealPrices?.[type] || {};
+    const isAvailable = mealData.available || false;
+    const priceValue = (mealData.price === 0 || mealData.price === null || mealData.price === undefined) 
+      ? "" 
+      : mealData.price;
+
+    return (
+      <Paper className="border border-gray-200" elevation={0} sx={{ mb: 3 }}>
+        <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
+          <Typography variant="subtitle1" className="font-semibold text-gray-800">
+            {label}
+          </Typography>
+          <Switch
+            checked={isAvailable}
+            onChange={(e) =>
+              handleNestedInputChange("mealPrices", type, "available", e.target.checked)
+            }
+            color="primary"
+          />
+        </div>
+        
+        {isAvailable && (
+          <div className="p-4 space-y-4">
+            <TextField
+              fullWidth
+              label="Price per person"
+              type="number"
+              // Prevents scrolling from changing the number
+              slotProps={{
+                htmlInput: {
+                  onWheel: (e) => e.currentTarget.blur(),
+                },
+              }}
+              // Ensures "0" doesn't show up if the value is empty
+              value={priceValue}
+              onChange={(e) => {
+                const val = e.target.value;
+                handleNestedInputChange(
+                  "mealPrices",
+                  type,
+                  "price",
+                  val === "" ? "" : parseInt(val, 10)
+                );
+              }}
+              InputProps={{
+                startAdornment: (
+                  <Typography sx={{ mr: 1, color: 'text.secondary' }}>₹</Typography>
+                ),
+              }}
+            />
+          </div>
+        )}
+      </Paper>
+    );
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <Toaster position="top-right" />
@@ -591,7 +656,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
               scrollButtons="auto"
             >
               <StyledTab label="Check-in & Check-out" />
-              <StyledTab label="Cancellation Policy" />
+              {/* <StyledTab label="Cancellation Policy" /> */}
               <StyledTab label="Property Rules" />
               <StyledTab label="Property Restrictions" />
               <StyledTab label="Pet Policy" />
@@ -716,19 +781,21 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                 />
               </div> */}
 
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="primary"
                 onClick={() => handleSectionUpdate("checkInCheckOut")}
                 className="mt-4"
               >
                 Save Check-in/Check-out Settings
-              </Button>
+              </Button> */}
             </div>
           </TabPanel>
 
+
+          
           {/* Cancellation Policy Tab */}
-      <TabPanel value={activeTab} index={1}>
+      {/* <TabPanel value={activeTab} index={1}>
   <div className="space-y-4">
     <div>
       <Typography variant="h6" className="font-semibold text-gray-800">
@@ -754,7 +821,7 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                   <Typography className="text-gray-700 text-[15px] py-1">
                     {option.label}
                   </Typography>
-                  {/* Recommended Badge */}
+                  
                   {option.value === "free_cancellation_checkin" && (
                     <Box sx={{ 
                       bgcolor: '#f0fdf4', color: '#16a34a', fontSize: '10px', fontWeight: 'bold', 
@@ -768,10 +835,10 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
               className="m-0"
             />
 
-            {/* Render Timeline when selected */}
+            
             {formData.cancellationPolicy === option.value && (
               <>
-                {/* Custom Hour Input Logic */}
+                
                 {option.value === "free_cancellation_custom" && (
   <div className="ml-10 mb-2 flex items-center gap-2">
     <TextField
@@ -824,10 +891,12 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
       Save Cancellation Policy
     </Button>
   </div>
-</TabPanel>
+</TabPanel> */}
+
+
 
           {/* Property Rules Tab */}
-          <TabPanel value={activeTab} index={2}>
+          <TabPanel value={activeTab} index={1}>
             <div className="space-y-6">
               <div>
                 <Typography
@@ -991,19 +1060,19 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                 </div>
               </Paper>
 
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="primary"
                 sx={{ mt: 3 }}
                 onClick={() => handleSectionUpdate("propertyRules")}
               >
                 Save Property Rules
-              </Button>
+              </Button> */}
             </div>
           </TabPanel>
 
           {/* Property Restrictions Tab */}
-          <TabPanel value={activeTab} index={3}>
+          <TabPanel value={activeTab} index={2}>
             <div className="space-y-6">
               <div>
                 <Typography
@@ -1081,19 +1150,19 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                   />
                 </div>
               </div>
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="primary"
                 sx={{ mt: 3 }}
                 onClick={() => handleSectionUpdate("propertyRestrictions")}
               >
                 Save Property Restrictions
-              </Button>
+              </Button> */}
             </div>
           </TabPanel>
 
           {/* Pet Policy Tab */}
-          <TabPanel value={activeTab} index={4}>
+          <TabPanel value={activeTab} index={3}>
             <div className="space-y-6">
               <div>
                 <Typography
@@ -1124,19 +1193,19 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                 />
               </div>
 
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="primary"
                 sx={{ mt: 3 }}
                 onClick={() => handleSectionUpdate("petPolicy")}
               >
                 Save Pet Policy
-              </Button>
+              </Button> */}
             </div>
           </TabPanel>
 
           {/* Custom Policies Tab */}
-          <TabPanel value={activeTab} index={5}>
+          <TabPanel value={activeTab} index={4}>
             <div className="space-y-6">
               <div>
                 <Typography
@@ -1227,19 +1296,19 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
                 )}
               </Paper>
 
-              <Button
+              {/* <Button
                 variant="outlined"
                 color="primary"
                 sx={{ mt: 3 }}
                 onClick={() => handleSectionUpdate("customPolicies")}
               >
                 Save Custom Policies
-              </Button>
+              </Button> */}
             </div>
           </TabPanel>
 
           {/* Meal Prices Tab */}
-         <TabPanel value={activeTab} index={6}>
+         <TabPanel value={activeTab} index={5}>
   <div className="space-y-6">
     <div>
       <Typography
@@ -1253,155 +1322,9 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
       </Typography>
     </div>
 
-    {/* Breakfast */}
-    <Paper className="border border-gray-200" elevation={0}>
-      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-        <Typography
-          variant="subtitle1"
-          className="font-semibold text-gray-800"
-        >
-          Breakfast
-        </Typography>
-        <Switch
-          checked={formData.mealPrices?.breakfast?.available || false}
-          onChange={(e) =>
-            handleNestedInputChange(
-              "mealPrices",
-              "breakfast",
-              "available",
-              e.target.checked
-            )
-          }
-          color="primary"
-        />
-      </div>
-      {formData.mealPrices?.breakfast?.available && (
-        <div className="p-4 space-y-4">
-          <TextField
-            fullWidth
-            label="Price per person"
-            type="number"
-            slotProps={{
-              htmlInput: {
-                onWheel: (e) => e.currentTarget.blur(),
-              },
-            }}
-            value={formData.mealPrices?.breakfast?.price ?? ""}
-            onChange={(e) =>
-              handleNestedInputChange(
-                "mealPrices",
-                "breakfast",
-                "price",
-                e.target.value === "" ? "" : parseInt(e.target.value)
-              )
-            }
-            InputProps={{
-              startAdornment: <Typography>₹</Typography>,
-            }}
-          />
-        </div>
-      )}
-    </Paper>
-
-    {/* Lunch */}
-    <Paper className="border border-gray-200" elevation={0}>
-      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-        <Typography
-          variant="subtitle1"
-          className="font-semibold text-gray-800"
-        >
-          Lunch
-        </Typography>
-        <Switch
-          checked={formData.mealPrices?.lunch?.available || false}
-          onChange={(e) =>
-            handleNestedInputChange(
-              "mealPrices",
-              "lunch",
-              "available",
-              e.target.checked
-            )
-          }
-          color="primary"
-        />
-      </div>
-      {formData.mealPrices?.lunch?.available && (
-        <div className="p-4 space-y-4">
-          <TextField
-            fullWidth
-            label="Price per person"
-            type="number"
-            slotProps={{
-              htmlInput: {
-                onWheel: (e) => e.currentTarget.blur(),
-              },
-            }}
-            value={formData.mealPrices?.lunch?.price ?? ""}
-            onChange={(e) =>
-              handleNestedInputChange(
-                "mealPrices",
-                "lunch",
-                "price",
-                e.target.value === "" ? "" : parseInt(e.target.value)
-              )
-            }
-            InputProps={{
-              startAdornment: <Typography>₹</Typography>,
-            }}
-          />
-        </div>
-      )}
-    </Paper>
-
-    {/* Dinner */}
-    <Paper className="border border-gray-200" elevation={0}>
-      <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-        <Typography
-          variant="subtitle1"
-          className="font-semibold text-gray-800"
-        >
-          Dinner
-        </Typography>
-        <Switch
-          checked={formData.mealPrices?.dinner?.available || false}
-          onChange={(e) =>
-            handleNestedInputChange(
-              "mealPrices",
-              "dinner",
-              "available",
-              e.target.checked
-            )
-          }
-          color="primary"
-        />
-      </div>
-      {formData.mealPrices?.dinner?.available && (
-        <div className="p-4 space-y-4">
-          <TextField
-            fullWidth
-            label="Price per person"
-            type="number"
-            slotProps={{
-              htmlInput: {
-                onWheel: (e) => e.currentTarget.blur(),
-              },
-            }}
-            value={formData.mealPrices?.dinner?.price ?? ""}
-            onChange={(e) =>
-              handleNestedInputChange(
-                "mealPrices",
-                "dinner",
-                "price",
-                e.target.value === "" ? "" : parseInt(e.target.value)
-              )
-            }
-            InputProps={{
-              startAdornment: <Typography>₹</Typography>,
-            }}
-          />
-        </div>
-      )}
-    </Paper>
+   {renderMealSection("breakfast", "Breakfast")}
+      {renderMealSection("lunch", "Lunch")}
+      {renderMealSection("dinner", "Dinner")}
 
     <Button
       variant="outlined"
@@ -1416,27 +1339,66 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
         </CardContent>
       </Card>
 
-      <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
-          onClick={handleSave}
-          className="px-8 py-3"
-        >
-          Save All Changes
-        </Button>
+     <div className="flex flex-col sm:flex-row justify-between items-center mt-8 pt-6 border-t border-gray-200 gap-4">
+  <div className="flex flex-wrap gap-4">
+    {/* Global Save Button */}
+    <Button
+      variant="contained"
+      color="primary"
+      size="large"
+      onClick={handleSave}
+      className="px-8 py-3"
+    >
+      Save All Changes
+    </Button>
+    
+  </div>
+  {/* Dynamic Section-Specific Save Button */}
+    {activeTab !== 5 && ( // Hide if on Meal Prices if you prefer the Complete button there
+      <Button
+        variant="outlined"
+        color="primary"
+        size="large"
+        onClick={() => {
+          const sectionMap = [
+            "checkInCheckOut",
+            "propertyRules",
+            "propertyRestrictions",
+            "petPolicy",
+            "customPolicies",
+            "mealPrices"
+          ];
+          handleSectionUpdate(sectionMap[activeTab]);
+        }}
+        className="px-8 py-3"
+      >
+        {(() => {
+          switch (activeTab) {
+            case 0: return "Save Check-in/Check-out";
+            case 1: return "Save Property Rules";
+            case 2: return "Save Property Restrictions";
+            case 3: return "Save Pet Policy";
+            case 4: return "Save Custom Policies";
+            case 5: return "Save Meal Prices";
+            default: return "Save Section";
+          }
+        })()}
+      </Button>
+    )}
 
-        <Button
-          variant="contained"
-          // color="success"
-          size="large"
-          onClick={handleCompleteStep}
-          className="px-8 py-3"
-        >
-          Complete Policy And Rules
-        </Button>
-      </div>
+  {/* Completion Button */}
+  {activeTab === 5 && (
+    <Button
+      variant="contained"
+      
+      size="large"
+      onClick={handleCompleteStep}
+      className="px-8 py-3"
+    >
+      Complete Policy And Rules
+    </Button>
+  )}
+</div>
 
       <Dialog
         open={customPolicyDialog}
@@ -1453,10 +1415,12 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
         </DialogTitle>
         <DialogContent>
           <div className="space-y-4 pt-2">
-            <TextField
+           <div className="mb-5">
+             <TextField
               fullWidth
               label="Policy Title"
-              className="mb-5"
+              
+              
               value={newCustomPolicy.title}
               onChange={(e) =>
                 setNewCustomPolicy((prev) => ({
@@ -1466,7 +1430,9 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
               }
               placeholder="e.g., Swimming Pool Rules"
             />
-            <TextField
+           </div>
+           <div>
+ <TextField
               fullWidth
               label="Policy Description"
               multiline
@@ -1480,6 +1446,8 @@ const DynamicRefundTimeline = ({ selectedOption, customHours }) => {
               }
               placeholder="Describe the policy in detail..."
             />
+           </div>
+           
           </div>
         </DialogContent>
         <DialogActions>

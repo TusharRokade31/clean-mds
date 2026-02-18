@@ -62,6 +62,14 @@ export function Sidebar({ isMobile = false, showModal = false, onCloseModal = ()
 );
 
 
+// Sidebar.jsx - Inside the SidebarContent component
+const priceOptions = [
+  { label: "Under ₹500", value: "0-500" },
+  { label: "₹500 - ₹1000", value: "500-1000" },
+  { label: "₹1000 - ₹2000", value: "1000-2000" },
+  { label: "Above ₹2000", value: "2000-999999" }
+];
+
 
   // Sync local filters with Redux when appliedFilters change
   useEffect(() => {
@@ -212,32 +220,19 @@ const handleFilterChange = (category, value) => {
           </Typography>
         </div>
         <div className="space-y-2">
-          {["Under ₹500", "₹500 - ₹1000", "₹1000 - ₹2000", "Above ₹2000"].map((range) => (
-            <FormControlLabel 
-              key={range}
-              control={
-                <Checkbox 
-                  checked={localFilters.priceRange?.includes(range) || false}
-                  onChange={() => handleFilterChange('priceRange', range)}
-                  disabled={isSearchLoading}
-                  sx={{
-                    color: '#1035ac',
-                    '&.Mui-checked': {
-                      color: '#1035ac',
-                    }
-                  }}
-                />
-              } 
-              label={range}
-              sx={{
-                '& .MuiFormControlLabel-label': {
-                  fontSize: '15px',
-                  fontWeight: 500,
-                  color: '#4b5563'
-                }
-              }}
-            />
-          ))}
+         {priceOptions.map((option) => (
+  <FormControlLabel 
+    key={option.value}
+    control={
+      <Checkbox 
+        checked={localFilters.priceRange?.includes(option.value) || false}
+        onChange={() => handleFilterChange('priceRange', option.value)}
+        disabled={isSearchLoading}
+      />
+    } 
+    label={option.label}
+  />
+))}
         </div>
       </div>
 
@@ -508,40 +503,30 @@ const handleFilterChange = (category, value) => {
   }
 
   return (
-    <div className="w-full lg:w-80 bg-white p-6 rounded-2xl shadow-lg border border-gray-200 h-fit sticky top-24">
-      {/* Filters Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-6 h-6 text-blue-600" />
-          <h3 className="text-xl font-bold bg-linear-to-b from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Filters
-          </h3>
-        </div>
-        {getActiveFiltersCount() > 0 && (
-          <Button 
-            onClick={clearAllFilters}
-            disabled={isSearchLoading}
-            sx={{ 
-              color: '#1035ac', 
-              p: 0,
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '14px',
-              '&:hover': {
-                backgroundColor: 'transparent',
-                textDecoration: 'underline'
-              },
-              '&:disabled': {
-                opacity: 0.5
-              }
-            }}
-          >
-            Clear All
-          </Button>
-        )}
+   <div className="w-full lg:w-80 bg-white rounded-2xl shadow-lg border border-gray-200 sticky top-24 max-h-[calc(100vh-120px)] flex flex-col">
+    {/* Fixed Header within the Sidebar */}
+    <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-200 bg-white rounded-t-2xl">
+      <div className="flex items-center gap-2">
+        <SlidersHorizontal className="w-6 h-6 text-blue-600" />
+        <h3 className="text-xl font-bold bg-gradient-to-b from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Filters
+        </h3>
       </div>
+      {getActiveFiltersCount() > 0 && (
+        <Button 
+          onClick={clearAllFilters}
+          disabled={isSearchLoading}
+          sx={{ /* your existing styles */ }}
+        >
+          Clear All
+        </Button>
+      )}
+    </div>
 
+    {/* Scrollable Content Area */}
+    <div className="overflow-y-auto flex-1 p-6 pt-2 custom-scrollbar">
       <SidebarContent />
     </div>
+  </div>
   );
 }

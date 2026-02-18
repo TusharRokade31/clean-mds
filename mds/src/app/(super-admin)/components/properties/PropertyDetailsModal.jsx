@@ -11,6 +11,7 @@ import {
 import { fetchUserById, clearSelectedUser } from "@/redux/features/admin/adminSlice"; 
 // Property Slice Actions
 import { reviewProperty, getAllProperties, getFinanceLegal } from "@/redux/features/property/propertySlice";
+import toast from "react-hot-toast";
 
 const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
   const dispatch = useDispatch();
@@ -83,10 +84,10 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
 
       await dispatch(reviewProperty({ id: property._id, status: { status: newStatus } })).unwrap();
       dispatch(getAllProperties());
-      alert(`Property status updated to ${newStatus} successfully!`);
+      toast.success(`Property status updated to ${newStatus} successfully!`);
       onClose();
     } catch (error) {
-      alert(`Error: ${error.message || "Action failed"}`);
+      toast.error(`Error: ${error.message || "Action failed"}`);
     } finally {
       setReviewLoading(false);
       setShowReviewPopup(false);

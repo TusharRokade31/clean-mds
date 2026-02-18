@@ -77,6 +77,28 @@ const s3Storage = multerS3({
   },
 });
 
+export const extractS3Key = (url) => {
+  // Extract key from S3 URL
+  // Example: https://bucket.s3.region.amazonaws.com/folder/file.pdf -> folder/file.pdf
+  const urlParts = url.split('.com/');
+  return urlParts[1] || url;
+};
+
+export const deleteFromS3 = async (key) => {
+  const deleteParams = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: key,
+  };
+  
+  try {
+    await s3Client.send(new DeleteObjectCommand(deleteParams));
+    console.log(`Deleted file from S3: ${key}`);
+  } catch (error) {
+    console.error('Error deleting from S3:', error);
+    throw error;
+  }
+};
+
 // Standard upload for single files
 export const upload = multer({
   storage: s3Storage,
