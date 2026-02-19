@@ -61,7 +61,7 @@ const BookingSchema = new Schema({
   
   // Property and Room References
   property: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Property',
     required: [true, 'Property reference is required'],
   },
@@ -164,8 +164,8 @@ const BookingSchema = new Schema({
   // Booking Status
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled', 'no-show'],
-    default: 'pending',
+   enum: ['draft', 'pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled', 'no-show'],
+      default: 'draft',
   },
   
   // Special Requests

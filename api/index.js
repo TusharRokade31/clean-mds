@@ -8,6 +8,8 @@ import errorHandler from './middleware/error.js';
 import registerRoutes from './routes/index.js';
 import {httpLogger} from './middleware/httpLogger.js';
 import {asyncContextMiddleware} from './middleware/asyncLocalStorage.js';
+import { cleanupStaleDrafts } from './utils/cleanupDraftBookings.js';
+
 
 
 import { fileURLToPath } from 'url';
@@ -62,6 +64,9 @@ app.use(errorHandler);
 const server = app.listen(port, () => {
   console.log(`Server started on port ${port}!`);
 });
+
+cleanupStaleDrafts();
+setInterval(cleanupStaleDrafts, 15 * 60 * 1000);
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {

@@ -106,6 +106,8 @@ export default function BookingCard({ booking }) {
       default: return 'from-gray-400 to-gray-500';
     }
   };
+  
+  console.log(booking)
 
   const getPropertyImage = () => {
     if (booking.property.media?.images && booking.property.media.images.length > 0) {
@@ -119,6 +121,14 @@ export default function BookingCard({ booking }) {
   const checkOutFormatted = formatDate(booking.checkOut);
   const daysToGo = getDaysToGo(booking.checkIn);
   const currentPolicy = getRefundPolicyInfo(booking.checkIn);
+
+  if (!booking || !booking.property) {
+    return (
+      <div className="animate-pulse bg-gray-100 h-64 rounded-lg mb-6 flex items-center justify-center">
+        <p className="text-gray-400">Loading booking details...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div

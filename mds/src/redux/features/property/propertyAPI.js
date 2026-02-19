@@ -281,7 +281,7 @@ uploadRegistrationDocument: async (propertyId, formData) => {
 
 deleteRegistrationDocument: async (propertyId, documentId) => {
   const response = await axiosInstance.delete(
-        `/finance-legal/${propertyId}/legal/document/${documentId}`
+        `/properties/${propertyId}/legal/document/${documentId}`
       );
   return response.data;
 },
