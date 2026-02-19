@@ -7,11 +7,12 @@ import { authorize } from '../middleware/auth.js';
 const router = express.Router();
 
 // Payment routes
-router.post('/phonepe/initiate', authorize, paymentController.initiatePhonePePayment);
-router.get('/phonepe/status/:merchantTransactionId', authorize, paymentController.checkPaymentStatus);
-router.post('/phonepe/refund/:bookingId', authorize, paymentController.processRefund);
-router.get('/', authorize, paymentController.getAllPayments);
-router.get('/my-payments', authorize, paymentController.getSelfPayments);
+router.post('/phonepe/initiate', paymentController.initiatePhonePePayment);
+router.get('/phonepe/status/:merchantTransactionId', paymentController.checkPaymentStatus);
+router.post('/phonepe/refund/:bookingId', paymentController.processRefund);
+router.get('/', paymentController.getAllPayments);
+router.get('/my-payments', paymentController.getSelfPayments);
+router.get('/phonepe/callback', paymentController.phonePeCallback);
 
 // Webhook routes (no authentication)
 router.post('/phonepe/webhook', webhookController.handlePhonePeWebhook);

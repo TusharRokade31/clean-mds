@@ -83,6 +83,13 @@ const UploadArea = styled(Box)(({ theme }) => ({
 const FinanceLegalForm = ({ propertyId, onComplete }) => {
   const dispatch = useDispatch();
   const { currentFinanceLegal, isLoading, error } = useSelector(state => state.property);
+
+  const errorMessage = typeof error === 'string' 
+  ? error 
+  : error?.message || null;
+
+// In JSX:
+{errorMessage && <Alert severity="error">{errorMessage}</Alert>}
   
   const [activeTab, setActiveTab] = useState(0);
   const [financeData, setFinanceData] = useState({
@@ -235,22 +242,24 @@ const FinanceLegalForm = ({ propertyId, onComplete }) => {
     }
   };
 
-  const handleDeleteDocument = async (documentId) => {
-    if (!window.confirm('Are you sure you want to delete this document?')) {
-      return;
-    }
+const handleDeleteDocument = async (doc) => {
+  if (!window.confirm('Are you sure you want to delete this document?')) return;
 
-    try {
-      await dispatch(deleteRegistrationDocument({ 
-        propertyId, 
-        documentId 
-      })).unwrap();
-      toast.success('Document deleted successfully!');
-      setPreviewDialog(false);
-    } catch (error) {
-      toast.error(error.message || 'Failed to delete document');
-    }
-  };
+  try {
+    // ✅ Use _id if exists, fallback to filename
+    const identifier = doc._id || doc.filename;
+
+    await dispatch(deleteRegistrationDocument({ 
+      propertyId, 
+      documentId: identifier   // ← send filename as documentId
+    })).unwrap();
+
+    toast.success('Document deleted successfully!');
+    setPreviewDialog(false);
+  } catch (error) {
+    toast.error(error.message || 'Failed to delete document');
+  }
+};
 
   const handleCompleteStep = async () => {
     try {
@@ -588,7 +597,7 @@ const FinanceLegalForm = ({ propertyId, onComplete }) => {
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDeleteDocument(doc._id);
+                                handleDeleteDocument(doc);
                               }}
                             >
                               <DeleteIcon fontSize="small" color="error" />
@@ -755,7 +764,7 @@ const FinanceLegalForm = ({ propertyId, onComplete }) => {
           <Button
             startIcon={<DeleteIcon />}
             color="error"
-            onClick={() => currentDocument && handleDeleteDocument(currentDocument._id)}
+            onClick={() => currentDocument && handleDeleteDocument(currentDocument)}
           >
             Delete Document
           </Button>

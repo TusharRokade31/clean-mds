@@ -47,7 +47,8 @@ const calculatePricing = (room, adults, children, totalDays, checkIn, checkOut) 
 const checkRoomAvailability = async (roomId, checkIn, checkOut, excludeBookingId = null) => {
   const query = {
     room: roomId,
-    status: { $nin: ['cancelled', 'no-show'] },
+    // exclude draft, cancelled, no-show from blocking availability
+    status: { $nin: ['cancelled', 'no-show', 'draft'] },
     $or: [
       {
         checkIn: { $lt: checkOut },
@@ -324,14 +325,14 @@ getSelfBookings: async (req, res) => {
         pricing,
         payment: {
           method: paymentMethod,
-          paidAmount: paidAmount || 0,
-          status: paidAmount >= pricing.totalAmount ? 'completed' : paidAmount > 0 ? 'partial' : 'pending',
+          paidAmount: 0,
+          status: 'pending',
         },
         specialRequests,
         source,
+        status: 'draft', // always draft until payment succeeds
         createdBy: req.user?._id,
       });
-
       await booking.save();
 
       // Populate the booking with property and room details

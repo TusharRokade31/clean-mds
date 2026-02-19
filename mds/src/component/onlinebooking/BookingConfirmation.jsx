@@ -84,7 +84,7 @@ export default function BookingConfirmation({ bookingId }) {
                     <p><span className="text-gray-600">Total Amount:</span> ₹{booking?.pricing?.totalAmount}</p>
                     <p><span className="text-gray-600">Payment Status:</span> 
                       <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                        {booking?.payment?.status === 'pending' ? 'Pending' : 'Completed'}
+                        {booking?.payment?.status?.toUpperCase()}
                       </span>
                     </p>
                     <p><span className="text-gray-600">Payment Method:</span> {booking?.payment?.method?.toUpperCase()}</p>

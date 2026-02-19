@@ -3,6 +3,7 @@ import FinanceLegal from '../models/FinanceLegal.js';
 import Property from '../models/Property.js';
 import { validationResult } from 'express-validator';
 import { deleteFromS3, extractS3Key } from '../services/s3Service.js';
+import { buildOwnerQuery } from '../utils/buildOwnerQuery.js';
 
 // Get or create finance legal data for a property
 export const getFinanceLegal = async (req, res) => {
@@ -212,24 +213,23 @@ export const updateLegalDetails = async (req, res) => {
 export const uploadRegistrationDocument = async (req, res) => {
   try {
     const { propertyId } = req.params;
-    
+
+    console.log('Logged in user:', req.user._id);
+
     if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No file uploaded',
-      });
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
 
-    let financeLegal = await FinanceLegal.findOne({ 
-      property: propertyId,
-      owner: req.user._id, 
-    });
+    // ✅ Query only by property first to confirm record exists
+    let financeLegal = await FinanceLegal.findOne({ property: propertyId });
+
+    console.log('Found FL:', financeLegal?._id);
+    console.log('FL owner:', financeLegal?.owner);
+    console.log('Req user:', req.user._id);
+    console.log('Match:', financeLegal?.owner?.toString() === req.user._id?.toString());
 
     if (!financeLegal) {
-      return res.status(404).json({
-        success: false,
-        message: 'Finance legal data not found',
-      });
+      return res.status(404).json({ success: false, message: 'Finance legal data not found' });
     }
 
     // AUTO-MIGRATION: Migrate old document if exists
@@ -295,63 +295,47 @@ export const deleteRegistrationDocument = async (req, res) => {
   try {
     const { propertyId, documentId } = req.params;
 
-    let financeLegal = await FinanceLegal.findOne({ 
-      property: propertyId,
-      owner: req.user._id, 
-    });
+    const query = buildOwnerQuery(req, propertyId);
+    let financeLegal = await FinanceLegal.findOne(query);
 
     if (!financeLegal) {
-      return res.status(404).json({
-        success: false,
-        message: 'Finance legal data not found',
-      });
+      return res.status(404).json({ success: false, message: 'Finance legal data not found' });
     }
 
-    // Find document in array
-    const documentIndex = financeLegal.legal.ownershipDetails.registrationDocuments.findIndex(
-      doc => doc._id.toString() === documentId
+    const docs = financeLegal.legal.ownershipDetails.registrationDocuments;
+
+    // ✅ Try matching by _id first, fallback to filename
+    const documentIndex = docs.findIndex(doc => 
+      (doc._id && doc._id.toString() === documentId) || 
+      doc.filename === documentId
     );
 
     if (documentIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        message: 'Document not found',
-      });
+      return res.status(404).json({ success: false, message: 'Document not found' });
     }
 
-    // Get document to delete from S3
-    const documentToDelete = financeLegal.legal.ownershipDetails.registrationDocuments[documentIndex];
+    const documentToDelete = docs[documentIndex];
     const s3Key = extractS3Key(documentToDelete.url);
-    
+
     // Delete from S3
     await deleteFromS3(s3Key);
 
     // Remove from array
-    financeLegal.legal.ownershipDetails.registrationDocuments.splice(documentIndex, 1);
+    docs.splice(documentIndex, 1);
 
-    // Update completion status
-    const legalComplete = Boolean(
+    financeLegal.legalCompleted = Boolean(
       financeLegal.legal.ownershipDetails.ownershipType &&
       financeLegal.legal.ownershipDetails.propertyAddress &&
-      financeLegal.legal.ownershipDetails.registrationDocuments.length > 0,
+      docs.length > 0
     );
 
-    financeLegal.legalCompleted = legalComplete;
-    await financeLegal.save();
+    await financeLegal.save({ validateBeforeSave: false });
 
-    res.status(200).json({
-      success: true,
-      message: 'Document deleted successfully',
-      data: financeLegal,
-    });
+    res.status(200).json({ success: true, message: 'Document deleted successfully', data: financeLegal });
 
   } catch (error) {
     console.error('Delete document error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
 
@@ -429,9 +413,9 @@ export const completeFinanceLegalStep = async (req, res) => {
       validationErrors.push('Property address is required');
     }
 
-    if (!ownershipDetails.registrationDocument || !ownershipDetails.registrationDocument.url) {
-      validationErrors.push('Registration document is required');
-    }
+if (!ownershipDetails.registrationDocuments || ownershipDetails.registrationDocuments.length === 0) {
+  validationErrors.push('Registration document is required');
+}
 
     if (validationErrors.length > 0) {
       return res.status(400).json({

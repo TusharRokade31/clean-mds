@@ -82,24 +82,25 @@ const OwnershipDetailsSchema = new Schema({
   },
   
   // NEW: Array of documents
-  registrationDocuments: [{
-    filename: {
-      type: String,
-      required: true,
-    },
-    originalName: {
-      type: String,
-      required: true,
-    },
-    url: {
-      type: String,
-      required: true,
-    },
-    uploadedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  }],
+registrationDocuments: [{
+  _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() }, // ✅ Force _id
+  filename: {
+    type: String,
+    required: true,
+  },
+  originalName: {
+    type: String,
+    required: true,
+  },
+  url: {
+    type: String,
+    required: true,
+  },
+  uploadedAt: {
+    type: Date,
+    default: Date.now,
+  },
+}],
   
   // OLD: Keep for backward compatibility (will be removed after migration)
   registrationDocument: {

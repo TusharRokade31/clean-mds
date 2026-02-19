@@ -9,6 +9,7 @@ import { clearPaymentUrl, initiatePhonePePayment } from "@/redux/features/paymen
 // import { createBooking } from "../redux/features/bookings/bookingSlice"
 
 export default function BookingPage({ property, selectedRoom }) {
+  console.log(property, "property ")
   const dispatch = useDispatch()
   const router = useRouter()
    const { isCreating, error: bookingError } = useSelector((state) => state.booking)
@@ -141,52 +142,49 @@ console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calcul
     }
   }
 
-    const handleSubmit = async (e) => {
-    e.preventDefault()
-    
-    if (!agreeTerms) {
-      toast.error("Please agree to the terms and conditions")
-      return
-    }
+   const handleSubmit = async (e) => {
+  e.preventDefault()
 
-    const bookingData = {
-      propertyId: property._id,
-      roomId: selectedRoom._id,
-      primaryGuest: guestDetails,
-      checkIn: bookingDetails.checkin,
-      checkOut: bookingDetails.checkout,
-      guestCount: {
-        adults: bookingDetails?.adults,
-        children: bookingDetails?.children
-      },
-      paymentMethod,
-      specialRequests,
-      source: 'online'
-    }
-
-    try {
-      // Create booking first
-      const bookingResult = await dispatch(createBooking(bookingData)).unwrap()
-      toast.success('Booking created successfully!')
-      
-      // Store booking details
-      localStorage.setItem('currentBooking', JSON.stringify(bookingResult))
-
-      // Initiate payment
-      const paymentData = {
-        bookingId: bookingResult._id,
-        amount: pricingDetails.totalAmount,
-        phone: guestDetails.phone
-      }
-
-      await dispatch(initiatePhonePePayment(paymentData)).unwrap()
-      toast.loading('Redirecting to payment gateway...')
-      
-    } catch (error) {
-      console.error('Booking/Payment failed:', error)
-      toast.error(error || 'Something went wrong')
-    }
+  if (!agreeTerms) {
+    toast.error("Please agree to the terms and conditions")
+    return
   }
+
+  const bookingData = {
+    propertyId: property._id,
+    roomId: selectedRoom._id,
+    primaryGuest: guestDetails,
+    checkIn: bookingDetails.checkin,
+    checkOut: bookingDetails.checkout,
+    guestCount: {
+      adults: bookingDetails?.adults,
+      children: bookingDetails?.children
+    },
+    paymentMethod,
+    specialRequests,
+    source: 'online'
+  }
+
+  try {
+    const bookingResult = await dispatch(createBooking(bookingData)).unwrap()
+    toast.success('Booking created successfully!')
+
+    localStorage.setItem('currentBooking', JSON.stringify(bookingResult))
+
+    // ✅ Never send amount from frontend — backend calculates from bookingId
+    const paymentData = {
+      bookingId: bookingResult._id,
+      phone: guestDetails.phone
+    }
+
+    await dispatch(initiatePhonePePayment(paymentData)).unwrap()
+    toast.loading('Redirecting to payment gateway...')
+
+  } catch (error) {
+    console.error('Booking/Payment failed:', error)
+    toast.error(error || 'Something went wrong')
+  }
+}
 
    useEffect(() => {
     if (bookingError) {
@@ -320,6 +318,40 @@ console.log(calculatePricing(selectedRoom, adults, children, totalDays) ,"calcul
                     />
                   </div>
                 </div>
+                {/* Age */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Age *
+                </label>
+                <select
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={guestDetails.age}
+                  onChange={(e) => handleInputChange('age', e.target.value)}
+                >
+                  {Array.from({ length: 83 }, (_, i) => i + 18).map(age => (
+                    <option key={age} value={String(age)}>{age} years</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Gender *
+                </label>
+                <select
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={guestDetails.gender}
+                  onChange={(e) => handleInputChange('gender', e.target.value)}
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                  <option value="prefer_not_to_say">Prefer not to say</option>
+                </select>
+              </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
