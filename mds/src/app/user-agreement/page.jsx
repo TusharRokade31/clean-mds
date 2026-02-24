@@ -5,7 +5,7 @@ export const metadata = {
     title: "User Agreement | Essential Guidelines for All Users",
     description: "Read the User Agreement to understand your rights and responsibilities. Book confidently on My Divine Stays knowing the rules are clear and transparent.",
     alternates: {
-        canonical: "https://mydivinestays.com/user-agreement/",
+        canonical: "https://mydivinestays.com/user-agreement",
     },
 };
 

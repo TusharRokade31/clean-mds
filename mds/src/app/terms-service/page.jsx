@@ -7,7 +7,7 @@ export const metadata = {
     title: "Terms of Service | Rules You Must Know Before Booking",
     description: "Know your rights and responsibilities before booking. Read My Divine Stays Terms of Service for clear guidelines to stay secure and avoid surprises.",
     alternates: {
-        canonical: "https://mydivinestays.com/terms-of-service/",
+        canonical: "https://mydivinestays.com/terms-of-service",
       },
 };
 

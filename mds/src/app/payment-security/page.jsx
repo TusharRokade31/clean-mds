@@ -6,7 +6,7 @@ export const metadata = {
     title: "Secure Booking & Payment | Peace of Mind Guaranteed",
     description: "Book your spiritual stays worry-free. My Divine Stays ensures fully secure payments, complete privacy, and trusted protection for every transaction.",
     alternates: {
-        canonical: "https://mydivinestays.com/payment-security/",
+        canonical: "https://mydivinestays.com/payment-security",
       },
 };
 

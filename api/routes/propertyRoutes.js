@@ -344,7 +344,7 @@ router.delete('/:id', protect, deleteProperty);
 router.get('/state/:state', getPropertiesByState);
 
 // Get properties by city - public route
-router.get('/city/:city', getPropertiesByCity);
+router.get('/city/:city', getPropertiesByCity);           
 
 // Search properties with filters - public route
 // router.get('/search', searchProperties);

@@ -5,7 +5,7 @@ export const metadata = {
     title: "Privacy Policy | Your Data Fully Protected & Secure",
     description: "Protect your personal data while booking spiritual stays. My Divine Stays keeps your information secure, private, and fully protected online.",
     alternates: {
-        canonical: "https://mydivinestays.com/privacy-policy/",
+        canonical: "https://mydivinestays.com/privacy-policy",
     },
 };
 
