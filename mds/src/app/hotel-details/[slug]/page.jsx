@@ -30,7 +30,7 @@ const sections = [
 
 export default function PropertyDetailsPage() {
   
-  const { id } = useParams()
+  const { slug } = useParams()
   const dispatch = useDispatch()
   const { ViewProperty, loading, error } = useSelector((state) => state.property)
   console.log(ViewProperty)
@@ -41,10 +41,10 @@ export default function PropertyDetailsPage() {
   const navRef = useRef(null)
 
   useEffect(() => {
-    if (id) {
-      dispatch(getViewProperty(id))
+    if (slug) {
+      dispatch(getViewProperty(slug))
     }
-  }, [id, dispatch])
+  }, [slug, dispatch])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -211,6 +211,7 @@ export default function PropertyDetailsPage() {
                 <section.component 
                   setActiveSection={scrollToSection}
                   data={ViewProperty}
+                  propertyId={ViewProperty?._id}
                   location={ViewProperty?.location}
                   rooms={ViewProperty?.rooms}
                   amenities={ViewProperty?.amenities}

@@ -159,7 +159,7 @@ export default function MapModal({ open, onClose, properties }) {
       <div
         onMouseEnter={() => setHoveredId(item._id)}
         onMouseLeave={() => setHoveredId(null)}
-        onClick={() => router.push(`/hotel-details/${item._id}`)}
+        onClick={() => router.push(`/hotel-details/${item.slug}`)}
         className={`relative cursor-pointer px-3  w-20 py-1 rounded-full border shadow-lg transition-all font-bold text-sm whitespace-nowrap
           ${hoveredId === item._id 
             ? 'bg-[#1035ac] text-white border-[#1035ac] scale-110' 

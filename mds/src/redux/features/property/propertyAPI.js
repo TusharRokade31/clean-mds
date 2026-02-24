@@ -140,8 +140,8 @@ export const propertyAPI = {
   },
 
   // Get single view property
-  getViewProperty: async (id) => {
-    const response = await axiosInstance.get(`/properties/view/${id}`);
+  getViewProperty: async (slug) => {
+    const response = await axiosInstance.get(`/properties/view/${slug}`);
     return response.data;
   },
 

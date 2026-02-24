@@ -67,7 +67,8 @@ export const getDraftProperties = async (req, res) => {
 // Get single property
 export const getViewProperty = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    // Search by slug instead of findById
+    const property = await Property.findOne({ slug: req.params.slug });
     
     if (!property) {
       return res.status(404).json({
@@ -76,7 +77,6 @@ export const getViewProperty = async (req, res) => {
       });
     }
 
-    
     res.status(200).json({
       success: true,
       data: property,

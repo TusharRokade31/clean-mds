@@ -27,17 +27,17 @@ function TabPanel({ children, value, index, ...other }) {
   )
 }
 
-export default function PropertyRules() {
-  const { id } = useParams()
+export default function PropertyRules({propertyId}) {
+  // const { id } = useParams()
   const dispatch = useDispatch()
   const [tabValue, setTabValue] = useState(0)
   const { currentPrivacyPolicy, loading, error } = useSelector((state) => state.privacyPolicy)
 
   useEffect(() => {
-    if (id) {
-      dispatch(getPrivacyPolicy(id))
+    if (propertyId) {
+      dispatch(getPrivacyPolicy(propertyId))
     }
-  }, [id, dispatch])
+  }, [propertyId, dispatch])
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue)

@@ -117,9 +117,9 @@ export const getProperty = createAsyncThunk(
 
 export const getViewProperty = createAsyncThunk(
   'property/getViewProperty',
-  async (id, { rejectWithValue }) => {
+  async (slug, { rejectWithValue }) => {
     try {
-      const response = await propertyAPI.getViewProperty(id);
+      const response = await propertyAPI.getViewProperty(slug);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch property');

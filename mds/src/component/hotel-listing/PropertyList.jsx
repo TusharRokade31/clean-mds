@@ -335,6 +335,7 @@ function sortProperties(properties, sortBy) {
 function mapPropertyData(property) {
   return {
     id: property._id,
+    slug: property.slug,
     name: property.placeName,
     location: `${property.location.city}, ${property.location.state}`,
     rating: property.placeRating || 4.5,

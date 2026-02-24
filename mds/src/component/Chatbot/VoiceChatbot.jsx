@@ -289,7 +289,7 @@ const VoiceChatbot = () => {
                           {msg.results.map((prop) => (
                             <div
                               key={prop._id}
-                              onClick={() => router.push(`/hotel-details/${prop._id}`)}
+                              onClick={() => router.push(`/hotel-details/${prop.slug}`)}
                               className="min-w-[180px] bg-white rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-gray-200"
                             >
                               <div className="relative h-32">

@@ -327,7 +327,7 @@ router.get('/draft', protect, getDraftProperties); // Protect route so only auth
 // Get single property
 router.get('/:id', protect, getProperty);
 
-router.get('/view/:id',  getViewProperty);
+router.get('/view/:slug',  getViewProperty);
 
 // Admin routes
 router.put('/:id/review', protect, reviewProperty);
