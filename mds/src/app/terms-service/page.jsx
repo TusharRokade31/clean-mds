@@ -14,7 +14,8 @@ export const metadata = {
 
 const page = () => {
   return (
-    <div  className='legal-container legal-content my-24 px-20'><h2><strong>Terms of Service</strong></h2>
+<div  className='legal-container legal-content my-24 px-20'>
+<h1><strong>Terms of Service – Rules for Secure Booking</strong></h1>
 <p>Welcome to My Divine Stays. By accessing or using our website, you agree to comply with these Terms of Service. If you do not agree with any part of these terms, we request that you discontinue using the platform.</p>
 <h3><strong>About My Divine Stays</strong></h3>
 <p>My Divine Stays is an <strong>online booking platform</strong> designed to help pilgrims discover and book verified dharamshalas.<br />We act only as a <strong>technology facilitator</strong> and do not own, manage, or operate any dharamshala listed on the platform.</p>

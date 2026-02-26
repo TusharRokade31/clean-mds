@@ -12,7 +12,9 @@ export const metadata = {
 
 const page = () => {
   return (
-     <div className='legal-container legal-content my-24 px-20'><p>At My Divine Stays, payment safety and transparency are taken very seriously. We understand that both pilgrims and the dharamshala management need complete confidence while using an online booking platform.</p>
+     <div className='legal-container legal-content my-24 px-20'>
+      <h1><strong>Secure Booking & Payments for Your Spiritual Stays</strong></h1>
+      <p>At My Divine Stays, payment safety and transparency are taken very seriously. We understand that both pilgrims and the dharamshala management need complete confidence while using an online booking platform.</p>
 <p>All payments made on My Divine Stays are processed through <strong>secure, trusted payment gateways</strong> that follow industry-standard security protocols. This ensures that sensitive payment details such as card numbers, UPI IDs, and bank information are never stored on our servers.</p>
 <p>Every transaction is <strong>encrypted </strong>and protected using advanced security measures, so your payment information remains private and safe at all times.</p>
 <p>Once a booking is completed, pilgrims receive a <strong>clear booking confirmation</strong>, and dharamshalas receive accurate booking details for verification. This maintains transparency on both sides and avoids confusion or misuse.</p>

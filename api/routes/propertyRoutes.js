@@ -413,7 +413,7 @@ router.delete('/:propertyId/legal/document/:documentId',
 
 
 // routes/financeLegalRoutes.js
-router.post('/:propertyId/legal/complete-step', completeFinanceLegalStep);
+router.post('/:propertyId/legal/complete-step', protect, completeFinanceLegalStep);
 
 // Delete finance legal data
 router.delete('/:propertyId/finance-legal', protect, deleteFinanceLegal);

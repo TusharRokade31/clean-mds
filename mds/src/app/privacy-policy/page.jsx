@@ -12,6 +12,7 @@ export const metadata = {
 const page = () => {
   return (
     <div className='legal-container my-24 px-20 legal-content'>
+        <h1><strong>Privacy Policy – Protecting Your Data for Spiritual Stays</strong></h1>
         <p>At My Divine Stays, your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our website and services.</p>
         <h2>Information We Collect</h2>
         <p>When you use My Divine Stays, we may collect basic information such as:</p>
