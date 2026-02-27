@@ -108,8 +108,8 @@ router.put(
   [
     check('propertyType', 'Property type is required').not().isEmpty(),
     check('placeName', 'Place name is required').not().isEmpty(),
-    check('propertyBuilt', 'Property built year is required').not().isEmpty(),
-    check('bookingSince', 'Booking since date is required').not().isEmpty(),
+    // check('propertyBuilt', 'Property built year is required').not().isEmpty(),
+    // check('bookingSince', 'Booking since date is required').not().isEmpty(),
     check('rentalForm', 'Rental form is required').not().isEmpty(),
   ],
   saveBasicInfo,

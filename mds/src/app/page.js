@@ -48,7 +48,7 @@ export default function Home() {
         <SectionHowItWork />
         <SpiritualDestinations />
         <SectionBecomeAnAuthor />
-        <StaysType />
+        {/* <StaysType /> */}
         {/* <SectionClientSay/> */}
       </div>
     </>

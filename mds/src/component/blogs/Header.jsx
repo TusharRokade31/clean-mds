@@ -11,7 +11,7 @@ export default function Header({featuredArticle}) {
           Discover sacred places, travel wisdom, and inspiring stories from fellow pilgrims
         </p>
 
-        <div className="flex justify-center items-center gap-8 md:gap-12">
+        {/* <div className="flex justify-center items-center gap-8 md:gap-12">
           <div className="flex items-center gap-2">
             <MapPin className="w-6 h-6 text-red-400" />
             <span className="text-sm md:text-base">Sacred Destinations</span>
@@ -24,7 +24,7 @@ export default function Header({featuredArticle}) {
             <Heart className="w-6 h-6 text-yellow-400" />
             <span className="text-sm md:text-base">Inspiring Stories</span>
           </div>
-        </div>
+        </div> */}
       </div>
        
     </header>

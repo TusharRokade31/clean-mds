@@ -179,7 +179,8 @@ const bookingYearOptions = formData.propertyBuilt
         
         
         <Grid item size={{xs:12, md:4}}>
-          <FormControl            
+          <FormControl
+          fullWidth            
             sx={{
               "& .MuiOutlinedInput-root": {
                 color: "#000",
@@ -200,8 +201,8 @@ const bookingYearOptions = formData.propertyBuilt
                   },
                 },
               },
-            }} fullWidth error={!!errors?.propertyBuilt}>
-            <InputLabel>When was the property built?</InputLabel>
+            }} >
+            <InputLabel>When was the property built? (Optional)</InputLabel>
            <Select
             value={formData.propertyBuilt || ''}
             onChange={(e) => onChange('propertyBuilt', e.target.value)}
@@ -211,14 +212,13 @@ const bookingYearOptions = formData.propertyBuilt
               <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
             ))}
           </Select>
-            {errors?.propertyBuilt && (
-              <FormHelperText>{errors.propertyBuilt}</FormHelperText>
-            )}
+           
           </FormControl>
         </Grid>
         
         <Grid item size={{xs:12, md:4}}>
-          <FormControl            
+          <FormControl
+          fullWidth            
             sx={{
               "& .MuiOutlinedInput-root": {
                 color: "#000",
@@ -239,8 +239,8 @@ const bookingYearOptions = formData.propertyBuilt
                   },
                 },
               },
-            }} fullWidth error={!!errors?.bookingSince}>
-            <InputLabel>Accepting booking since?</InputLabel>
+            }}>
+            <InputLabel>Accepting booking since? (Optional)</InputLabel>
             <Select
               value={formData.bookingSince || ''}
               onChange={(e) => onChange('bookingSince', e.target.value)}
@@ -250,9 +250,7 @@ const bookingYearOptions = formData.propertyBuilt
                 <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
               ))}
             </Select>
-            {errors?.bookingSince && (
-              <FormHelperText>{errors.bookingSince}</FormHelperText>
-            )}
+            
           </FormControl>
         </Grid>
         <Grid item size={{xs:12, md:4}}>

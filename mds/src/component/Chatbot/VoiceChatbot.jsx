@@ -4,7 +4,14 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 import { useDispatch, useSelector } from 'react-redux';
 import { voiceSearchProperties, fetchPopularVoiceQueries } from '@/redux/features/property/propertySlice';
 import { usePathname, useRouter } from 'next/navigation';
-import { Mic, MicOff, X, Send, Trash2, MapPin, Star, Home } from 'lucide-react';
+import { Mic, MicOff, X, Send, Trash2, MapPin, Star } from 'lucide-react';
+
+// Brand tokens
+const BLUE = '#1035ac';
+const BLUE_DARK = '#0c2689';
+const YELLOW = '#fcf6cd';
+const YELLOW_DEEP = '#f0d84a';   // deeper gold for icons/borders
+const YELLOW_BORDER = '#e8cc30'; // visible border/accent
 
 const VoiceChatbot = () => {
   const dispatch = useDispatch();
@@ -12,17 +19,15 @@ const VoiceChatbot = () => {
   const [isActive, setIsActive] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
-   const pathname = usePathname();
+  const pathname = usePathname();
   const [textInput, setTextInput] = useState('');
-  const [inputMode, setInputMode] = useState('voice'); // 'voice' or 'text'
+  const [inputMode, setInputMode] = useState('voice');
   const messagesEndRef = useRef(null);
   const textInputRef = useRef(null);
 
-  const { 
-    voiceSearchResults,
-    voiceSearchResponse, 
+  const {
     isVoiceSearching,
-    popularVoiceQueries 
+    popularVoiceQueries
   } = useSelector((state) => state.property);
 
   const {
@@ -32,7 +37,6 @@ const VoiceChatbot = () => {
     browserSupportsSpeechRecognition
   } = useSpeechRecognition();
 
-  // Auto scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
@@ -41,7 +45,6 @@ const VoiceChatbot = () => {
     dispatch(fetchPopularVoiceQueries());
   }, [dispatch]);
 
-  // Focus text input when switching to text mode
   useEffect(() => {
     if (inputMode === 'text' && textInputRef.current) {
       textInputRef.current.focus();
@@ -52,14 +55,12 @@ const VoiceChatbot = () => {
     return new Promise((resolve) => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            resolve({ 
-              city: 'Mumbai', 
-              state: 'Maharashtra',
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            });
-          },
+          (position) => resolve({
+            city: 'Mumbai',
+            state: 'Maharashtra',
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          }),
           () => resolve({ city: 'India', state: '' })
         );
       } else {
@@ -81,56 +82,23 @@ const VoiceChatbot = () => {
 
   const processVoiceCommand = async (command) => {
     if (!command || command.trim() === '') return;
-    
     setIsProcessing(true);
-    
     try {
-      setChatHistory(prev => [...prev, { 
-        type: 'user', 
-        text: command,
-        timestamp: new Date()
-      }]);
-
+      setChatHistory(prev => [...prev, { type: 'user', text: command, timestamp: new Date() }]);
       const userLocation = await getUserLocation();
-      console.log('User Location:', userLocation);
-
-      const result = await dispatch(voiceSearchProperties({
-        voiceInput: command,
-        userLocation
-      })).unwrap();
-
-      console.log('Voice Search Result:', result);
-
-      setChatHistory(prev => [...prev, { 
-        type: 'bot', 
+      const result = await dispatch(voiceSearchProperties({ voiceInput: command, userLocation })).unwrap();
+      setChatHistory(prev => [...prev, {
+        type: 'bot',
         text: result.data.responseText,
         timestamp: new Date(),
         results: result.data.properties.slice(0, 5),
         totalResults: result.data.totalResults
       }]);
-      
-      // Only speak if voice mode
-      if (inputMode === 'voice') {
-        speakText(result.data.responseText);
-      }
-
-      // if (result.data.properties.length > 0) {
-      //   setTimeout(() => {
-      //     router.push(`/search-results?voiceSearch=true&q=${encodeURIComponent(command)}`);
-      //   }, 3000);
-      // }
-    } catch (error) {
-      console.error('Voice search error:', error);
+      if (inputMode === 'voice') speakText(result.data.responseText);
+    } catch {
       const errorMsg = 'Sorry, I encountered an error while searching. Please try again.';
-      setChatHistory(prev => [...prev, { 
-        type: 'bot', 
-        text: errorMsg,
-        timestamp: new Date()
-      }]);
-      
-      if (inputMode === 'voice') {
-        speakText(errorMsg);
-      }
+      setChatHistory(prev => [...prev, { type: 'bot', text: errorMsg, timestamp: new Date() }]);
+      if (inputMode === 'voice') speakText(errorMsg);
     } finally {
       setIsProcessing(false);
       resetTranscript();
@@ -152,9 +120,7 @@ const VoiceChatbot = () => {
 
   const handleTextSubmit = (e) => {
     e.preventDefault();
-    if (textInput.trim()) {
-      processVoiceCommand(textInput.trim());
-    }
+    if (textInput.trim()) processVoiceCommand(textInput.trim());
   };
 
   const handleClearChat = () => {
@@ -171,76 +137,175 @@ const VoiceChatbot = () => {
 
   if (!browserSupportsSpeechRecognition) {
     return (
-      <div className="fixed bottom-24 right-5 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded-xl max-w-sm shadow-lg">
-        <p className="text-sm">
-          Your browser doesn't support speech recognition. Please use the text input option or try Chrome, Edge, or Safari.
-        </p>
+      <div className="fixed bottom-24 right-5 px-4 py-3 rounded-xl max-w-sm shadow-lg text-sm"
+        style={{ background: YELLOW, border: `1px solid ${YELLOW_BORDER}`, color: BLUE }}>
+        Your browser doesn't support speech recognition. Please use the text input option or try Chrome, Edge, or Safari.
       </div>
     );
   }
 
-    if (pathname.startsWith("/admin") || pathname.startsWith("/host")) {
-    return null;
-  }
+  if (pathname.startsWith("/admin") || pathname.startsWith("/host")) return null;
 
   return (
     <div className="fixed bottom-0 right-0 z-[9999]">
-      {/* Floating Toggle Button */}
+
+      {/* ── Floating Action Button ── */}
       <button
         onClick={() => setIsActive(!isActive)}
-        className="fixed bottom-5 right-5 w-16 h-16 rounded-full bg-linear-to-br from-purple-600 to-purple-800 text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center z-[10000] group"
         aria-label="Toggle voice chatbot"
+        className="fixed bottom-5 right-5 w-16 h-16 rounded-full flex items-center justify-center z-[10000] transition-all duration-300 hover:scale-110"
+        style={{
+          background: `linear-gradient(145deg, ${BLUE}, ${BLUE_DARK})`,
+          boxShadow: `0 0 0 3px ${YELLOW_DEEP}, 0 6px 20px rgba(16,53,172,0.45)`,
+        }}
       >
-        {listening ? (
-          <Mic className="w-7 h-7 animate-pulse" />
-        ) : (
-          <Mic className="w-7 h-7" />
-        )}
+        <Mic
+          className={`w-7 h-7 ${listening ? 'animate-pulse' : ''}`}
+          style={{ color: YELLOW_DEEP }}
+        />
         {listening && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-ping" />
+          <span
+            className="absolute -top-1 -right-1 w-4 h-4 rounded-full animate-ping"
+            style={{ background: YELLOW_DEEP }}
+          />
         )}
+        {/* spinning halo */}
+        <span
+          className="absolute inset-0 rounded-full border-2 animate-spin-slow"
+          style={{ borderColor: YELLOW_DEEP, borderTopColor: 'transparent', opacity: 0.7 }}
+        />
       </button>
 
-      {/* Chatbot Panel */}
+      {/* ── Chatbot Panel ── */}
       {isActive && (
-        <div className="fixed bottom-24 right-5 w-[420px] max-w-[calc(100vw-40px)] h-[600px] max-h-[calc(100vh-140px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slideUp">
+        <div
+          className="fixed bottom-24 right-5 w-[420px] max-w-[calc(100vw-40px)] h-[600px] max-h-[calc(100vh-140px)] rounded-2xl flex flex-col overflow-hidden animate-slideUp"
+          style={{
+            background: '#ffffff',
+            border: `1.5px solid ${YELLOW_DEEP}`,
+            boxShadow: `0 24px 60px rgba(16,53,172,0.2), 0 0 0 1px ${YELLOW}`,
+          }}
+        >
+
           {/* Header */}
-          <div className="bg-linear-to-r from-purple-600 to-purple-800 text-white p-5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Mic className="w-6 h-6" />
-              <h3 className="text-lg font-semibold">Voice Assistant</h3>
+          <div
+            className="p-5 flex items-center justify-between relative overflow-hidden"
+            style={{ background: `linear-gradient(135deg, ${BLUE} 0%, ${BLUE_DARK} 100%)` }}
+          >
+            {/* soft yellow glow in corner */}
+            <div
+              className="absolute -top-6 right-6 w-24 h-24 rounded-full blur-2xl opacity-30"
+              style={{ background: YELLOW_DEEP }}
+            />
+
+            <div className="flex items-center gap-3 z-10">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(252,246,205,0.15)', border: `1.5px solid ${YELLOW_DEEP}` }}
+              >
+                <Mic className="w-5 h-5" style={{ color: YELLOW_DEEP }} />
+              </div>
+              <div>
+                {/* <h3 className="text-base font-bold tracking-wide text-white">Wish AI</h3> */}
+                <p className="text-xs font-medium" style={{ color: YELLOW_DEEP }}>My Divine Stays</p>
+              </div>
             </div>
+
             <button
               onClick={() => setIsActive(false)}
-              className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
               aria-label="Close chatbot"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80 z-10"
+              style={{ background: 'rgba(252,246,205,0.15)', border: `1px solid ${YELLOW_DEEP}` }}
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" style={{ color: YELLOW_DEEP }} />
             </button>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-5 bg-gray-50 space-y-4">
+          {/* Gold divider */}
+          <div
+            className="h-[2px] w-full flex-shrink-0"
+            style={{ background: `linear-gradient(90deg, transparent, ${YELLOW_DEEP}, ${YELLOW_DEEP}, transparent)` }}
+          />
+
+          {/* ── Messages ── */}
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4"
+            style={{ background: `linear-gradient(180deg, ${YELLOW} 0%, #fff 40%)` }}
+          >
+            {/* Empty state */}
             {chatHistory.length === 0 && (
-              <div className="text-center py-8">
-                <h4 className="text-xl font-semibold text-gray-800 mb-2">
-                  Hi! I'm your MDS voice assistant.
+              <div className="text-center py-6">
+                {/* icon */}
+                <div
+                  className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center relative"
+                  style={{
+                    background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})`,
+                    boxShadow: `0 0 20px rgba(16,53,172,0.3), 0 0 0 3px ${YELLOW_DEEP}`,
+                  }}
+                >
+                  <Mic className="w-7 h-7" style={{ color: YELLOW_DEEP }} />
+                  <div
+                    className="absolute inset-0 rounded-full border-2 animate-spin-slow"
+                    style={{ borderColor: YELLOW_DEEP, borderTopColor: 'transparent', opacity: 0.6 }}
+                  />
+                </div>
+
+                <h4 className="text-lg font-bold mb-1" style={{ color: BLUE }}>
+                  Hi! I'm your Wish AI
                 </h4>
-                <p className="text-gray-600 mb-6">Try saying or typing:</p>
-                
+                 <div className="flex items-center justify-center gap-2 my-3">
+      <span
+        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide"
+        style={{
+          background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})`,
+          color: YELLOW_DEEP,
+          boxShadow: `0 2px 10px rgba(16,53,172,0.25), 0 0 0 2px ${YELLOW_BORDER}`,
+        }}
+      >
+        ✨ Make a Wish
+      </span>
+    </div>
+                <p className="text-sm text-gray-500 mb-5">Try saying or typing:</p>
+
                 {popularVoiceQueries.length > 0 ? (
-                  <div className="space-y-4 text-left">
+                  <div className="space-y-3 text-left">
                     {popularVoiceQueries.map((category, idx) => (
-                      <div key={idx} className="bg-white rounded-lg p-4 shadow-sm">
-                        <h5 className="font-semibold text-gray-700 mb-3 text-sm">
+                      <div
+                        key={idx}
+                        className="rounded-xl p-3"
+                        style={{
+                          background: '#fff',
+                          border: `1px solid ${YELLOW_DEEP}`,
+                          boxShadow: `0 2px 8px rgba(16,53,172,0.06)`,
+                        }}
+                      >
+                        <h5
+                          className="font-bold text-xs uppercase tracking-wider mb-2"
+                          style={{ color: BLUE }}
+                        >
                           {category.category}
                         </h5>
-                        <ul className="space-y-2">
+                        <ul className="space-y-1.5">
                           {category.queries.map((query, qIdx) => (
                             <li
                               key={qIdx}
                               onClick={() => handleSuggestionClick(query)}
-                              className="text-sm text-purple-600 bg-purple-50 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 hover:translate-x-1"
+                              className="text-sm px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 hover:translate-x-1"
+                              style={{
+                                color: BLUE,
+                                background: YELLOW,
+                                border: `1px solid ${YELLOW_BORDER}`,
+                              }}
+                              onMouseEnter={e => {
+                                e.currentTarget.style.background = BLUE;
+                                e.currentTarget.style.color = YELLOW_DEEP;
+                                e.currentTarget.style.borderColor = BLUE_DARK;
+                              }}
+                              onMouseLeave={e => {
+                                e.currentTarget.style.background = YELLOW;
+                                e.currentTarget.style.color = BLUE;
+                                e.currentTarget.style.borderColor = YELLOW_BORDER;
+                              }}
                             >
                               "{query}"
                             </li>
@@ -251,20 +316,22 @@ const VoiceChatbot = () => {
                   </div>
                 ) : (
                   <ul className="space-y-2 text-left">
-                    <li className="text-sm text-purple-600 bg-purple-50 px-4 py-2 rounded-lg">
-                      "Hotels near me"
-                    </li>
-                    <li className="text-sm text-purple-600 bg-purple-50 px-4 py-2 rounded-lg">
-                      "Dharamshala in Varanasi"
-                    </li>
-                    <li className="text-sm text-purple-600 bg-purple-50 px-4 py-2 rounded-lg">
-                      "Ashram in Rishikesh for 2 persons"
-                    </li>
+                    {["Hotels near me", "Dharamshala in Varanasi", "Ashram in Rishikesh for 2 persons"].map((q, i) => (
+                      <li
+                        key={i}
+                        onClick={() => handleSuggestionClick(q)}
+                        className="text-sm px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 hover:translate-x-1"
+                        style={{ color: BLUE, background: YELLOW, border: `1px solid ${YELLOW_BORDER}` }}
+                      >
+                        "{q}"
+                      </li>
+                    ))}
                   </ul>
                 )}
               </div>
             )}
-            
+
+            {/* Chat messages */}
             {chatHistory.map((msg, idx) => (
               <div
                 key={idx}
@@ -272,48 +339,73 @@ const VoiceChatbot = () => {
               >
                 <div className={`max-w-[85%] ${msg.type === 'user' ? 'order-2' : 'order-1'}`}>
                   <div
-                    className={`rounded-2xl px-4 py-3 ${
-                      msg.type === 'user'
-                        ? 'bg-linear-to-br from-purple-600 to-purple-700 text-white rounded-br-sm'
-                        : 'bg-white text-gray-800 rounded-bl-sm shadow-md border border-gray-100'
-                    }`}
+                    className="rounded-2xl px-4 py-3"
+                    style={msg.type === 'user'
+                      ? {
+                          background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})`,
+                          color: YELLOW,
+                          borderBottomRightRadius: '4px',
+                          borderLeft: `3px solid ${YELLOW_DEEP}`,
+                        }
+                      : {
+                          background: '#ffffff',
+                          color: BLUE,
+                          borderBottomLeftRadius: '4px',
+                          border: `1px solid ${YELLOW_DEEP}`,
+                          boxShadow: `0 2px 12px rgba(16,53,172,0.08)`,
+                        }
+                    }
                   >
                     <p className="text-sm leading-relaxed">{msg.text}</p>
-                    
+
+                    {/* Property cards */}
                     {msg.results && msg.results.length > 0 && (
                       <div className="mt-4">
-                        <p className="text-xs text-gray-500 mb-3">
+                        <p className="text-xs mb-2 opacity-60">
                           Showing {msg.results.length} of {msg.totalResults} results
                         </p>
-                        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
+                        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
                           {msg.results.map((prop) => (
                             <div
                               key={prop._id}
                               onClick={() => router.push(`/hotel-details/${prop.slug}`)}
-                              className="min-w-[180px] bg-white rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-gray-200"
+                              className="min-w-[170px] rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                              style={{
+                                background: '#fff',
+                                border: `1px solid ${YELLOW_DEEP}`,
+                                boxShadow: `0 2px 10px rgba(16,53,172,0.1)`,
+                              }}
                             >
-                              <div className="relative h-32">
+                              <div className="relative h-28">
                                 <img
-                                  src={`${prop.media?.images[0]?.url || '/placeholder.jpg'}`}
+                                  src={prop.media?.images[0]?.url || '/placeholder.jpg'}
                                   alt={prop.placeName}
                                   className="w-full h-full object-cover"
                                   onError={(e) => { e.target.src = '/placeholder.jpg'; }}
                                 />
+                                {/* yellow accent strip */}
+                                <div
+                                  className="absolute bottom-0 left-0 right-0 h-[3px]"
+                                  style={{ background: `linear-gradient(90deg, ${BLUE}, ${YELLOW_DEEP}, ${BLUE})` }}
+                                />
                               </div>
-                              <div className="p-3">
-                                <h4 className="font-semibold text-sm text-gray-800 truncate mb-1">
+                              <div className="p-2.5">
+                                <h4 className="font-bold text-xs truncate mb-1" style={{ color: BLUE }}>
                                   {prop.placeName}
                                 </h4>
-                                <p className="text-xs text-gray-600 flex items-center gap-1 mb-1">
+                                <p className="text-xs text-gray-500 flex items-center gap-1 mb-1">
                                   <MapPin className="w-3 h-3" />
                                   {prop.location.city}, {prop.location.state}
                                 </p>
-                                <p className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded inline-block mb-1">
+                                <span
+                                  className="text-xs px-2 py-0.5 rounded-full inline-block mb-1"
+                                  style={{ background: YELLOW, color: BLUE, border: `1px solid ${YELLOW_BORDER}` }}
+                                >
                                   {prop.propertyType}
-                                </p>
+                                </span>
                                 {prop.placeRating && (
-                                  <p className="text-xs text-yellow-600 flex items-center gap-1">
-                                    <Star className="w-3 h-3 fill-yellow-400" />
+                                  <p className="text-xs flex items-center gap-1" style={{ color: YELLOW_DEEP }}>
+                                    <Star className="w-3 h-3 fill-current" />
                                     {prop.placeRating}
                                   </p>
                                 )}
@@ -324,117 +416,155 @@ const VoiceChatbot = () => {
                       </div>
                     )}
                   </div>
-                  <span className="text-xs text-gray-500 mt-1 block px-2">
-                    {new Date(msg.timestamp).toLocaleTimeString('en-IN', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                  <span className="text-xs text-gray-400 mt-1 block px-2">
+                    {new Date(msg.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               </div>
             ))}
-            
+
+            {/* Typing indicator */}
             {(isProcessing || isVoiceSearching) && (
               <div className="flex justify-start">
-                <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-md border border-gray-100">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                <div
+                  className="rounded-2xl rounded-bl-sm px-5 py-3"
+                  style={{
+                    background: '#fff',
+                    border: `1px solid ${YELLOW_DEEP}`,
+                    boxShadow: `0 2px 12px rgba(16,53,172,0.08)`,
+                  }}
+                >
+                  <div className="flex gap-1.5 items-center">
+                    <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: YELLOW_DEEP, animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: BLUE, animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: YELLOW_DEEP, animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Controls Area */}
-          <div className="p-4 bg-white border-t border-gray-200">
-            {/* Input Mode Toggle */}
-            <div className="flex gap-2 mb-3">
-              <button
-                onClick={toggleInputMode}
-                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                  inputMode === 'voice'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <Mic className="w-4 h-4 inline mr-2" />
-                Voice
-              </button>
-              <button
-                onClick={toggleInputMode}
-                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                  inputMode === 'text'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <Send className="w-4 h-4 inline mr-2" />
-                Text
-              </button>
+          {/* ── Controls ── */}
+          <div
+            className="p-4 bg-white flex-shrink-0"
+            style={{ borderTop: `1.5px solid ${YELLOW_DEEP}` }}
+          >
+            {/* Mode toggle */}
+            <div
+              className="flex gap-1.5 mb-3 p-1 rounded-xl"
+              style={{ background: YELLOW, border: `1px solid ${YELLOW_BORDER}` }}
+            >
+              {['voice', 'text'].map((mode) => (
+                <button
+                  key={mode}
+                  onClick={toggleInputMode}
+                  className="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                  style={inputMode === mode
+                    ? {
+                        background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})`,
+                        color: YELLOW_DEEP,
+                        boxShadow: `0 2px 8px rgba(16,53,172,0.35)`,
+                      }
+                    : { color: BLUE, background: 'transparent' }
+                  }
+                >
+                  {mode === 'voice'
+                    ? <><Mic className="w-4 h-4" />Voice</>
+                    : <><Send className="w-4 h-4" />Text</>
+                  }
+                </button>
+              ))}
             </div>
 
-            {/* Transcript Display */}
+            {/* Live transcript */}
             {transcript && inputMode === 'voice' && (
-              <div className="bg-gray-50 px-4 py-2 rounded-lg mb-3 border border-gray-200">
-                <p className="text-sm text-gray-700 italic">"{transcript}"</p>
+              <div
+                className="px-4 py-2 rounded-lg mb-3"
+                style={{ background: YELLOW, border: `1px solid ${YELLOW_BORDER}` }}
+              >
+                <p className="text-sm italic" style={{ color: BLUE }}>"{transcript}"</p>
               </div>
             )}
 
-            {/* Voice Input Controls */}
+            {/* Voice / Text input */}
             {inputMode === 'voice' ? (
-              <div className="space-y-2">
-                {listening ? (
-                  <button
-                    onClick={SpeechRecognition.stopListening}
-                    disabled={isProcessing}
-                    className="w-full py-4 px-6 rounded-xl bg-linear-to-r from-red-500 to-red-600 text-white font-semibold flex items-center justify-center gap-3 hover:from-red-600 hover:to-red-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden"
-                  >
-                    <MicOff className="w-5 h-5" />
-                    <span>Listening...</span>
-                    <span className="absolute inset-0 bg-white/20 animate-pulse rounded-xl"></span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={SpeechRecognition.startListening}
-                    disabled={isProcessing}
-                    className="w-full py-4 px-6 rounded-xl bg-linear-to-r from-purple-600 to-purple-700 text-white font-semibold flex items-center justify-center gap-3 hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-                  >
-                    <Mic className="w-5 h-5" />
-                    <span>{isProcessing ? 'Processing...' : 'Tap to speak'}</span>
-                  </button>
-                )}
-              </div>
+              listening ? (
+                <button
+                  onClick={SpeechRecognition.stopListening}
+                  disabled={isProcessing}
+                  className="w-full py-4 px-6 rounded-xl font-bold flex items-center justify-center gap-3 transition-all disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden"
+                  style={{ background: 'linear-gradient(135deg,#c0392b,#e74c3c)', color: '#fff' }}
+                >
+                  <MicOff className="w-5 h-5" />
+                  Listening… Tap to stop
+                  <span className="absolute inset-0 animate-pulse rounded-xl" style={{ background: 'rgba(255,255,255,0.1)' }} />
+                </button>
+              ) : (
+                <button
+                  onClick={SpeechRecognition.startListening}
+                  disabled={isProcessing}
+                  className="w-full py-4 px-6 rounded-xl font-bold flex items-center justify-center gap-3 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                  style={{
+                    background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})`,
+                    color: YELLOW_DEEP,
+                    boxShadow: `0 4px 16px rgba(16,53,172,0.35), 0 0 0 2px ${YELLOW_BORDER}`,
+                  }}
+                >
+                  <Mic className="w-5 h-5" />
+                  {isProcessing ? 'Processing…' : 'Tap to speak'}
+                </button>
+              )
             ) : (
-              /* Text Input Controls */
               <form onSubmit={handleTextSubmit} className="flex gap-2">
                 <input
                   ref={textInputRef}
                   type="text"
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
-                  placeholder="Type your search..."
+                  placeholder="Type your search…"
                   disabled={isProcessing}
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
+                  className="flex-1 px-4 py-3 rounded-xl text-sm outline-none disabled:cursor-not-allowed transition-all"
+                  style={{
+                    border: `1.5px solid ${YELLOW_BORDER}`,
+                    background: YELLOW,
+                    color: BLUE,
+                  }}
+                  onFocus={e => {
+                    e.target.style.borderColor = BLUE;
+                    e.target.style.boxShadow = `0 0 0 3px rgba(16,53,172,0.12)`;
+                  }}
+                  onBlur={e => {
+                    e.target.style.borderColor = YELLOW_BORDER;
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
                 <button
                   type="submit"
                   disabled={!textInput.trim() || isProcessing}
-                  className="px-5 py-3 rounded-xl bg-linear-to-r from-purple-600 to-purple-700 text-white font-semibold hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-3 rounded-xl font-bold flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})`,
+                    color: YELLOW_DEEP,
+                    boxShadow: `0 2px 8px rgba(16,53,172,0.3)`,
+                  }}
                 >
                   <Send className="w-4 h-4" />
                 </button>
               </form>
             )}
 
-            {/* Clear Chat Button */}
+            {/* Clear chat */}
             {chatHistory.length > 0 && (
               <button
                 onClick={handleClearChat}
-                className="w-full mt-3 py-2 px-4 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                className="w-full mt-3 py-2 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all hover:opacity-80"
+                style={{
+                  border: `1px solid ${YELLOW_BORDER}`,
+                  color: BLUE,
+                  background: YELLOW,
+                }}
               >
                 <Trash2 className="w-4 h-4" />
                 Clear Chat
@@ -444,54 +574,26 @@ const VoiceChatbot = () => {
         </div>
       )}
 
-      {/* Custom Styles for Animations */}
       <style jsx global>{`
         @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        .animate-slideUp   { animation: slideUp  0.3s ease-out; }
+        .animate-fadeIn    { animation: fadeIn   0.3s ease-out; }
+        .animate-spin-slow { animation: spin-slow 3s linear infinite; }
 
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar {
-          height: 4px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: #f1f1f1;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: #d1d5db;
-          border-radius: 2px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: #9ca3af;
-        }
+        .scrollbar-thin::-webkit-scrollbar        { height: 4px; }
+        .scrollbar-thin::-webkit-scrollbar-track  { background: #fcf6cd; }
+        .scrollbar-thin::-webkit-scrollbar-thumb  { background: #1035ac; border-radius: 2px; }
       `}</style>
     </div>
   );

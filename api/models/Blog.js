@@ -87,8 +87,9 @@ blogSchema.pre('save', function(next) {
 });
 
 // Add indexes
-blogSchema.index({ createdAt: -1 });
-blogSchema.index({ status: 1, isDeleted: 1, createdAt: -1 }); 
+blogSchema.index({ status: 1, isDeleted: 1, createdAt: -1 });
+blogSchema.index({ status: 1, isDeleted: 1, tags: 1, createdAt: -1 });
+blogSchema.index({ status: 1, isDeleted: 1, category: 1, createdAt: -1 });
 
 export const Blog = mongoose.model('Blog', blogSchema);
 

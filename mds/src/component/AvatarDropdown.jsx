@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCurrentUser, logoutUser } from "@/redux/features/auth/authSlice";
 import Image from "next/image";
+import { User } from "lucide-react";
 
 export default function AvatarDropdown() {
   const { isAuthenticated, isLoading, user, token } = useSelector(
@@ -91,10 +92,10 @@ const handleLogout = async () => {
                                            fill
                                          />
                                        ) : (
-                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-400 to-cyan-500">
-                                           <span className="text-5xl text-white">👤</span>
-                                         </div>
-                                       )}
+                                         <div className="w-full h-full flex items-center justify-center bg-[#1035ac]">
+  <User className="w-5 h-5 text-white" strokeWidth={1.5} />
+</div>
+)}
                       </div>
                
               </div>
@@ -109,26 +110,24 @@ const handleLogout = async () => {
               leaveFrom="opacity-100 translate-y-0"
               leaveTo="opacity-0 translate-y-1"
             >
-              <PopoverPanel className="absolute -end-10 top-full z-10 w-screen max-w-[260px] px-4 sm:end-0 sm:px-0">
+              <PopoverPanel className="absolute -end-10 top-13 z-10 w-screen max-w-[260px] px-4 sm:end-0 sm:px-0">
                 <div className="overflow-hidden rounded-3xl shadow-lg ring-1 ring-black ring-opacity-5">
                   <div className="relative grid grid-cols-1 gap-6 bg-white px-6 py-7">
                     <div className="flex items-center gap-x-3">
                       {/* <Avatar sizeClass="w-12 h-12" /> */}
-                      <div className="flex w-12 h-12 -space-x-2 items-center justify-center md:bg-slate-100 rounded-full overflow-hidden">
-                       {user?.profilePhoto ? (
-                                         <img
-                                           src={user.profilePhoto}
-                                           alt="Profile"
-                                           fill
-                                           
-
-                                         />
-                                       ) : (
-                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-400 to-cyan-500">
-                                           <span className="text-5xl text-white">👤</span>
-                                         </div>
-                                       )}
-                      </div>
+                     <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden">
+                      {user?.profilePhoto ? (
+                        <img
+                          src={user.profilePhoto}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-[#1035ac]">
+  <User className="w-5 h-5 text-white" strokeWidth={1.5} />
+</div>
+                      )}
+                    </div>
 
                       <div className="flex-grow">
                         <h4 className="font-semibold">

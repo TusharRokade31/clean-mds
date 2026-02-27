@@ -10,6 +10,7 @@ import {
   clearError 
 } from '@/redux/features/auth/authSlice'
 import Image from 'next/image'
+import { User } from 'lucide-react'
 
 export default function AccountPage() {
   const dispatch = useDispatch()
@@ -171,9 +172,9 @@ export default function AccountPage() {
                     sizes="128px"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-400 to-cyan-500">
-                    <span className="text-5xl text-white">👤</span>
-                  </div>
+                   <div className="w-full h-full flex items-center justify-center bg-[#1035ac]">
+  <User className="w-12  h-12  text-white" strokeWidth={1.5} />
+</div>
                 )}
                 
                 {/* Overlay when uploading */}
@@ -191,7 +192,7 @@ export default function AccountPage() {
               <button
                 onClick={() => setShowPhotoOptions(!showPhotoOptions)}
                 disabled={uploadingPhoto}
-                className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group-hover:scale-110"
+                className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-gradient-to-br bg-[#1035ac] border border-white text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group-hover:scale-110"
                 type="button"
               >
                 <svg 

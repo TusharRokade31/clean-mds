@@ -1,6 +1,7 @@
 import { useHTMLContent } from "@/hooks/useHTMLContent"
 import { Clock, ArrowRight } from "lucide-react"
 import staticImg from "../../../public/featured-places/Ambaji.png"
+import Link from "next/link"
 
 export default function ArticleCard({ article }) {
   const getCategoryColor = (category) => {
@@ -36,7 +37,8 @@ export default function ArticleCard({ article }) {
   const truncatedContent = useHTMLContent(article.content, { maxLength: 150 })
 
   return (
-    <div className="overflow-hidden rounded-xl hover:shadow-lg hover:-translate-2 border border-[#1034ac23] transition-shadow duration-300">
+    <Link href={`/blogs/${article.slug}`}>
+      <div className="overflow-hidden rounded-xl hover:shadow-lg hover:-translate-2 border border-[#1034ac23] transition-shadow duration-300">
       <div className="relative w-full aspect-video overflow-hidden"> 
   <img 
     src={article.image || staticImg.src} 
@@ -80,5 +82,6 @@ export default function ArticleCard({ article }) {
         </div>
       </div>
     </div>
+    </Link>
   )
 }

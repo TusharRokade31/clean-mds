@@ -8,6 +8,7 @@ const navigation = {
 		{ name: 'Submit ticket', href: '#' },
 	],
 	quickLinks: [
+		{ name: 'List Your property', href: '/host' },
 		{ name: 'About', href: '/about-us' },
 		{ name: 'Blogs', href: '/blogs' },
 		// { name: 'Press', href: '#' },

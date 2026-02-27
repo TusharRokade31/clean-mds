@@ -440,10 +440,10 @@ const validateMandatoryAmenities = () => {
           errors.propertyType = "Property type is required";
         if (!formData.basicInfo.placeName)
           errors.placeName = "Place name is required";
-        if (!formData.basicInfo.propertyBuilt)
-          errors.propertyBuilt = "Built year is required";
-        if (!formData.basicInfo.bookingSince)
-          errors.bookingSince = "Booking since date is required";
+        // if (!formData.basicInfo.propertyBuilt)
+        //   errors.propertyBuilt = "Built year is required";
+        // if (!formData.basicInfo.bookingSince)
+        //   errors.bookingSince = "Booking since date is required";
         if (!formData.basicInfo.rentalForm)
           errors.rentalForm = "Rental form is required";
 

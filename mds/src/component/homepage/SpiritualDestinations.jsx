@@ -56,39 +56,33 @@ const SpiritualDestinations = () => {
           className="flex overflow-x-auto scrollbar-none snap-x snap-mandatory scroll-smooth pb-4"
         >
           
-          {featuredCities.map((destination) => (
-            <div
-              key={destination._id}
-              className="flex-none w-64 sm:w-72 snap-start px-2"
-            >
-              <div className="rounded-lg overflow-hidden bg-white">
-                <div className="relative h-48 w-full">
-                  {/* <Image
-                    src={destination.image}
-                    alt={destination.name}
-                    fill
-                    className="object-cover"
-                  /> */}
-                  {/* <Link href={'/coming-soon'}> */}
-                   <Image 
-          overrideSrc={`${destination.image || ''}`}
-          className="h-full w-full rounded-2xl object-cover"
-          alt={destination.name}
-          fill
-          sizes="(max-width: 400px) 100vw, 300px"
-        />
-        {/* </Link> */}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-medium">{destination.name}</h3>
-                  <p className="text-gray-500 text-sm">
-                    {/* {destination.count} */}
-                    Coming Soon
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
+         {featuredCities.map((destination) => {
+  if (destination.name === "Palitana Temples, Gujarat") return null;
+  return (
+    <div
+      key={destination._id}
+      className="flex-none w-64 sm:w-72 snap-start px-2"
+    >
+      <div className="rounded-lg overflow-hidden bg-white">
+        <div className="relative h-48 w-full">
+          <Image 
+            overrideSrc={`${destination.image || ''}`}
+            className="h-full w-full rounded-2xl object-cover"
+            alt={destination.name}
+            fill
+            sizes="(max-width: 400px) 100vw, 300px"
+          />
+        </div>
+        <div className="p-4">
+          <h3 className="font-medium">{destination.name}</h3>
+          <p className="text-gray-500 text-sm">
+            Coming Soon
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+})}
         </div>)}
       <div className="absolute -left-5 top-28 transform -translate-y-1/2">
             <button

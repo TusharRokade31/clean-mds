@@ -257,11 +257,11 @@ const PropertySchema = new Schema({
   },
   propertyBuilt: {
     type: String,
-    required: [false, 'Property built year is required'],
+    default: "",
   },
   bookingSince: {
     type: String,
-    required: [false, 'Booking since date is required'],
+    default: "",
   },
   email: {
     type: String,
