@@ -43,8 +43,8 @@ export default function Home() {
       <div className="">
         <HomeBanner />
         {/* <TrendingDestinations /> */}
-        {/* <FeaturedStays /> */}
-        <FeaturedStays2 />
+        <FeaturedStays />
+        {/* <FeaturedStays2 /> */}
         <SectionHowItWork />
         <SpiritualDestinations />
         <SectionBecomeAnAuthor />

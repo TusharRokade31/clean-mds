@@ -15,8 +15,6 @@ import {
   updateRoom,
   deleteRoom,
   completePropertyListing,
-
-  // New routes I suggested
   getPropertiesByState,
   getPropertiesByCity,
   searchProperties,
@@ -45,6 +43,7 @@ import {
   getPropertyStatus,
   getFilteredProperties,
   changePropertyStatus,
+  getFeaturedByLocation,
 } from '../controllers/property/propertyController.js';
 
 
@@ -85,6 +84,7 @@ import { validateFilterQuery } from '../middleware/validation.js';
 const router = express.Router();
 
 router.get('/suggestions', getSuggestions);
+router.get('/featured-by-location', getFeaturedByLocation);
 
 router.get('/property-listing',setDefaultLocation, validatePropertyQuery, getPropertiesByQuery);
 

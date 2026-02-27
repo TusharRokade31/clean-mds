@@ -89,6 +89,64 @@ export const getViewProperty = async (req, res) => {
   }
 };
 
+export const getFeaturedByLocation = async (req, res) => {
+  try {
+    const featuredStays = await Property.aggregate([
+      // 1. Only get published properties
+      { $match: { status: 'published' } },
+
+      // 2. Group by State first, then by City
+      {
+        $group: {
+          _id: {
+            state: "$location.state",
+            city: "$location.city"
+          },
+          properties: { 
+            $push: { 
+              id: "$_id",
+              placeName: "$placeName", 
+              slug: "$slug",
+              coverImage: "$media.coverImage" 
+            } 
+          }
+        }
+      },
+
+      // 3. Group again to nest cities under states
+      {
+        $group: {
+          _id: "$_id.state",
+          cities: {
+            $push: {
+              cityName: "$_id.city",
+              stays: "$properties"
+            }
+          }
+        }
+      },
+
+      // 4. Clean up the output format
+      {
+        $project: {
+          _id: 0,
+          state: "$_id",
+          cities: 1
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: featuredStays
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};  
 
 export const getProperty = async (req, res) => {
   try {
@@ -359,7 +417,7 @@ export const saveBasicInfo = async (req, res) => {
     }
 
     const { propertyId } = req.params;
-    const { propertyType, placeName, placeRating, propertyBuilt, bookingSince, rentalForm, email, mobileNumber, landline } = req.body;
+    const { propertyType, placeName, placeRating, propertyBuilt, bookingSince, rentalForm, email, mobileNumber, landline, languagesSpoken } = req.body;
     
     // Check if property exists and belongs to user
 const property = await Property.findById(propertyId);
@@ -396,7 +454,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     // Check for changes if property is published
     const hasChanges = detectPropertyChanges(property, {
       propertyType, placeName, placeRating, propertyBuilt, 
-      bookingSince, rentalForm, email, mobileNumber, landline
+      bookingSince, rentalForm, email, mobileNumber, landline, languagesSpoken
     }, 1);
 
     if (hasChanges) {
@@ -412,6 +470,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     property.rentalForm = rentalForm;
     property.email = email;
     property.mobileNumber = mobileNumber;
+    property.languagesSpoken = languagesSpoken;
     property.landline = landline;
    
     

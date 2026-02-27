@@ -22,6 +22,7 @@ const initialState = {
   draftProperties: [],
   currentProperty: null,
   ViewProperty: {},
+  featuredByLocation:[],
   currentFinanceLegal: null,
   currentMedia: [],
   featuredProperties: [],
@@ -127,6 +128,18 @@ export const getViewProperty = createAsyncThunk(
   }
 );
 
+
+export const getFeaturedByLocation = createAsyncThunk(
+  'property/getFeaturedByLocation',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getFeaturedByLocation();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch featured properties');
+    }
+  }
+)
 
 
 export const fetchSuggestions = createAsyncThunk(
@@ -833,6 +846,19 @@ const propertySlice = createSlice({
       state.ViewProperty = action.payload;
     });
     builder.addCase(getViewProperty.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
+    builder.addCase(getFeaturedByLocation.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getFeaturedByLocation.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.featuredByLocation = action.payload;
+    });
+    builder.addCase(getFeaturedByLocation.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });

@@ -145,6 +145,11 @@ export const propertyAPI = {
     return response.data;
   },
 
+  getFeaturedByLocation: async (slug) => {
+    const response = await axiosInstance.get(`/properties/featured-by-location`);
+    return response.data;
+  },
+
 
    getSuggestions: async (query) => {
     const response = await axiosInstance.get(`/properties/suggestions?q=${encodeURIComponent(query)}`);

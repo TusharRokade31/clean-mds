@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { 
   TextField, FormControl, InputLabel, Select, 
   MenuItem, FormHelperText, Grid, Typography,
-  Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions
+  Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+  Checkbox,
+  ListItemText
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { checkEmailVerificationStatus, sendEmailOTP, verifyEmailOTP } from '@/redux/features/property/propertySlice';
@@ -73,6 +75,12 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
     'Dharamshala', 'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)'
   ];
   
+
+  const languageOptions = [
+  'English', 'Hindi', 'Gujarati', 'Marathi', 'Bengali', 
+  'Kannada', 'Tamil', 'Telugu', 'Malayalam', 'Punjabi'
+];
+
   // const rentalForms = ['Entire place', 'Private room', 'Share room'];
 
  const ratingArray = Array.from({ length: 5 }, (_, i) => 5 - i);
@@ -367,6 +375,25 @@ const bookingYearOptions = formData.propertyBuilt
             }}
           />
         </Grid>
+        <Grid item size={{xs:12, md:4}}>
+  <FormControl fullWidth>
+    <InputLabel>Languages Spoken</InputLabel>
+    <Select
+      multiple
+      value={formData.languagesSpoken || []}
+      onChange={(e) => onChange('languagesSpoken', e.target.value)}
+      renderValue={(selected) => selected.join(', ')}
+      label="Languages Spoken"
+    >
+      {languageOptions.map((name) => (
+        <MenuItem key={name} value={name}>
+          <Checkbox checked={(formData.languagesSpoken || []).indexOf(name) > -1} />
+          <ListItemText primary={name} />
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+</Grid>
         
         <Grid item sx={{xs:12, md:6}}>
           <TextField

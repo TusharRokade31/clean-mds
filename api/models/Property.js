@@ -275,6 +275,10 @@ const PropertySchema = new Schema({
     type: String,
     required: [false, 'Mobile Number is required'],
   },
+  languagesSpoken: [{
+    type: String,
+    trim: true
+  }],
   landline: {
     type: String,
   },

@@ -149,6 +149,7 @@ export default function PropertyForm() {
       rentalForm: "",
       email: "",
       mobileNumber: "",
+      languagesSpoken: [],
       landline: "",
     },
     location: {
@@ -258,6 +259,7 @@ const handleCreateNew = () => {
           rentalForm: currentProperty.rentalForm || "",
           email: currentProperty.email || "",
           mobileNumber: currentProperty.mobileNumber || "",
+          languagesSpoken: currentProperty.languagesSpoken || [],
           landline: currentProperty.landline || "",
         },
         location: {
