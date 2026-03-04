@@ -81,12 +81,13 @@ const PageSignUp = ({}) => {
     password: '',
   });
   
-  const handleChange = (e) => {
-    setUserData({
-      ...userData,
-      [e.target.name]: e.target.value,
-    });
-  };
+const handleChange = (e) => {
+  setUserData({
+    ...userData,
+    [e.target.name]: e.target.value,
+  });
+  if (error) dispatch({ type: 'auth/clearError' }); // clear error on input change
+};
   
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -151,8 +152,18 @@ const handleSubmit = async (e) => {
           {/* FORM */}
           <form className="grid grid-cols-1 gap-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="text-red-500 text-sm">{error  == "Failed to fetch user" || error == "Not authorized to access this route" ? "" : error}</div>
-            )}
+  <div className="text-red-500 text-sm space-y-1">
+    {(Array.isArray(error) ? error : [{ message: error }])
+      .filter(
+        (err) =>
+          err.message !== "Failed to fetch user" &&
+          err.message !== "Not authorized to access this route"
+      )
+      .map((err, index) => (
+        <p key={index}>{err.message}</p>
+      ))}
+  </div>
+)}
             <label className="block">
               <span className="text-neutral-800 ">
                 Full Name

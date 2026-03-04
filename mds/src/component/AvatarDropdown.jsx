@@ -80,27 +80,19 @@ const handleLogout = async () => {
       <Popover className={`AvatarDropdown relative flex`}>
         {({ open, close }) => (
           <>
-            <PopoverButton
-              className={`flex h-8 w-8 items-center ms-2 justify-center self-center rounded-full text-slate-700 md:bg-slate-100 focus:outline-none   sm:h-12 sm:w-12`}
-            >
-              <div className="flex -space-x-2 overflow-hidden">
-                  <div className="flex w-12 h-12 -space-x-2 items-center justify-center md:bg-slate-100 rounded-full overflow-hidden">
-                       {user?.profilePhoto ? (
-                                         <img
-                                           src={user.profilePhoto}
-                                           alt="Profile"
-                                           fill
-                                         />
-                                       ) : (
-                                         <div className="w-full h-full flex items-center justify-center bg-[#1035ac]">
-  <User className="w-5 h-5 text-white" strokeWidth={1.5} />
-</div>
-)}
-                      </div>
-               
-              </div>
-              {/* <Avatar sizeClass="w-8 h-8 sm:w-9 sm:h-9" /> */}
-            </PopoverButton>
+            <PopoverButton className="flex items-center justify-center self-center focus:outline-none">
+  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#1035ac] flex items-center justify-center ring-2 ring-white">
+    {user?.profilePhoto ? (
+      <img
+        src={user.profilePhoto}
+        alt="Profile"
+        className="w-full h-full object-cover"
+      />
+    ) : (
+      <User className="w-5 h-5 text-white" strokeWidth={1.5} />
+    )}
+  </div>
+</PopoverButton>
             <Transition
               as={Fragment}
               enter="transition ease-out duration-200"
@@ -110,9 +102,9 @@ const handleLogout = async () => {
               leaveFrom="opacity-100 translate-y-0"
               leaveTo="opacity-0 translate-y-1"
             >
-              <PopoverPanel className="absolute -end-10 top-13 z-10 w-screen max-w-[260px] px-4 sm:end-0 sm:px-0">
+              <PopoverPanel className="absolute -end-5 top-13 z-10 w-screen max-w-[260px] px-4 sm:end-0 sm:px-0">
                 <div className="overflow-hidden rounded-3xl shadow-lg ring-1 ring-black ring-opacity-5">
-                  <div className="relative grid grid-cols-1 gap-6 bg-white px-6 py-7">
+                  <div className="relative grid grid-cols-1 gap-6 bg-white px-6  py-7">
                     <div className="flex items-center gap-x-3">
                       {/* <Avatar sizeClass="w-12 h-12" /> */}
                      <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden">

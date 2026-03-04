@@ -424,7 +424,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
       
       {/* Google Maps Search */}
       <Grid sx={{mt: 3}} container spacing={2}>
-        <Grid item size={{xs:6}}>
+        <Grid item size={{ xs: 12, md: 6, lg: 6 }}>
           <div style={{ marginBottom: '16px' }}>
             <Typography variant="body2" color="primary" sx={{ mb: 1 }}>
               Search for your location:
@@ -657,7 +657,7 @@ export default function LocationForm({ formData, onChange, errors, onSave }) {
             </Grid>
           </Grid>
         </Grid>
-        <Grid item size={{xs:6}}>
+        <Grid item size={{ xs: 12, md: 6, lg: 6 }}>
           <div
             ref={mapRef}
             style={{

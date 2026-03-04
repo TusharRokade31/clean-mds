@@ -3,8 +3,10 @@ import "./globals.css";
 import GoogleProvider from '@/providers/GoogleProvider';
 import ReduxProvider from '@/providers/ReduxProvider';
 import ClientLayout from '@/component/ClientLayout';
-import Script from 'next/script';
-
+// 1. Import the official GTM component
+import { GoogleTagManager } from '@next/third-parties/google'
+import { Suspense } from 'react';
+import GTMPageTracker from '@/component/GTMPageTracker';
 
 const leagueSpartan = League_Spartan({
   subsets: ['latin'],
@@ -20,7 +22,7 @@ const alice = Alice({
   variable: '--font-alice',
 })
 
-const metadata = {
+export const metadata = {
   title: "My Divine Stays",
   description: "My Divine Stays - Manage Your Dharamshala Bookings Effortlessly",
   verification: {
@@ -31,15 +33,13 @@ const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      {/* 2. Replace manual scripts with this component. 
+          It handles page view tracking automatically in Next.js. */}
+      <GoogleTagManager gtmId="GTM-PB8NB6N4" />
+      
       <head>
-        <meta
-          property="og:url"
-          content="https://mydivinestays.com/"
-        />
-        <meta
-          property="og:image"
-          content="/favicon.svg"
-        />
+        <meta property="og:url" content="https://mydivinestays.com/" />
+        <meta property="og:image" content="/favicon.svg" />
 
         <link rel="shortcut icon" href="/favicon.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.svg" />
@@ -51,29 +51,18 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={`${leagueSpartan.variable} ${alice.variable} antialiased`}>
-        {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-PX80TRPEQF"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-PX80TRPEQF');
-          `}
-        </Script>
-
         <GoogleProvider>
-          <ReduxProvider>
-            <div className='relative'>
-              <ClientLayout>
-                {children}
-              </ClientLayout>
-            </div>
-          </ReduxProvider>
-        </GoogleProvider>
+  <ReduxProvider>
+    <div className='relative'>
+      <Suspense fallback={null}>
+        <GTMPageTracker />   {/* 👈 Add this */}
+      </Suspense>
+      <ClientLayout>
+        {children}
+      </ClientLayout>
+    </div>
+  </ReduxProvider>
+</GoogleProvider>
       </body>
     </html>
   );

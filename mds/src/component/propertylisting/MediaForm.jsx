@@ -439,7 +439,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
                       image={`${mediaItem.url}`}
                       alt={mediaItem.filename}
                       sx={{
-                        width: '50%',
+                        // width: '50%',
                         height: '100%',
                         objectFit: 'cover'
                       }}

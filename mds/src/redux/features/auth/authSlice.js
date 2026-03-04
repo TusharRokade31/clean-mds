@@ -38,7 +38,7 @@ export const loginUser = createAsyncThunk(
       document.cookie = `token=${response.token}; path=/; max-age=${30 * 24 * 60 * 60}; secure; samesite=lax`;
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      return rejectWithValue(error.response?.data?.errors || 'Login failed');
     }
   }
 );
@@ -51,7 +51,7 @@ export const signupUser = createAsyncThunk(
       localStorage.setItem('token', response.token);
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Signup failed');
+      return rejectWithValue(error.response?.data?.errors || 'Signup failed');
     }
   }
 );
@@ -119,7 +119,7 @@ export const logoutUser = createAsyncThunk(
       deleteCookie('jwt');
       return true;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Logout failed');
+      return rejectWithValue(error.response?.data?.error || 'Logout failed');
     }
   }
 );
@@ -133,7 +133,7 @@ export const googleLoginUser = createAsyncThunk(
       document.cookie = `token=${response.token}; path=/; max-age=${30 * 24 * 60 * 60}; secure; samesite=lax`;
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Google login failed');
+      return rejectWithValue(error.response?.data?.error || 'Google login failed');
     }
   }
 );

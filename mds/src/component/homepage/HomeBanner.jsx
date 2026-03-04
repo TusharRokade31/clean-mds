@@ -14,9 +14,9 @@ const HomeBanner = () => {
               Find Your <br /> Divine Stay
               {/* Book Dharamshala, Temple & Ashram Stays Online */}
             </h1>
-            <span className="text-base text-neutral-500 mt-5   md:text-lg">
-              From Kashi to Kedarnath, Find Peaceful, Affordable, and Trusted
-              Religious Stays at Your Fingertips
+            <span className="text-base normal-case text-neutral-500 mt-5   md:text-lg">
+              From kashi to kedarnath, find peaceful, affordable, and trusted
+              religious stays at your fingertips
             </span>
           </div>
           <div className="flex-grow">

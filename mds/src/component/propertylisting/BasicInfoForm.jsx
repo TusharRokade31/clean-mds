@@ -214,7 +214,7 @@ const bookingYearOptions = formData.propertyBuilt
            <Select
             value={formData.propertyBuilt || ''}
             onChange={(e) => onChange('propertyBuilt', e.target.value)}
-            label="When was the property built?"
+            label="When was the property built? (Optional)"
           >
             {builtYearOptions.map(year => (
               <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
@@ -252,7 +252,7 @@ const bookingYearOptions = formData.propertyBuilt
             <Select
               value={formData.bookingSince || ''}
               onChange={(e) => onChange('bookingSince', e.target.value)}
-              label="Accepting booking since?"
+              label="Accepting booking since? (Optional)"
             >
               {bookingYearOptions.map(year => (
                 <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
@@ -338,7 +338,6 @@ const bookingYearOptions = formData.propertyBuilt
         
         <Grid item sx={{xs:12, md:6}}>
           <TextField
-                     
             sx={{
               "& .MuiOutlinedInput-root": {
                 color: "#000",
@@ -363,17 +362,18 @@ const bookingYearOptions = formData.propertyBuilt
             fullWidth
             label="Mobile Number"
             value={formData.mobileNumber}
-            onChange={(e) => onChange('mobileNumber', e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, ""); // strips non-digits
+              onChange('mobileNumber', value);
+            }}
             error={!!errors.mobileNumber}
-            // helperText={errors.mobileNumber || 'Enter 10 digit mobile number'}
-
             placeholder=""
             inputProps={{
               maxLength: 10,
               pattern: '[0-9]*',
               inputMode: 'numeric'
             }}
-          />
+            />
         </Grid>
         <Grid item size={{xs:12, md:4}}>
   <FormControl fullWidth>
