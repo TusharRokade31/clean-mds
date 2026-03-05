@@ -17,10 +17,13 @@ import {
   uploadPropertyMedia, updateMediaItem, deleteMediaItem,
   getMediaByTags, completeMediaStep, validatePropertyMedia
 } from '@/redux/features/property/propertySlice';
+import { useConfirm } from '@/hooks/useConfirm';
 
 const MediaForm = ({ propertyId, onComplete, onBack }) => {
   const dispatch = useDispatch();
   const { currentProperty, isLoading, error } = useSelector(state => state.property);
+  const { confirm, ConfirmDialog } = useConfirm();
+
 
   const [uploadProgress, setUploadProgress] = useState(0);
   const [editingMedia, setEditingMedia] = useState(null);
@@ -116,15 +119,20 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
   };
 
   const handleDeleteMedia = async (mediaId) => {
-    if (window.confirm('Are you sure you want to delete this media item?')) {
-      try {
+    const ok = await confirm({
+    title: 'Delete Media?',
+    description: 'This media item will be permanently removed.',
+    confirmText: 'Delete',
+    confirmColor: 'error',
+  });
+  if (!ok) return;
+     try {
         await dispatch(deleteMediaItem({ propertyId, mediaId })).unwrap();
-        // setEditDialog(false)
+        setEditDialog(false)
         setTagGroupDialog(false)
       } catch (error) {
         console.error('Delete failed:', error);
       }
-    }
   };
 
   const handleEditMedia = (mediaItem) => {
@@ -332,6 +340,7 @@ const MediaForm = ({ propertyId, onComplete, onBack }) => {
   };
   return (
     <Box>
+      <ConfirmDialog />
       {/* Header */}
        <Typography sx={{ marginBottom: "20px"}} variant="subtitle1" gutterBottom>
                      <Divider className="py-5" />

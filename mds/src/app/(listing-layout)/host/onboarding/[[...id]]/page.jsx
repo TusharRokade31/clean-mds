@@ -46,6 +46,7 @@ TabPanel.propTypes = {
 export default function PropertyForm() {
   const [activeTab, setActiveTab] = useState(0);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [currentRoomId, setCurrentRoomId] = useState(null);
   const { id } = useParams();
   const router = useRouter();
   const dispatch = useDispatch();
@@ -57,6 +58,13 @@ export default function PropertyForm() {
   useEffect(() => {
     if (error) toast.error(error);
   }, [error]);
+
+    useEffect(() => {
+      const roomID = localStorage.getItem("roomID");
+      if (roomID) {
+        setCurrentRoomId(roomID);
+      }
+    }, []);
 
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [draftProperties, setDraftProperties] = useState([]);
@@ -576,6 +584,8 @@ const isSaveDisabled =
           {/* Tab 3 — Photos & Videos */}
           <TabPanel value={activeTab} index={3}>
             <RoomMediaForm
+              singleRoom={formData.rooms}
+              singleRoomId={currentRoomId}
               propertyId={currentProperty?._id}
               onComplete={() => handleTabCompletion(3)}
             />

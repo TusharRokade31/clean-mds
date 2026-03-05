@@ -159,16 +159,24 @@ const handleSubmit = async (e) => {
           </div>
           {/* FORM */}
           <form className="grid grid-cols-1 gap-6" onSubmit={handleSubmit}>
-           {error && (
+{error && (
   <div className="text-red-500 text-sm space-y-1">
-    {(Array.isArray(error) ? error : [{ message: error }])
-      .filter(
-        (err) =>
-          err.message !== "Failed to fetch user" &&
-          err.message !== "Not authorized to access this route"
-      )
+    {(Array.isArray(error) 
+        ? error 
+        : [{ message: error }] // Turn "Invalid credentials" into [{ message: "Invalid credentials" }]
+    )
+      .filter((err) => {
+        const msg = err?.message || err; // Handle cases where err might be the string itself
+        return (
+          msg !== "Failed to fetch user" &&
+          msg !== "Not authorized to access this route"
+        );
+      })
       .map((err, index) => (
-        <p key={index}>{err.message}</p>
+        <p key={index}>
+          {/* If it's an object use .message, otherwise use the string itself */}
+          {typeof err === 'string' ? err : err.message}
+        </p>
       ))}
   </div>
 )}

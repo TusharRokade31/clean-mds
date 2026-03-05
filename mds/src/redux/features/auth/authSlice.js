@@ -38,7 +38,7 @@ export const loginUser = createAsyncThunk(
       document.cookie = `token=${response.token}; path=/; max-age=${30 * 24 * 60 * 60}; secure; samesite=lax`;
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.errors || 'Login failed');
+      return rejectWithValue(error.response?.data?.errors || error.response?.data?.error || 'Login failed');
     }
   }
 );

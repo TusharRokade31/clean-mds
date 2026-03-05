@@ -32,10 +32,10 @@ export default function FeaturedArticle({ article }) {
               <div className="flex items-center justify-between pt-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#1035ac] text-white rounded-full flex items-center justify-center  font-semibold">
-                    DS
+                    MDS
                   </div>
                   <div>
-                    <div className="font-medium">Divine Stays Team</div>
+                    <div className="font-medium">My Divine Stays Team</div>
                     <div className=" text-sm">{article.date}</div>
                   </div>
                 </div>
