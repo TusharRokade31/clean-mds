@@ -29,11 +29,11 @@ export default function AvatarDropdown() {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  useEffect(() => {
-    if (token) {
-      dispatch(fetchCurrentUser());
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (!token) {
+  //     dispatch(fetchCurrentUser());
+  //   }
+  // }, []);
 
 const handleLogout = async () => {
     try {

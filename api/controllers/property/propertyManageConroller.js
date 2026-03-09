@@ -276,6 +276,7 @@ export const saveAmenities = async (req, res) => {
     // { mandatory: { AirConditioning: { available: true, option: 'room controlled', subOptions: ['All-Weather'] } } }
     property.amenities = amenities;
     property.formProgress.step3Completed = true;
+    property.formProgress.step4Completed = true;
     
     await property.save({ validateBeforeSave: false });
     

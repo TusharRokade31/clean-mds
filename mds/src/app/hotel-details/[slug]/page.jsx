@@ -24,8 +24,8 @@ const sections = [
   { id: "rooms", label: "ROOMS", component: RoomsSection },
   { id: "location", label: "LOCATION", component: LocationSection },
   { id: "rules", label: "PROPERTY RULES", component: PropertyRules },
-  { id: "reviews", label: "USER REVIEWS", component: null },
-  { id: "similar", label: "SIMILAR PROPERTIES", component: null },
+  // { id: "reviews", label: "USER REVIEWS", component: null },
+  // { id: "similar", label: "SIMILAR PROPERTIES", component: null },
 ]
 
 export default function PropertyDetailsPage() {
@@ -199,26 +199,24 @@ export default function PropertyDetailsPage() {
         {/* Sections */}
         <Box sx={{ space: 6 }}>
           {sections.map((section) => (
-            <Box
-              key={section.id}
-              ref={(el) => (sectionRefs.current[section.id] = el)}
-              id={section.id}
-              sx={{ mb: 6 }}
-            >
+           <Box 
+    key={section.id} 
+    ref={(el) => (sectionRefs.current[section.id] = el)}
+    sx={{ mb: 6 }}
+  >
+    {/* Only render the component if we have ViewProperty data */}
+    {section?.component && ViewProperty && (
+      <section.component 
+        setActiveSection={scrollToSection}
+        data={ViewProperty}
+        propertyId={ViewProperty?._id}
+        location={ViewProperty?.location} // Ensure this contains lat/lng
+        rooms={ViewProperty?.rooms}
+        amenities={ViewProperty?.amenities}
+      />
+    )}
               
-              {section?.component && (
-                
-                <section.component 
-                  setActiveSection={scrollToSection}
-                  data={ViewProperty}
-                  propertyId={ViewProperty?._id}
-                  location={ViewProperty?.location}
-                  rooms={ViewProperty?.rooms}
-                  amenities={ViewProperty?.amenities}
-                />
-              )}
-              
-              {section.id === "reviews" && (
+              {/* {section.id === "reviews" && (
                 <Paper sx={{ p: 4, textAlign: "center" }}>
                   <Typography variant="h5" fontWeight="semibold" gutterBottom>
                     User Reviews
@@ -238,7 +236,7 @@ export default function PropertyDetailsPage() {
                     Similar properties section coming soon...
                   </Typography>
                 </Paper>
-              )}
+              )} */}
             </Box>
           ))}
         </Box>

@@ -63,6 +63,7 @@ const BookingConfirmationDialog = ({
   const [errors, setErrors] = useState({})
   const [availabilityLoading, setAvailabilityLoading] = useState(false)
   const [availabilityError, setAvailabilityError] = useState('')
+  const { searchQuery } = useSelector((state) => state.property);
 
     const {  isAuthenticated } = useSelector(
       (state) => state.auth
@@ -77,10 +78,10 @@ const BookingConfirmationDialog = ({
     else{
       localStorage.removeItem("hoteldetailPath");
     }
-      const lastSearchQuery = localStorage.getItem('lastSearchQuery')
-      if (lastSearchQuery) {
+      
+      if (searchQuery) {
         try {
-          const searchData = JSON.parse(lastSearchQuery)
+          const searchData = searchQuery
           setBookingDetails(prev => ({
             ...prev,
             checkIn: searchData.checkin ? new Date(searchData.checkin) : null,

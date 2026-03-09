@@ -613,6 +613,7 @@ export const saveAmenities = async (req, res) => {
     // Process amenities data
     property.amenities = amenities;
     property.formProgress.step3Completed = true;
+    property.formProgress.step4Completed = true;
     
     await property.save({ validateBeforeSave: false });
     
@@ -666,6 +667,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     property.rooms.push(roomData);
 
     property.formProgress.step4Completed = false;
+    property.formProgress.step3Completed = false;
     
     await property.save({ validateBeforeSave: false });
     
@@ -734,6 +736,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
       property.rooms[roomIndex][key] = roomData[key];
     });
     property.formProgress.step4Completed = false;
+    property.formProgress.step3Completed = false;
     
     await property.save({ validateBeforeSave: false });
     
@@ -792,6 +795,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     property.formProgress.step4Completed = property.rooms.length > 0;
 
      property.formProgress.step4Completed = false;
+     property.formProgress.step3Completed = false;
     
     await property.save({ validateBeforeSave: false });
     
@@ -831,7 +835,8 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     }
     
     // Mark step 4 as completed
-    property.formProgress.step4Completed = true;
+    // property.formProgress.step4Completed = true;
+    property.formProgress.step3Completed = true;
     
     await property.save({ validateBeforeSave: false });
     

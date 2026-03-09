@@ -71,7 +71,7 @@ const getCategoryIcon = (category) => {
 
         {/* Nearby Places - Kept UI style same as your original */}
         <div className="w-full h-full bg-white p-4 overflow-y-auto">
-          <h2 className="text-lg font-bold mb-4">Nearby Places</h2>
+          <h2 className="text-lg font-bold mb-4">Nearby Places </h2>
           {Object.entries(nearbyPlaces).map(([category, places]) => (
             <div key={category} className="mb-6">
               <h3 className="text-md font-semibold mb-2 capitalize">{category}</h3>

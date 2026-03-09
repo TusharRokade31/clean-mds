@@ -14,15 +14,15 @@ export default function AboutUs() {
   return (
     <main className="min-h-screen bg-white">
       {/* --- HERO SECTION --- */}
-      <section className="relative h-[400px] flex items-center justify-center pt-20">
+      <section className="relative h-[300px] flex items-center justify-center pt-5">
         <div className="absolute inset-0 z-0">
-          <Image 
+          {/* <Image 
             src={HeaderBanner.src} // Replace with your sacred site image
             alt="Spiritual Background"
             fill
             className="object-cover brightness-[0.4]"
             priority
-          />
+          /> */}
         </div>
         <div className="relative  text-center text-black px-4">
           <h1 className="text-5xl md:text-7xl font-bold font-league-spartan mb-4">About Us</h1>
@@ -37,7 +37,7 @@ export default function AboutUs() {
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative h-[500px] rounded-2xl overflow-hidden shadow-2xl">
             <Image 
-              src={HeaderBanner.src} // Replace with a Dharamshala image
+              src={Banner.src} // Replace with a Dharamshala image
               alt="Dharamshala Room"
               fill
               className="object-cover"
@@ -87,8 +87,8 @@ export default function AboutUs() {
       </section>
 
       {/* --- TRUE PARALLAX REVIEWS SECTION --- */}
-      <section className="relative h-[500px] text-black flex items-center justify-center overflow-hidden">
-        {/* Parallax Background Layer */}
+      {/* <section className="relative h-[500px] text-black flex items-center justify-center overflow-hidden">
+       
         <div 
           className="absolute inset-0 z-0 bg-fixed bg-center bg-cover"
           style={{ 
@@ -108,7 +108,7 @@ export default function AboutUs() {
             <p className="text-sm uppercase tracking-[0.2em] text-[#1035ac]">Verified Pilgrim</p>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* --- FEATURES / VALUES --- */}
       <section className="py-24 bg-white">

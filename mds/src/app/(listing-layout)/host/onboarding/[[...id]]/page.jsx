@@ -47,6 +47,10 @@ export default function PropertyForm() {
   const [activeTab, setActiveTab] = useState(0);
   const [isInitializing, setIsInitializing] = useState(false);
   const [currentRoomId, setCurrentRoomId] = useState(null);
+  
+  // NEW: Track if we've already initialized the form data for this property
+  const [initializedPropertyId, setInitializedPropertyId] = useState(null);
+  
   const { id } = useParams();
   const router = useRouter();
   const dispatch = useDispatch();
@@ -59,31 +63,29 @@ export default function PropertyForm() {
     if (error) toast.error(error);
   }, [error]);
 
-    useEffect(() => {
-      const roomID = localStorage.getItem("roomID");
-      if (roomID) {
-        setCurrentRoomId(roomID);
-      }
-    }, []);
+  useEffect(() => {
+    const roomID = localStorage.getItem("roomID");
+    if (roomID) {
+      setCurrentRoomId(roomID);
+    }
+  }, []);
 
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [draftProperties, setDraftProperties] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
-  const [completedTabs, setCompletedTabs] = useState(new Set());4
+  const [completedTabs, setCompletedTabs] = useState(new Set());
   const [roomsStepCompleted, setRoomsStepCompleted] = useState(false);
 
   // ─── 6 tabs now (Rooms merged into tab 2) ────────────────────────────────
   const steps = [
     "Basic Info",
     "Location",
-    "Amenities & Rooms",   // tab index 2 — combined
-    "Photos & Videos",     // tab index 3
-    "Policies",            // tab index 4
-    "Finance & Legal",     // tab index 5
+    "Amenities & Rooms",
+    "Photos & Videos",
+    "Policies",
+    "Finance & Legal",
   ];
 
-  // Tabs 0-2 use the Save & Continue button; tabs 3-5 use their own internal
-  // completion callbacks — same boundary as before, just one fewer tab.
   const SAVE_BUTTON_MAX_TAB = 2;
 
   const isTabAccessible = (tabIndex) => {
@@ -94,25 +96,6 @@ export default function PropertyForm() {
     return true;
   };
 
-  // ─── Map backend progress flags → tab indices ────────────────────────────
-  // Backend still sends step1-step7 but we now only have 6 tabs.
-  // step2Completed and step3Completed both map to tab index 2 being done.
-  useEffect(() => {
-    if (currentProperty?.formProgress) {
-      const p = currentProperty.formProgress;
-      const completed = new Set();
-      if (p.step1Completed) completed.add(0);
-      if (p.step2Completed) completed.add(1);
-      // Tab 2 is complete only when BOTH amenities (step3) AND rooms (step4)
-      // are saved — which we set together on completion below.
-      if (p.step3Completed && p.step4Completed) completed.add(2);
-      if (p.step5Completed) completed.add(3);
-      if (p.step6Completed) completed.add(4);
-      if (p.step7Completed) completed.add(5);
-      setCompletedTabs(completed);
-    }
-  }, [currentProperty]);
-
   const handleTabCompletion = (tabIndex) => {
     setCompletedTabs((prev) => new Set([...prev, tabIndex]));
     if (tabIndex < steps.length - 1) {
@@ -120,7 +103,6 @@ export default function PropertyForm() {
     }
   };
 
-  // ─── Validation helpers ──────────────────────────────────────────────────
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validateMobileNumber = (mobile) => mobile.replace(/\D/g, "").length === 10;
   const validateLandline = (landline) => {
@@ -150,7 +132,6 @@ export default function PropertyForm() {
 
   const propertyId = id?.[0];
 
-  // ─── Initialize ──────────────────────────────────────────────────────────
   useEffect(() => {
     const initialize = async () => {
       if (propertyId && propertyId !== "new") {
@@ -203,56 +184,79 @@ export default function PropertyForm() {
   // ─── Sync redux → local form when property loads ─────────────────────────
   useEffect(() => {
     if (currentProperty) {
-      setFormData({
-        basicInfo: {
-          propertyType: currentProperty.propertyType || "",
-          placeName: currentProperty.placeName || "",
-          placeRating: currentProperty.placeRating || "",
-          propertyBuilt: currentProperty.propertyBuilt || "",
-          bookingSince: currentProperty.bookingSince || "",
-          rentalForm: currentProperty.rentalForm || "",
-          email: currentProperty.email || "",
-          mobileNumber: currentProperty.mobileNumber || "",
-          languagesSpoken: currentProperty.languagesSpoken || [],
-          landline: currentProperty.landline || "",
-        },
-        location: {
-          houseName: currentProperty.location?.houseName || "",
-          country: currentProperty.location?.country || "",
-          street: currentProperty.location?.street || "",
-          roomNumber: currentProperty.location?.roomNumber || "",
-          city: currentProperty.location?.city || "",
-          state: currentProperty.location?.state || "",
-          postalCode: currentProperty.location?.postalCode || "",
-          coordinates: currentProperty.location?.coordinates || { lat: null, lng: null },
-        },
-        amenities: currentProperty.amenities || {
-          mandatory: {}, basicFacilities: {}, generalServices: {},
-          commonArea: {}, foodBeverages: {}, healthWellness: {},
-          mediaTechnology: {}, paymentServices: {}, security: {}, safety: {},
-        },
-        rooms: currentProperty.rooms || [],
-      });
+      
+      // 1. Initial Load: Set ALL data
+      if (initializedPropertyId !== currentProperty._id) {
+        setFormData({
+          basicInfo: {
+            propertyType: currentProperty.propertyType || "",
+            placeName: currentProperty.placeName || "",
+            placeRating: currentProperty.placeRating || "",
+            propertyBuilt: currentProperty.propertyBuilt || "",
+            bookingSince: currentProperty.bookingSince || "",
+            rentalForm: currentProperty.rentalForm || "",
+            email: currentProperty.email || "",
+            mobileNumber: currentProperty.mobileNumber || "",
+            languagesSpoken: currentProperty.languagesSpoken || [],
+            landline: currentProperty.landline || "",
+          },
+          location: {
+            houseName: currentProperty.location?.houseName || "",
+            country: currentProperty.location?.country || "",
+            street: currentProperty.location?.street || "",
+            roomNumber: currentProperty.location?.roomNumber || "",
+            city: currentProperty.location?.city || "",
+            state: currentProperty.location?.state || "",
+            postalCode: currentProperty.location?.postalCode || "",
+            coordinates: currentProperty.location?.coordinates || { lat: null, lng: null },
+          },
+          amenities: currentProperty.amenities || {
+            mandatory: {}, basicFacilities: {}, generalServices: {},
+            commonArea: {}, foodBeverages: {}, healthWellness: {},
+            mediaTechnology: {}, paymentServices: {}, security: {}, safety: {},
+          },
+          rooms: currentProperty.rooms || [],
+        });
+        
+        setInitializedPropertyId(currentProperty._id);
 
-      // Restore active tab from progress
+        // Restore active tab ONLY on initial load so it doesn't jump unexpectedly while editing
+        const p = currentProperty.formProgress;
+        if (p) {
+          if (!p.step1Completed) setActiveTab(0);
+          else if (!p.step2Completed) setActiveTab(1);
+          else if (!p.step3Completed || !p.step4Completed) setActiveTab(2);
+          else if (!p.step5Completed) setActiveTab(3);
+          else if (!p.step6Completed) setActiveTab(4);
+          else if (!p.step7Completed) setActiveTab(5);
+          else setActiveTab(4);
+        }
+      } else {
+        // 2. Subsequent Loads (e.g., after saving a room): ONLY sync the rooms!
+        setFormData((prev) => ({
+          ...prev,
+          rooms: currentProperty.rooms || prev.rooms,
+        }));
+      }
+
+      // Restore Progress
       const p = currentProperty.formProgress;
       if (p?.step4Completed) {
-      setRoomsStepCompleted(true);
-    }
+        setRoomsStepCompleted(true);
+      }
       if (p) {
-        if (!p.step1Completed) setActiveTab(0);
-        else if (!p.step2Completed) setActiveTab(1);
-        // Go to combined tab if amenities OR rooms not yet done
-        else if (!p.step3Completed || !p.step4Completed) setActiveTab(2);
-        else if (!p.step5Completed) setActiveTab(3);
-        else if (!p.step6Completed) setActiveTab(4);
-        else if (!p.step7Completed) setActiveTab(5);
-        else setActiveTab(4);
+        const completed = new Set();
+        if (p.step1Completed) completed.add(0);
+        if (p.step2Completed) completed.add(1);
+        if (p.step3Completed && p.step4Completed) completed.add(2);
+        if (p.step5Completed) completed.add(3);
+        if (p.step6Completed) completed.add(4);
+        if (p.step7Completed) completed.add(5);
+        setCompletedTabs(completed);
       }
     }
-  }, [currentProperty]);
+  }, [currentProperty, initializedPropertyId]);
 
-  // ─── Amenity categories (unchanged from original) ────────────────────────
   const amenityCategories = {
     basicFacilities: {
       title: "Basic Facilities",
@@ -272,7 +276,6 @@ export default function PropertyForm() {
     },
   };
 
-  // ─── Validation per step ─────────────────────────────────────────────────
   const validateStep = (stepIndex) => {
     const errors = {};
     switch (stepIndex) {
@@ -296,7 +299,6 @@ export default function PropertyForm() {
           errors.landline = "Enter a valid number";
         }
         break;
-
       case 1:
         if (!formData.location.houseName)   errors.houseName   = "This field is required";
         if (!formData.location.country)     errors.country     = "This field is required";
@@ -305,9 +307,6 @@ export default function PropertyForm() {
         if (!formData.location.state)       errors.state       = "This field is required";
         if (!formData.location.postalCode)  errors.postalCode  = "This field is required";
         break;
-
-      // Tab 2: amenities save is handled in saveCurrentStep; room count
-      // is checked separately there — no extra field errors needed here.
       case 2:
         break;
     }
@@ -328,7 +327,6 @@ export default function PropertyForm() {
     }
   };
 
-  // ─── Save current step ───────────────────────────────────────────────────
   const saveCurrentStep = async () => {
     if (!currentProperty?._id) return false;
 
@@ -367,7 +365,6 @@ export default function PropertyForm() {
             toast.error("Please add at least one room before continuing.", {
               toastId: "rooms-required",
             });
-            // Scroll the rooms section into view for UX
             setTimeout(() => {
               document.getElementById("rooms-section-anchor")
                 ?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -375,12 +372,8 @@ export default function PropertyForm() {
             return false;
           }
 
-          // ── Step C: mark both step3 + step4 completed on backend ─────────
-          // RoomsForm already dispatches completeRoomsStep internally when the
-          // user clicks its "Next" button — here we just trust that at least
-          // one room exists (checked above) and mark tab 2 done.
           handleTabCompletion(2);
-          return true; // early return — handleTabCompletion already advances
+          return true; 
         }
 
         default:
@@ -411,17 +404,13 @@ export default function PropertyForm() {
     if (success) router.push("/host/properties");
   };
 
-  // ─── Derived state ───────────────────────────────────────────────────────
   const isAllStepsCompleted = Array.from({ length: steps.length }).every(
     (_, i) => completedTabs.has(i)
   );
 
-  // Save & Continue should be disabled on tab 2 until amenities are saved
-  // AND at least 1 room exists — we enforce this inside saveCurrentStep,
-  // but we can also visually hint by checking room count here.
-const isSaveDisabled =
-  isLoading ||
-  (activeTab === 2 && ((formData.rooms || []).length === 0 || !roomsStepCompleted));
+  const isSaveDisabled =
+    isLoading ||
+    (activeTab === 2 && ((formData.rooms || []).length === 0 || !roomsStepCompleted));
 
   if (isLoading && !currentProperty) {
     return (
@@ -435,7 +424,6 @@ const isSaveDisabled =
     <>
       <Toaster position="top-right" reverseOrder={false} />
 
-      {/* Draft Modal */}
       <Dialog open={showDraftModal} maxWidth="md">
         <DialogTitle>Continue Your Listing</DialogTitle>
         <DialogContent>
@@ -504,7 +492,6 @@ const isSaveDisabled =
             </Tabs>
           </Box>
 
-          {/* Tab 0 — Basic Info */}
           <TabPanel value={activeTab} index={0}>
             <BasicInfoForm
               formData={formData.basicInfo}
@@ -520,7 +507,6 @@ const isSaveDisabled =
             />
           </TabPanel>
 
-          {/* Tab 1 — Location */}
           <TabPanel value={activeTab} index={1}>
             <LocationForm
               formData={formData.location}
@@ -529,9 +515,7 @@ const isSaveDisabled =
             />
           </TabPanel>
 
-          {/* Tab 2 — Amenities + Rooms (combined) */}
           <TabPanel sx={{ p: 0 }} value={activeTab} index={2}>
-            {/* ── Amenities section ── */}
             <AmenitiesForm
               formData={formData.amenities}
               amenityCategories={amenityCategories}
@@ -541,7 +525,6 @@ const isSaveDisabled =
               errors={validationErrors}
             />
 
-            {/* ── Divider + Rooms section ── */}
             <Box
               id="rooms-section-anchor"
               sx={{ mt: 5, pt: 3, borderTop: "2px solid #e0e0e0" }}
@@ -552,9 +535,7 @@ const isSaveDisabled =
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Add at least one room to proceed. Each room must have at least one photo.
               </Typography>
-              
 
-              {/* Visual hint when no room yet and user tried to proceed */}
               {validationErrors.roomsRequired && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   {validationErrors.roomsRequired}
@@ -562,26 +543,22 @@ const isSaveDisabled =
               )}
 
               <RoomsForm
-          rooms={formData.rooms}
-          propertyId={currentProperty?._id}
-          onAddRoom={(updatedRooms) =>
-          {     
-            setFormData((prev) => ({ ...prev, rooms: updatedRooms }))
-            handleNext()
-          }
-          }
-  // Now actually sets the flag when Complete Room is clicked
-  onComplete={() => setRoomsStepCompleted(true)}  // 👈 changed
-/>
-{activeTab === 2 && (formData.rooms || []).length === 0 && (
-            <Typography variant="caption" color="error">
-              Add at least one room to continue
-            </Typography>
-          )}
+                rooms={formData.rooms}
+                propertyId={currentProperty?._id}
+                onAddRoom={(updatedRooms) => {     
+                  setFormData((prev) => ({ ...prev, rooms: updatedRooms }))
+                }}
+                onComplete={() => setRoomsStepCompleted(true)} 
+              />
+              
+              {activeTab === 2 && (formData.rooms || []).length === 0 && (
+                <Typography variant="caption" color="error">
+                  Add at least one room to continue
+                </Typography>
+              )}
             </Box>
           </TabPanel>
 
-          {/* Tab 3 — Photos & Videos */}
           <TabPanel value={activeTab} index={3}>
             <RoomMediaForm
               singleRoom={formData.rooms}
@@ -595,7 +572,6 @@ const isSaveDisabled =
             />
           </TabPanel>
 
-          {/* Tab 4 — Policies */}
           <TabPanel value={activeTab} index={4}>
             <PoliciesFrom
               propertyId={currentProperty?._id}
@@ -603,7 +579,6 @@ const isSaveDisabled =
             />
           </TabPanel>
 
-          {/* Tab 5 — Finance & Legal */}
           <TabPanel value={activeTab} index={5}>
             <FinanceLegalForm
               propertyId={currentProperty?._id}
@@ -612,18 +587,12 @@ const isSaveDisabled =
           </TabPanel>
         </Box>
 
-          
-        {/* Save & Continue — only on tabs 0-2 */}
         {activeTab <= SAVE_BUTTON_MAX_TAB && (
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
             <Button variant="outlined" disabled={activeTab === 0} onClick={handlePrevious}>
               Previous
             </Button>
-
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0.5 }}>
-              {/* Hint text on tab 2 when no room exists */}
-              
-              
               <Button
                 variant="contained"
                 onClick={handleNext}
@@ -635,7 +604,6 @@ const isSaveDisabled =
           </Box>
         )}
 
-        {/* Complete Listing — only on last tab */}
         {activeTab === steps.length - 1 && (
           <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mt: 3 }}>
             {!isAllStepsCompleted && (

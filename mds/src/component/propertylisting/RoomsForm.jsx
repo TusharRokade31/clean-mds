@@ -13,67 +13,33 @@ import {
   Grid,
   Paper,
   IconButton,
-  Chip,
   Box,
   Checkbox,
   FormControlLabel,
   Card,
   CardContent,
-  Tabs,
-  Tab,
-  RadioGroup,
-  Radio,
-  FormLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Alert,
-  LinearProgress,
-  Badge,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  CardMedia,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
 } from "@mui/material";
 
 import {
   Delete as DeleteIcon,
   Add as AddIcon,
   Edit as EditIcon,
-  CloudUpload,
-  Star,
-  StarBorder,
   Image as ImageIcon,
-  VideoFile,
-  Close,
-  Warning,
-  ExpandMore,
-  ArrowBack,
-  ArrowForward,
-  Search,
   ContentCopy,
-  Delete,
 } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
 import {
   addRooms,
   deleteRoom,
   updateRoom,
-  uploadRoomMedia,
-  updateRoomMediaItem,
-  deleteRoomMediaItem,
-  getProperty,
   completeRoomsStep,
 } from "@/redux/features/property/propertySlice";
 import RoomsAmenities from "./RoomsAmenities";
 import toast from "react-hot-toast";
-import RoomMediaForm from "./RoomMediaForm";
 import { useConfirm } from "@/hooks/useConfirm";
+import SingleRoomMediaForm from "./SingleRoomMediaForm";
+
 
 export default function RoomsForm({
   rooms = [],
@@ -107,21 +73,6 @@ export default function RoomsForm({
   const [isFileSubmiting, setIsFileSubmiting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const { confirm, ConfirmDialog } = useConfirm();
-
-  // All available tags for room media
-  const availableRoomTags = [
-    "Bed",
-    "Bathroom/Washroom",
-    "Room View",
-    "Balcony",
-    "Furniture",
-    "Amenities",
-    "Decor",
-    "Lighting",
-    "Storage",
-    "Window View",
-    "Others",
-  ];
 
   const roomAmenityCategories = {
     basicFacilities: {
@@ -255,36 +206,6 @@ export default function RoomsForm({
     };
   }
 
-  // Media helper functions
-  const getRoomMediaItems = (room) => {
-    if (!room || !room.media) return [];
-    const images = room.media.images || [];
-    const videos = room.media.videos || [];
-    return [...images, ...videos];
-  };
-
-  const getRoomMediaByTag = (room) => {
-    const allMedia = getRoomMediaItems(room);
-    const groupedMedia = {};
-
-    allMedia.forEach((item) => {
-      if (item.tags && item.tags.length > 0) {
-        item.tags.forEach((tag) => {
-          if (!groupedMedia[tag]) {
-            groupedMedia[tag] = [];
-          }
-          groupedMedia[tag].push(item);
-        });
-      }
-    });
-
-    return groupedMedia;
-  };
-
-  const getRoomItemsWithoutTags = (room) => {
-    const allMedia = getRoomMediaItems(room);
-    return allMedia.filter((item) => !item.tags || item.tags.length === 0);
-  };
   const calculateMaxOccupancy = (beds, floorBedding) => {
     // Formula: (bed accommodates * number of beds) + (number of gaddi * people per gaddi)
     const bedOccupancy = beds.reduce(
@@ -639,6 +560,66 @@ const handleAddNewForm = () => {
 };
 
 
+const handleAddRoom = async () => {
+  if (!validateRoomData()) {
+    toast.error("Please fill in all required fields.");
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    const result = await dispatch(
+      addRooms({ id: propertyId, data: currentRoomData })
+    ).unwrap();
+
+    if (result.room) {
+      const roomID = result.room._id;
+      setCurrentRoomId(roomID);
+      const updatedRooms = [...localRooms, result.room];
+      setLocalRooms(updatedRooms);
+      onAddRoom(updatedRooms);
+      toast.success("Room saved successfully!");
+
+      setTimeout(() => {
+        const mediaSection = document.getElementById("media-upload-anchor");
+        if (mediaSection) {
+          mediaSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 300);
+    }
+  } catch (error) {
+    console.error("Failed to add room:", error);
+    toast.error("Failed to create room. Please try again.");
+    setIsSubmitting(false);
+  }
+};
+
+const handleUpdateRoom = async () => {
+  if (!validateRoomData()) return;
+
+  try {
+    const roomToUpdate = localRooms[editingRoomIndex];
+    const roomId = roomToUpdate._id || roomToUpdate.id;
+
+    const result = await dispatch(
+      updateRoom({ id: propertyId, roomId, data: currentRoomData })
+    ).unwrap();
+
+    // setIsComplete(true);
+    const updatedRooms = [...localRooms];
+    updatedRooms[editingRoomIndex] = currentRoomData;
+    setLocalRooms(updatedRooms);
+    onAddRoom(updatedRooms);
+    setIsEditingRoom(false);
+    setEditingRoomIndex(-1);
+    setCurrentRoomData(getInitialRoomData());
+    setFormErrors({});
+  } catch (error) {
+    console.error("Failed to update room:", error);
+  }
+};
+
+
 
 
   const bedTypes = [
@@ -810,22 +791,417 @@ const handleAddNewForm = () => {
   };
 
   // Main render logic
-  if (isAddingRoom) {
-    // Room details step - render your existing room form here
-    return (
-      <div id="media-upload-section" className="my-5">
-  <RoomMediaForm
-    propertyId={propertyId}
-    singleRoom={currentRoomData}
-    singleRoomId={currentRoomId}
-    isFileSubmitting={isFileSubmiting}
-    hideCompleteButton={true}
-    onMediaUploaded={(updatedRoom) => setCurrentRoomData(updatedRoom)}
-    onBack={handleCancelForm}
-  />
-</div>
-    );
-  }
+if (isAddingRoom) {
+  return (
+    <Paper className="p-4 mb-4">
+      <ConfirmDialog />
+      <Typography variant="h6" gutterBottom>
+        {isEditingRoom ? "Edit Room" : "Add New Room"}
+      </Typography>
+
+      {validationError && (
+        <Alert severity="error" sx={{ mb: 2 }}>{validationError}</Alert>
+      )}
+
+      {/* ── ROOM DETAILS FORM ── */}
+      <Grid container spacing={3}>
+
+        {/* Room Name */}
+        <Grid item size={{ xs: 12, md: 6 }}>
+          <TextField
+            name="roomName"
+            fullWidth
+            label="Room Name *"
+            value={currentRoomData.roomName}
+            onChange={(e) => handleRoomChange("roomName", e.target.value)}
+            error={!!formErrors.roomName}
+            helperText={formErrors.roomName}
+            sx={{
+              "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": { borderColor: "#2e2e2e" },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#1976d2" },
+            }}
+          />
+
+          <Grid container spacing={2} sx={{ mt: 0 }}>
+            <Grid item size={{ xs: 8 }}>
+              <TextField
+                name="roomSize"
+                fullWidth
+                label="Room Size *"
+                type="number"
+                slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                value={currentRoomData.roomSize}
+                onChange={(e) => handleRoomChange("roomSize", e.target.value)}
+                error={!!formErrors.roomSize}
+                helperText={formErrors.roomSize}
+                sx={{ mt: "10px" }}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <FormControl fullWidth sx={{ mt: "10px" }}>
+                <InputLabel>Unit</InputLabel>
+                <Select
+                  value={currentRoomData.sizeUnit}
+                  onChange={(e) => handleRoomChange("sizeUnit", e.target.value)}
+                  label="Unit"
+                >
+                  <MenuItem value="sqft">sq ft</MenuItem>
+                  <MenuItem value="sqm">sq m</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </Grid>
+
+        {/* Description */}
+        <Grid item size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            label="Description"
+            multiline
+            rows={4}
+            value={currentRoomData.description}
+            onChange={(e) => handleRoomChange("description", e.target.value)}
+          />
+        </Grid>
+
+        {/* Bed Configuration */}
+        <Grid item size={{ xs: 12 }}>
+          <Typography variant="subtitle1" gutterBottom>Bed Configuration *</Typography>
+          {currentRoomData.beds.map((bed, index) => (
+            <Grid container spacing={2} key={index} className="mb-3 items-end">
+              <Grid item size={{ xs: 12 }} sm={4}>
+                <FormControl fullWidth error={!!formErrors.beds?.[index]?.bedType}>
+                  <InputLabel>Bed Type *</InputLabel>
+                  <Select
+                    name="beds"
+                    value={bed.bedType}
+                    onChange={(e) => handleBedChange(index, "bedType", e.target.value)}
+                    label="Bed Type *"
+                  >
+                    {bedTypes.map((type) => (
+                      <MenuItem key={type} value={type}>{type}</MenuItem>
+                    ))}
+                  </Select>
+                  {formErrors.beds?.[index]?.bedType && (
+                    <FormHelperText>{formErrors.beds[index].bedType}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+              <Grid item size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Number of Beds *"
+                  type="number"
+                  slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                  value={bed.count}
+                  onChange={(e) => handleBedChange(index, "count", parseInt(e.target.value))}
+                  error={!!formErrors.beds?.[index]?.count}
+                  helperText={formErrors.beds?.[index]?.count}
+                  InputProps={{ inputProps: { min: 1 } }}
+                />
+              </Grid>
+              <Grid item size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Accommodates *"
+                  type="number"
+                  slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                  value={bed.accommodates}
+                  onChange={(e) => handleBedChange(index, "accommodates", parseInt(e.target.value))}
+                  error={!!formErrors.beds?.[index]?.accommodates}
+                  helperText={formErrors.beds?.[index]?.accommodates}
+                  InputProps={{ inputProps: { min: 1 } }}
+                />
+              </Grid>
+              <Grid item size={{ xs: 12 }} sm={2} className="flex justify-end">
+                <IconButton
+                  color="error"
+                  onClick={() => removeBed(index)}
+                  disabled={currentRoomData.beds.length <= 1}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Grid>
+            </Grid>
+          ))}
+          <Button startIcon={<AddIcon />} variant="outlined" onClick={addBed}>
+            Add Another Bed
+          </Button>
+        </Grid>
+
+        {/* Number of Rooms */}
+        <Grid item size={{ xs: 12 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Number of rooms (of this type) *
+          </Typography>
+          <Grid item size={{ xs: 4 }}>
+            <TextField
+              name="numberRoom"
+              label="Number of rooms (of this type) *"
+              type="number"
+              fullWidth
+              value={currentRoomData.numberRoom}
+              onChange={(e) => handleRoomChange("numberRoom", e.target.value)}
+              error={!!formErrors.numberRoom}
+              helperText={formErrors.numberRoom}
+              slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+              sx={{ mt: "10px" }}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Floor Bedding */}
+        <Grid item size={{ xs: 12 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={currentRoomData.FloorBedding.available}
+                onChange={(e) => handleNestedChange("FloorBedding", "available", e.target.checked)}
+              />
+            }
+            label="Floor Bedding (Gaddi)"
+          />
+          {currentRoomData.FloorBedding.available && (
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Number of Gaddi"
+                  type="number"
+                  slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                  value={currentRoomData.FloorBedding.count}
+                  onChange={(e) =>
+                    handleNestedChange("FloorBedding", "count", parseInt(e.target.value))
+                  }
+                />
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="People per Gaddi *"
+                  type="number"
+                  slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                  value={currentRoomData.FloorBedding.peoplePerFloorBedding}
+                  onChange={(e) =>
+                    handleNestedChange("FloorBedding", "peoplePerFloorBedding", parseInt(e.target.value))
+                  }
+                />
+              </Grid>
+            </Grid>
+          )}
+        </Grid>
+
+        {/* Occupancy */}
+        <Grid item size={{ xs: 12 }}>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="subtitle1" gutterBottom>Occupancy</Typography>
+          <Grid container spacing={3}>
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Base Adults *"
+                type="number"
+                slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                value={currentRoomData.occupancy?.baseAdults}
+                onChange={(e) =>
+                  handleNestedChange("occupancy", "baseAdults", parseInt(e.target.value))
+                }
+                error={!!formErrors.baseAdults}
+                helperText={formErrors.baseAdults}
+                InputProps={{ inputProps: { min: 1 } }}
+              />
+            </Grid>
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Maximum Occupancy (auto-calculated)"
+                type="number"
+                value={currentRoomData.occupancy?.maximumOccupancy}
+                InputProps={{ readOnly: true }}
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
+        {/* Bathroom */}
+        <Grid item size={{ xs: 12, md: 6 }}>
+          <Typography variant="subtitle1" gutterBottom>Bathroom</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={6} sx={{ mt: "10px" }}>
+              <TextField
+                fullWidth
+                label="Bathroom Count *"
+                type="number"
+                slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                value={currentRoomData.bathrooms.count}
+                onChange={(e) =>
+                  handleNestedChange("bathrooms", "count", parseInt(e.target.value))
+                }
+                error={!!formErrors.bathroomCount}
+                helperText={formErrors.bathroomCount}
+                InputProps={{ inputProps: { min: 0 } }}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Box display="flex" flexDirection="column">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={currentRoomData.bathrooms.private}
+                      onChange={(e) => handleBathroomTypeChange("private", e.target.checked)}
+                    />
+                  }
+                  label="Private Bathroom"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={currentRoomData.bathrooms.shared}
+                      onChange={(e) => handleBathroomTypeChange("shared", e.target.checked)}
+                    />
+                  }
+                  label="Shared Bathroom"
+                />
+                {formErrors.bathroomType && (
+                  <FormHelperText error>{formErrors.bathroomType}</FormHelperText>
+                )}
+              </Box>
+            </Grid>
+          </Grid>
+        </Grid>
+
+        {/* Meal Plan */}
+        <Grid item size={{ xs: 12, md: 6 }}>
+          <Typography variant="subtitle1" gutterBottom>Meal Plan</Typography>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={currentRoomData.mealPlan.available}
+                onChange={(e) => handleNestedChange("mealPlan", "available", e.target.checked)}
+              />
+            }
+            label="Meal Plan Available"
+          />
+          {formErrors.mealPlan && (
+            <FormHelperText error>{formErrors.mealPlan}</FormHelperText>
+          )}
+          {currentRoomData.mealPlan.available && (
+            <FormControl fullWidth sx={{ mt: 1 }}>
+              <InputLabel>Meal Plan Type</InputLabel>
+              <Select
+                value={currentRoomData.mealPlan.planType}
+                onChange={(e) => handleNestedChange("mealPlan", "planType", e.target.value)}
+                label="Meal Plan Type"
+              >
+                <MenuItem value="Accommodation only">Accommodation only</MenuItem>
+                <MenuItem value="Free Breakfast">Free Breakfast</MenuItem>
+                <MenuItem value="Free Breakfast + Lunch">Free Breakfast + Lunch</MenuItem>
+                <MenuItem value="Free Breakfast + Dinner">Free Breakfast + Dinner</MenuItem>
+                <MenuItem value="Free Lunch">Free Lunch</MenuItem>
+                <MenuItem value="Free Dinner">Free Dinner</MenuItem>
+                <MenuItem value="Free Lunch + Dinner">Free Lunch + Dinner</MenuItem>
+                <MenuItem value="Free Breakfast + Lunch + Dinner">Free Breakfast + Lunch + Dinner</MenuItem>
+              </Select>
+            </FormControl>
+          )}
+        </Grid>
+
+        {/* Pricing */}
+        <Grid item size={{ xs: 12 }}>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="subtitle1" gutterBottom>Pricing</Typography>
+          <Grid container spacing={3}>
+            <Grid item size={{ xs: 12 }} md={4}>
+              <TextField
+                name="baseAdultsCharge"
+                fullWidth
+                label="Base Price (per night) *"
+                type="number"
+                slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                value={currentRoomData.pricing?.baseAdultsCharge}
+                onChange={(e) =>
+                  handleNestedChange("pricing", "baseAdultsCharge", parseFloat(e.target.value))
+                }
+                error={!!formErrors.baseAdultsCharge}
+                helperText={formErrors.baseAdultsCharge}
+                InputProps={{ startAdornment: "₹" }}
+              />
+            </Grid>
+            <Grid item size={{ xs: 12 }} md={4}>
+              <TextField
+                name="extraFloorBeddingCharge"
+                fullWidth
+                label="Extra Floor Bedding Charge"
+                type="number"
+                slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                value={currentRoomData.pricing?.extraFloorBeddingCharge}
+                onChange={(e) =>
+                  handleNestedChange("pricing", "extraFloorBeddingCharge", parseFloat(e.target.value))
+                }
+                InputProps={{ startAdornment: "₹" }}
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
+      </Grid>
+
+      {/* Amenities */}
+      <RoomsAmenities
+        roomAmenityCategories={roomAmenityCategories}
+        currentRoomData={currentRoomData}
+        selectedAmenityTab={selectedAmenityTab}
+        setSelectedAmenityTab={setSelectedAmenityTab}
+        handleRoomAmenityChange={handleRoomAmenityChange}
+      />
+
+      {/* Save / Back Buttons */}
+      <div className="flex justify-end mt-4 gap-2">
+        <Button variant="outlined" onClick={handleCancelForm}>Back</Button>
+        <Button
+          variant="contained"
+          color="primary"
+          disabled={isSubmitting && !isEditingRoom}
+          onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
+        >
+          {isEditingRoom ? "Update Room" : "Save Room"}
+        </Button>
+      </div>
+
+      {/* ── MEDIA UPLOAD (below the form, only active after room is saved) ── */}
+      <Divider sx={{ my: 4 }} />
+      <SingleRoomMediaForm
+        propertyId={propertyId}
+        singleRoom={currentRoomData}        // ← always passes current data
+        singleRoomId={currentRoomId}        // ← null until saved, disables upload button
+        isFileSubmitting={isFileSubmiting}
+        hideCompleteButton={true}
+        onMediaUploaded={(updatedRoom) => {
+      setCurrentRoomData(prev => ({ ...prev, media: updatedRoom.media }));
+    }}
+        onBack={handleCancelForm}
+      />
+
+      {/* Add New Room / Next */}
+      {/* {!isEditingRoom && (
+        <div className="flex justify-end mt-4 gap-2">
+          <Button variant="outlined" onClick={handleAddNewForm}>
+            Add New Room
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={localRooms.length === 0}
+            onClick={() => handleCompleteRooms(propertyId)}
+          >
+            Next
+          </Button>
+        </div>
+      )} */}
+    </Paper>
+  );
+}
 
   // Room list view - your existing room list JSX
   return (

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation'; // For navigation
-import { getFeaturedByLocation, getPropertiesByQuery } from '@/redux/features/property/propertySlice';
+import { getFeaturedByLocation, getPropertiesByQuery, setSearchQuery } from '@/redux/features/property/propertySlice';
 import { ArrowRight } from 'lucide-react';
 
 // Static Image Imports
@@ -50,24 +50,34 @@ const FeaturedCityCards = () => {
   }, [dispatch]);
 
   // 3. Navigation and Search Logic
-  const handleSearchNavigation = async (locationName) => {
+const handleSearchNavigation = async (locationName) => {
     const current = new Date();
     const today = new Date(current);
     today.setDate(current.getDate() + 1); // Check-in: Tomorrow
+    
     const nextDay = new Date(today);
     nextDay.setDate(today.getDate() + 1); // Check-out: Day after tomorrow
 
-    const searchData = {
+    // 1. Construct the search params object exactly as requested
+    const currentSearchParams = {
       location: locationName,
-      locationData: locationName,
-      checkin: formatDate(today),
-      checkout: formatDate(nextDay),
-      persons: "2"
+      checkin: today.toISOString().split('T')[0],
+      checkout: nextDay.toISOString().split('T')[0],
+      persons: "2",
+      adults: 2,
+      children: 0,
+      infants: 0,
+      locationData: locationName
     };
 
     try {
-      // Fetch properties and wait for completion before navigating
-      await dispatch(getPropertiesByQuery(searchData)).unwrap();
+      // 2. Update Redux state first
+      dispatch(setSearchQuery(currentSearchParams));
+
+      // 3. Fetch properties using the same data
+      await dispatch(getPropertiesByQuery(currentSearchParams)).unwrap();
+      
+      // 4. Navigate to listing page
       router.push('/hotel-listing');
     } catch (error) {
       console.error('Search navigation failed:', error);
