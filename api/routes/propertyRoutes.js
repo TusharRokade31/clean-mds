@@ -44,6 +44,7 @@ import {
   getFilteredProperties,
   changePropertyStatus,
   getFeaturedByLocation,
+  getSimilarProperties,
 } from '../controllers/property/propertyController.js';
 
 
@@ -176,6 +177,8 @@ router.delete(
   protect,
   deleteRoom,
 );
+
+router.get('/:propertyId/similar', getSimilarProperties);
 
 router.post(
   '/:propertyId/rooms/:roomId/media', 

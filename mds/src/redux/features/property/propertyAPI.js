@@ -239,6 +239,12 @@ export const propertyAPI = {
     const response = await axiosInstance.get(`/properties/city/${city}`);
     return response.data;
   },
+
+    // Get properties by city
+  getSimilarProperties: async (propertyId) => {
+    const response = await axiosInstance.get(`/properties/${propertyId}/similar`);
+    return response.data;
+  },
   
   // Search properties with filters
   searchProperties: async (filters) => {

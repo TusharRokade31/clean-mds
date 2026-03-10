@@ -89,7 +89,7 @@ const RoomSchema = new Schema({
     peoplePerFloorBedding: { type: String },
   },
   
-  // ... rest of your room schema
+
   beds: [{
     bedType: { 
       type: String,

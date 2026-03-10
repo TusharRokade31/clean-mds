@@ -250,6 +250,7 @@ const RoomSelection = ({ property, bookingData, onNext, onDataChange }) => {
         <Typography variant="h6" gutterBottom>
           Available Rooms
         </Typography>
+        {console.log('Property Rooms:', property?.rooms[0])}
         <Grid container spacing={3}>
           {property?.rooms?.map((room) => (
             <Grid item size={{xs:12, md:6}} key={room._id}>

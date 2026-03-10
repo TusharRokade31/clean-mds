@@ -18,14 +18,15 @@ import LocationSection from "@/component/hotel-details/location-section"
 import PropertyRules from "@/component/hotel-details/property-rules"
 import { getViewProperty } from "@/redux/features/property/propertySlice"
 import PropertyOverview from "@/component/hotel-details/PropertyOverview"
+import SimilarProperties from "@/component/hotel-details/SimilarProperties"
 
 const sections = [
-  { id: "overview", label: "OVERVIEW", component: PropertyOverview },
-  { id: "rooms", label: "ROOMS", component: RoomsSection },
-  { id: "location", label: "LOCATION", component: LocationSection },
-  { id: "rules", label: "PROPERTY RULES", component: PropertyRules },
+  { id: "overview",  label: "OVERVIEW",            component: PropertyOverview    },
+  { id: "rooms",     label: "ROOMS",               component: RoomsSection        },
+  { id: "location",  label: "LOCATION",            component: LocationSection     },
+  { id: "rules",     label: "PROPERTY RULES",      component: PropertyRules       },
   // { id: "reviews", label: "USER REVIEWS", component: null },
-  // { id: "similar", label: "SIMILAR PROPERTIES", component: null },
+  { id: "similar",   label: "SIMILAR PROPERTIES",  component: SimilarProperties  },
 ]
 
 export default function PropertyDetailsPage() {

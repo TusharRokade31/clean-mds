@@ -19,6 +19,7 @@ const getSearchQueryFromLocal = () => {
 // Initial state
 const initialState = {
   properties: [],
+  similarProperties: [],
   draftProperties: [],
   currentProperty: null,
   ViewProperty: {},
@@ -565,6 +566,19 @@ export const getFeaturedProperties = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch featured properties');
+    }
+  }
+);
+
+export const getSimilarProperties = createAsyncThunk(
+  'property/getSimilarProperties',
+  async (propertyId, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getSimilarProperties(propertyId);
+      
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch similar properties');
     }
   }
 );
@@ -1344,6 +1358,20 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       state.featuredProperties = action.payload;
     });
     builder.addCase(getFeaturedProperties.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+    
+    // Get similar properties
+    builder.addCase(getSimilarProperties.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getSimilarProperties.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.similarProperties = action.payload;
+    });
+    builder.addCase(getSimilarProperties.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });

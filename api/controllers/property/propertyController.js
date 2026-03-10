@@ -1847,6 +1847,129 @@ export const deleteProperty = async (req, res) => {
   }
 };
 
+export const getSimilarProperties = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    const { limit = 6 } = req.query;
+
+    // 1. Find the reference property
+    const property = await Property.findOne({
+      _id: propertyId,
+      status: 'published',
+    }).select('location.city location.state propertyType rentalForm');
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found',
+      });
+    }
+
+    const { city, state } = property.location;
+    const { propertyType, rentalForm } = property;
+
+    // 2. Build a scored similarity pipeline using aggregation
+    const similarProperties = await Property.aggregate([
+      {
+        $match: {
+          _id: { $ne: property._id },         // Exclude current property
+          status: 'published',
+        },
+      },
+      {
+        // 3. Score each property based on matching fields
+        $addFields: {
+          similarityScore: {
+            $add: [
+              // +3 if same city (strongest signal)
+              {
+                $cond: [{ $eq: ['$location.city', city] }, 3, 0],
+              },
+              // +2 if same property type
+              {
+                $cond: [{ $eq: ['$propertyType', propertyType] }, 2, 0],
+              },
+              // +1 if same rental form
+              {
+                $cond: [{ $eq: ['$rentalForm', rentalForm] }, 1, 0],
+              },
+              // +1 if same state but different city (fallback for nearby)
+              {
+                $cond: [
+                  {
+                    $and: [
+                      { $eq: ['$location.state', state] },
+                      { $ne: ['$location.city', city] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            ],
+          },
+        },
+      },
+      {
+        // 4. Only return properties with at least some relevance
+        $match: {
+          similarityScore: { $gte: 1 },
+        },
+      },
+      { $sort: { similarityScore: -1, createdAt: -1 } },
+      { $limit: parseInt(limit) },
+      {
+        // 5. Shape the response — only send fields needed for a card UI
+        $project: {
+        placeName: 1,
+        slug: 1,
+        propertyType: 1,
+        rentalForm: 1,
+        placeRating: 1,
+        location: {
+          city: '$location.city',
+          state: '$location.state',
+        },
+        media: {
+          images: { $slice: ['$media.images', 1] }, // ✅ first image object with .url
+        },
+        'rooms.roomName': 1,
+        'rooms.pricing.baseAdultsCharge': 1,
+        'rooms.occupancy.maximumOccupancy': 1,
+        similarityScore: 1,
+      },
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: similarProperties.length,
+      referenceProperty: {
+        id: propertyId,
+        city,
+        state,
+        propertyType,
+        rentalForm,
+      },
+      data: similarProperties,
+    });
+
+  } catch (error) {
+    // Handle invalid ObjectId format gracefully
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid property ID format',
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching similar properties',
+      error: error.message,
+    });
+  }
+};
 
 // Get properties by state
 export const getPropertiesByState = async (req, res) => {
