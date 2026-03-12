@@ -1,221 +1,141 @@
 // components/PropertyOverview.jsx
 "use client"
 
-import { 
-  Paper, 
-  Typography, 
-  Box, 
-  Grid, 
-  Chip,
-  Button,
-  Card,
-  CardContent,
-  Tab,
-  Tabs,
-  ImageList,
-  ImageListItem,
-  Dialog,
-  DialogContent,
-  IconButton
+import {
+  Paper, Typography, Box, Grid, Chip, Button,
+  Tab, Tabs, ImageList, ImageListItem,
+  Dialog, DialogContent, IconButton
 } from "@mui/material"
-import { 
-  Star, 
-  CalendarToday, 
-  Home, 
-  Email, 
-  Phone,
-  Verified,
-  Close,
-  ChevronLeft,
-  ChevronRight
+import {
+  CalendarToday, Home, Email, Phone, Verified,
+  Close, ShoppingCartOutlined
 } from "@mui/icons-material"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import AmenitiesSection from "./amenities-section"
-import { useRouter } from "next/navigation"
-import BookingConfirmationDialog from "./BookingConfirmationDialog" // Import the new component
+import BookingConfirmationDialog from "./BookingConfirmationDialog"
+
+const CART_KEY = "roomsCart_v2"
+
+const nightlyRate = (room, adults, children) => {
+  if (!room) return 0
+  const base  = room.pricing?.baseAdultsCharge  || 0
+  const eRate = room.pricing?.extraAdultsCharge || 0
+  const cRate = room.pricing?.childCharge       || 0
+  const extra = Math.max(0, adults - (room.occupancy?.baseAdults || 1))
+  return base + extra * eRate + children * cRate
+}
 
 export default function PropertyOverview({ data, setActiveSection }) {
-  const [selectedTab, setSelectedTab] = useState(0)
-  const [openGallery, setOpenGallery] = useState(false)
-  const [selectedImage, setSelectedImage] = useState(0)
-  
-  // Add booking confirmation dialog state
+  const [selectedTab,        setSelectedTab]        = useState(0)
+  const [openGallery,        setOpenGallery]        = useState(false)
+  const [selectedImage,      setSelectedImage]      = useState(0)
   const [bookingConfirmOpen, setBookingConfirmOpen] = useState(false)
-  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
-  
-  const router = useRouter()
 
-  // Add null checks for data and media
-  if (!data) {
-    return <Typography>Loading...</Typography>
+  // Live cart from sessionStorage (updated whenever rooms-section writes it)
+  const [cartRooms,  setCartRooms]  = useState([])
+  const [cartNightly, setCartNightly] = useState(0)
+
+  // Poll sessionStorage on mount and when tab regains focus
+  const refreshCart = () => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(CART_KEY) || "[]")
+      setCartRooms(saved)
+      const total = saved.reduce((s, c) => {
+        const room = data?.rooms?.find(r => r._id === c.roomId)
+        return room ? s + nightlyRate(room, c.guestCount.adults, c.guestCount.children) : s
+      }, 0)
+      setCartNightly(total)
+    } catch {}
   }
 
-  // Get unique image categories
-  const getImageCategories = () => {
-    if (!data.media?.images || !Array.isArray(data.media.images)) return ['All']
-    
-    const categories = [...new Set(data.media.images.flatMap(img => img.tags || []))]
-    return ['All', ...categories]
-  }
-
-  // Fixed: Filter images by category
-  const getFilteredImages = () => {
-    if (!data.media?.images || !Array.isArray(data.media.images)) return []
-    
-    const categories = getImageCategories()
-    const selectedCategory = categories[selectedTab]
-    
-    if (selectedCategory === 'All') {
-      // Create a proper copy of the array before sorting
-      return [...data.media.images].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+  useEffect(() => {
+    refreshCart()
+    // Refresh whenever user switches back to this tab/page
+    window.addEventListener("focus", refreshCart)
+    // Also poll every 500ms in case of same-tab navigation
+    const interval = setInterval(refreshCart, 500)
+    return () => {
+      window.removeEventListener("focus", refreshCart)
+      clearInterval(interval)
     }
-    
-    // Filter first, then sort the filtered results
-    return data.media.images
-      .filter(img => img.tags && img.tags.includes(selectedCategory))
-      .slice() // Create a copy of the filtered array
-      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+  }, [data])
+
+  if (!data) return <Typography>Loading...</Typography>
+
+  // ── Image helpers ──────────────────────────────────────────────────────────
+  const getImageCategories = () => {
+    if (!data.media?.images?.length) return ["All"]
+    const cats = [...new Set(data.media.images.flatMap(img => img.tags || []))]
+    return ["All", ...cats]
   }
 
-  // Get cover image and first few images for main display
+  const getFilteredImages = () => {
+    if (!data.media?.images?.length) return []
+    const cats = getImageCategories()
+    const sel  = cats[selectedTab]
+    const base = sel === "All"
+      ? [...data.media.images]
+      : data.media.images.filter(img => img.tags?.includes(sel))
+    return base.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+  }
+
   const getCoverImage = () => {
-    if (!data.media?.images || !Array.isArray(data.media.images) || data.media.images.length === 0) return null
+    if (!data.media?.images?.length) return null
     return data.media.images.find(img => img.isCover) || data.media.images[0]
   }
 
   const getDisplayImages = () => {
-    if (!data.media?.images || !Array.isArray(data.media.images)) return []
-    const sorted = [...data.media.images].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
-    return sorted.slice(0, 5)
+    if (!data.media?.images?.length) return []
+    return [...data.media.images]
+      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      .slice(0, 5)
   }
 
-  const handleImageClick = (index) => {
-    setSelectedImage(index)
-    setOpenGallery(true)
-  }
-
-  // Updated handleBookRoom function to open confirmation dialog
-  const handleBookRoom = () => {
-    setBookingConfirmOpen(true)
-  }
-
-  const handleBookingConfirmClose = () => {
-    setBookingConfirmOpen(false)
-  }
-
-  const coverImage = getCoverImage()
-  const displayImages = getDisplayImages()
+  const coverImage      = getCoverImage()
+  const displayImages   = getDisplayImages()
   const imageCategories = getImageCategories()
-  const filteredImages = getFilteredImages()
+  const filteredImages  = getFilteredImages()
+
+  const lowestPrice = data.rooms?.length
+    ? Math.min(...data.rooms.map(r => r.pricing?.baseAdultsCharge || 0))
+    : 0
+
+  const hasCart = cartRooms.length > 0
 
   return (
-    <Box sx={{ space: 3 }}>
-      {/* Property Images and Booking Section */}
+    <Box>
+      {/* Images + Booking Card */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        {/* Images Section */}
-        <Grid item size={{xs:12,lg:8}}>
+        {/* Images */}
+        <Grid item size={{ xs: 12, lg: 8 }}>
           <Paper sx={{ p: 0 }}>
             <Grid container spacing={1}>
-              {/* Main Image */}
-              <Grid item size={{xs:12, md:12}}>
-                <Box
-                  sx={{
-                    aspectRatio: "16/9",
-                    bgcolor: "grey.200",
-                    borderRadius: 1,
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    position: "relative"
-                  }}
-                  onClick={() => handleImageClick(0)}
-                >
-                  {coverImage ? (
-                    <img
-                      src={`${coverImage.url}`}
-                      alt="Property main image"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover"
-                      }}
-                    />
-                  ) : (
-                    <Box
-                      sx={{
-                        width: "100%",
-                        height: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      <Typography color="text.secondary">Main Property Image</Typography>
-                    </Box>
-                  )}
-                  {data.media?.images && data.media.images.length > 0 && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: 16,
-                        left: 16,
-                        bgcolor: "rgba(0,0,0,0.7)",
-                        color: "white",
-                        px: 2,
-                        py: 1,
-                        borderRadius: 1
-                      }}
-                    >
-                      <Typography variant="body2">
-                        +{data.media.images.length} Property Photos
-                      </Typography>
+              <Grid item size={{ xs: 12 }}>
+                <Box sx={{ aspectRatio: "16/9", bgcolor: "grey.200", borderRadius: 1, overflow: "hidden", cursor: "pointer", position: "relative" }}
+                  onClick={() => { setSelectedImage(0); setOpenGallery(true) }}>
+                  {coverImage
+                    ? <img src={coverImage.url} alt="Property" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : <Box sx={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Typography color="text.secondary">No image available</Typography>
+                      </Box>
+                  }
+                  {data.media?.images?.length > 0 && (
+                    <Box sx={{ position: "absolute", bottom: 16, left: 16, bgcolor: "rgba(0,0,0,0.7)", color: "white", px: 2, py: 1, borderRadius: 1 }}>
+                      <Typography variant="body2">+{data.media.images.length} Photos</Typography>
                     </Box>
                   )}
                 </Box>
               </Grid>
-              
-              {/* Thumbnail Images Grid */}
-              <Grid item size={{xs:12, md:12}}>
-                <Grid container spacing={1} sx={{ height: "100%" }}>
+              <Grid item size={{ xs: 12 }}>
+                <Grid container spacing={1}>
                   {displayImages.slice(1, 5).map((image, index) => (
-                    <Grid item size={{xs:6, md:3}} key={image._id || index}>
-                      <Box
-                        sx={{
-                          aspectRatio: "1/1",
-                          bgcolor: "grey.200",
-                          borderRadius: 1,
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          position: "relative"
-                        }}
-                        onClick={() => handleImageClick(index + 1)}
-                      >
-                        <img
-                          src={`${image.url}`}
-                          alt={`Property image ${index + 2}`}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover"
-                          }}
-                        />
-                        {index === 3 && data.media?.images && data.media.images.length > 5 && (
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              bgcolor: "rgba(0,0,0,0.5)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              color: "white"
-                            }}
-                          >
-                            <Typography variant="h6">
-                              +{data.media.images.length - 5} More
-                            </Typography>
+                    <Grid item size={{ xs: 6, md: 3 }} key={image._id || index}>
+                      <Box sx={{ aspectRatio: "1/1", bgcolor: "grey.200", borderRadius: 1, overflow: "hidden", cursor: "pointer", position: "relative" }}
+                        onClick={() => { setSelectedImage(index + 1); setOpenGallery(true) }}>
+                        <img src={image.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        {index === 3 && data.media?.images?.length > 5 && (
+                          <Box sx={{ position: "absolute", inset: 0, bgcolor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                            <Typography variant="h6">+{data.media.images.length - 5} More</Typography>
                           </Box>
                         )}
                       </Box>
@@ -227,79 +147,72 @@ export default function PropertyOverview({ data, setActiveSection }) {
           </Paper>
         </Grid>
 
-        {/* Booking Card - Moved beside images */}
-        <Grid item size={{xs:12,lg:4}}>
-          <Paper
-            sx={{
-              p: 3,
-              position: "sticky",
-              top: "100px",
-              height: "fit-content"
-            }}
-          >
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">
-                {data.rooms?.[0]?.roomType || "Book Now"}
-              </Typography>
-              {/* <Box display="flex" alignItems="center" gap={0.5}>
-                <Star sx={{ color: "gold", fontSize: 20 }} />
-                <Typography>{data.placeRating || "N/A"}</Typography>
-              </Box> */}
-            </Box>
-            
-            <Typography variant="body2" color="text.secondary" mb={1}>
-              Fits {data.rooms?.[0]?.occupancy?.maximumAdults || 2} Adults
+        {/* Booking Card */}
+        <Grid item size={{ xs: 12, lg: 4 }}>
+          <Paper sx={{ p: 3, position: "sticky", top: "100px", height: "fit-content" }}>
+            <Typography variant="subtitle2" color="text.secondary" mb={0.5}>
+              {hasCart ? "Your selection" : "Starting from"}
             </Typography>
+
+            {/* Price display: show cart total when cart has items, else lowest price */}
+            {hasCart ? (
+              <Box mb={2}>
+                <Box display="flex" alignItems="baseline" gap={0.5}>
+                  <Typography variant="h4" fontWeight="bold" sx={{ color: "#1035ac" }}>
+                    ₹{cartNightly}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">/night</Typography>
+                </Box>
+                <Box display="flex" alignItems="center" gap={0.5} mt={0.5}
+                  sx={{ bgcolor: "#e8edf8", borderRadius: 1, px: 1.5, py: 0.5, display: "inline-flex" }}>
+                  <ShoppingCartOutlined sx={{ fontSize: 14, color: "#1035ac" }} />
+                  <Typography variant="caption" sx={{ color: "#1035ac", fontWeight: 600 }}>
+                    {cartRooms.length} room{cartRooms.length > 1 ? "s" : ""} added
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              <Box mb={2}>
+                <Box display="flex" alignItems="baseline" gap={0.5}>
+                  <Typography variant="h4" fontWeight="bold">₹{lowestPrice}</Typography>
+                  <Typography variant="body2" color="text.secondary">/night</Typography>
+                </Box>
+                <Typography variant="caption" color="text.secondary">
+                  Fits up to {data.rooms?.[0]?.occupancy?.maximumAdults || 2} adults
+                </Typography>
+              </Box>
+            )}
 
             <Box mb={2}>
               <Chip label="No meals included" size="small" sx={{ mr: 1, mb: 1 }} />
-              <Chip label="Non-Refundable" size="small" />
-            </Box>
-            
-            <Box textAlign="left" mb={2}>
-              <Typography variant="body2" color="text.secondary">
-                Per night 
-              </Typography>
-              <Typography variant="h4" fontWeight="bold">
-                ₹{data.rooms?.[0]?.pricing?.baseAdultsCharge || "N/A"}
-              </Typography>
-              
+              <Chip label="Non-Refundable"    size="small" />
             </Box>
 
-            {/* <Box sx={{ space: 1, mb: 2 }}>
-              <Box display="flex" justifyContent="space-between">
-                <Typography variant="body2">Max Adults:</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {data.rooms?.[0]?.occupancy?.maximumAdults || "N/A"}
-                </Typography>
-              </Box>
-              <Box display="flex" justifyContent="space-between">
-                <Typography variant="body2">Max Children:</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {data.rooms?.[0]?.occupancy?.maximumChildren || "N/A"}
-                </Typography>
-              </Box>
-            </Box> */}
-
-            <Button 
-              variant="contained" 
-              fullWidth 
-              size="large"
-              onClick={handleBookRoom} // Updated to open confirmation dialog
-              sx={{ mb: 1 }}
-            >
-              BOOK THIS NOW
-            </Button>
-
-            {data.rooms?.length >= 1 && <Button 
-            onClick={()=>setActiveSection("rooms")}
-              variant="outlined" 
-              fullWidth 
-              size="large"
-              sx={{ mb: 2 }}
-            >
-              {data.rooms?.length} More Options
-            </Button>}
+            {hasCart ? (
+              <>
+                <Button variant="contained" className="bg-[#1035ac]" fullWidth size="large" sx={{ mb: 1 }}
+                  onClick={() => setBookingConfirmOpen(true)}>
+                  Proceed to Book ({cartRooms.length} room{cartRooms.length > 1 ? "s" : ""})
+                </Button>
+                <Button variant="outlined" fullWidth size="large" sx={{ mb: 2 }}
+                  onClick={() => setActiveSection("rooms")}>
+                  Edit Room Selection
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="contained" fullWidth size="large" sx={{ mb: 1 }}
+                  onClick={() => setBookingConfirmOpen(true)}>
+                  BOOK THIS NOW
+                </Button>
+                {data.rooms?.length >= 1 && (
+                  <Button variant="outlined" fullWidth size="large" sx={{ mb: 2 }}
+                    onClick={() => setActiveSection("rooms")}>
+                    {data.rooms.length} Room Options
+                  </Button>
+                )}
+              </>
+            )}
 
             <Typography variant="caption" color="text.secondary" textAlign="center" display="block">
               Booking since {data.bookingSince || "N/A"}
@@ -308,162 +221,101 @@ export default function PropertyOverview({ data, setActiveSection }) {
         </Grid>
       </Grid>
 
-      {/* Property Details - Now full width */}
+      {/* Property Details */}
       <Grid container spacing={3}>
-        <Grid item size={{xs:12}}>
-          <Box sx={{ space: 3 }}>
-            {/* Basic Info */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Property Information
-              </Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item size={{xs:6}}>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Home fontSize="small" color="disabled" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Property Type
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {/* {data.propertyType || "N/A"} */}
-                        {data.propertyType == "Dharamshala (Basic spiritual lodging run by religious trusts or communities)" ? "Dharamshala" : data.propertyType || "N/A"}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-                
-                <Grid item size={{xs:6}}>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <CalendarToday fontSize="small" color="disabled" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Built Year
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {data.propertyBuilt || "N/A"}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-                
-                <Grid item size={{xs:6}}>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Email fontSize="small" color="disabled" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Contact Email
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {data.email || "N/A"}
-                      </Typography>
-                      {data.emailVerified && (
-                        <Chip 
-                          label="Verified" 
-                          size="small" 
-                          variant="outlined"
-                          icon={<Verified />}
-                        />
-                      )}
-                    </Box>
-                  </Box>
-                </Grid>
-                
-                <Grid item size={{xs:6}}>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Phone fontSize="small" color="disabled" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Contact Mobile
-                      </Typography>
-                      <Typography variant="body1" fontWeight="medium">
-                        {data.mobileNumber || "N/A"}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-              </Grid>
-            </Paper>
-
-            {/* Amenities */}
-            {data.amenities && <AmenitiesSection amenities={data.amenities} />}
-          </Box>
-        </Grid>
-         
-        </Grid>
-
-        {/* Image Gallery Dialog */}
-        {data.media?.images && data.media.images.length > 0 && (
-          <Dialog
-            open={openGallery}
-            onClose={() => setOpenGallery(false)}
-            maxWidth="lg"
-            fullWidth
-            PaperProps={{
-              sx: { height: '90vh' }
-            }}
-          >
-            <DialogContent sx={{ p: 0 }}>
-              <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                {/* Header */}
-                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h6">
-                      Property Photos ({filteredImages.length})
+        <Grid item size={{ xs: 12 }}>
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>Property Information</Typography>
+            <Grid container spacing={2}>
+              <Grid item size={{ xs: 6 }}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Home fontSize="small" color="disabled" />
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Property Type</Typography>
+                    <Typography variant="body1" fontWeight="medium">
+                      {data.propertyType === "Dharamshala (Basic spiritual lodging run by religious trusts or communities)"
+                        ? "Dharamshala" : data.propertyType || "N/A"}
                     </Typography>
-                    <IconButton onClick={() => setOpenGallery(false)}>
-                      <Close />
-                    </IconButton>
                   </Box>
                 </Box>
-
-                {/* Image Categories Tabs */}
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                  <Tabs
-                    value={selectedTab}
-                    onChange={(e, newValue) => setSelectedTab(newValue)}
-                    variant="scrollable"
-                    scrollButtons="auto"
-                  >
-                    {imageCategories.map((category, index) => (
-                      <Tab key={category} label={category} />
-                    ))}
-                  </Tabs>
+              </Grid>
+              <Grid item size={{ xs: 6 }}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <CalendarToday fontSize="small" color="disabled" />
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Built Year</Typography>
+                    <Typography variant="body1" fontWeight="medium">{data.propertyBuilt || "N/A"}</Typography>
+                  </Box>
                 </Box>
+              </Grid>
+              <Grid item size={{ xs: 6 }}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Email fontSize="small" color="disabled" />
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Contact Email</Typography>
+                    <Typography variant="body1" fontWeight="medium">{data.email || "N/A"}</Typography>
+                    {data.emailVerified && <Chip label="Verified" size="small" variant="outlined" icon={<Verified />} />}
+                  </Box>
+                </Box>
+              </Grid>
+              <Grid item size={{ xs: 6 }}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Phone fontSize="small" color="disabled" />
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Contact Mobile</Typography>
+                    <Typography variant="body1" fontWeight="medium">{data.mobileNumber || "N/A"}</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
 
-                {/* Image Grid */}
-                <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-                  <ImageList variant="masonry" cols={3} gap={8}>
-                    {filteredImages.map((image, index) => (
-                      <ImageListItem key={image._id || index}>
-                        <img
-                          src={`${image.url}`}
-                          alt={`Property ${image.tags ? image.tags.join(', ') : 'image'}`}
-                          loading="lazy"
-                          style={{
-                            cursor: 'pointer',
-                            borderRadius: 8
-                          }}
-                          onClick={() => setSelectedImage(index)}
-                        />
-                      </ImageListItem>
-                    ))}
-                  </ImageList>
+          {data.amenities && <AmenitiesSection amenities={data.amenities} />}
+        </Grid>
+      </Grid>
+
+      {/* Gallery Dialog */}
+      {data.media?.images?.length > 0 && (
+        <Dialog open={openGallery} onClose={() => setOpenGallery(false)} maxWidth="lg" fullWidth
+          PaperProps={{ sx: { height: "90vh" } }}>
+          <DialogContent sx={{ p: 0 }}>
+            <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+              <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography variant="h6">Property Photos ({filteredImages.length})</Typography>
+                  <IconButton onClick={() => setOpenGallery(false)}><Close /></IconButton>
                 </Box>
               </Box>
-            </DialogContent>
-          </Dialog>
-        )}
+              <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                <Tabs value={selectedTab} onChange={(_, v) => setSelectedTab(v)} variant="scrollable" scrollButtons="auto">
+                  {imageCategories.map(c => <Tab key={c} label={c} />)}
+                </Tabs>
+              </Box>
+              <Box sx={{ flex: 1, overflow: "auto", p: 2 }}>
+                <ImageList variant="masonry" cols={3} gap={8}>
+                  {filteredImages.map((img, i) => (
+                    <ImageListItem key={img._id || i}>
+                      <img src={img.url} alt="" loading="lazy" style={{ cursor: "pointer", borderRadius: 8 }}
+                        onClick={() => setSelectedImage(i)} />
+                    </ImageListItem>
+                  ))}
+                </ImageList>
+              </Box>
+            </Box>
+          </DialogContent>
+        </Dialog>
+      )}
 
-       {/* Booking Confirmation Dialog */}
-       <BookingConfirmationDialog
-         room={data.rooms?.[0]}
-         property={data}
-         open={bookingConfirmOpen}
-         onClose={handleBookingConfirmClose}
-         isLoading={isCheckingAvailability}
-       />
-   </Box>
- )
+      {/* Booking Confirmation Dialog */}
+      <BookingConfirmationDialog
+        // If cart has items use them; else use first room as fallback
+        selectedRooms={hasCart ? cartRooms : []}
+        rooms={data.rooms || []}
+        room={!hasCart ? data.rooms?.[0] : null}
+        property={data}
+        open={bookingConfirmOpen}
+        onClose={() => setBookingConfirmOpen(false)}
+      />
+    </Box>
+  )
 }

@@ -440,24 +440,22 @@ const PropertySchema = new Schema({
 const Property = mongoose.model('Property', PropertySchema);
 
 PropertySchema.pre('save', async function(next) {
-  // Only run if placeName or city is modified (or it's a new document)
-  if (this.isModified('placeName') || this.isModified('location.city')) {
-    const baseString = `${this.placeName} ${this.location.city}`;
+  // Run if name/city changed OR if the slug is currently empty
+  if (this.isModified('placeName') || this.isModified('location.city') || !this.slug) {
+    const baseString = `${this.placeName || 'property'} ${this.location?.city || ''}`;
     
-    // Create base slug: "Draft122 Mumbai" -> "draft122-mumbai"
     let generatedSlug = slugify(baseString, { 
       lower: true, 
-      strict: true, // removes special characters like #, @
+      strict: true, 
       trim: true 
     });
 
-    // Check for uniqueness (just in case)
-    let slugExists = await mongoose.models.Property.findOne({ 
+    // Handle uniqueness
+    const slugExists = await mongoose.models.Property.findOne({ 
       slug: generatedSlug, 
-      _id: { $ne: this._id } // exclude current document
+      _id: { $ne: this._id } 
     });
 
-    // If it exists, append a random string or counter
     if (slugExists) {
       generatedSlug = `${generatedSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
     }

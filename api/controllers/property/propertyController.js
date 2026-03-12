@@ -9,6 +9,7 @@ import { unlink } from 'fs/promises';
 import { generateOTP, sendOTPEmail } from '../../services/emailService.js';
 import OTP from '../../models/OTP.js';
 import {errorResponse} from '../globalError/errorController.js';
+import slugify from 'slugify';
 import { detectPropertyChanges, markForReapproval } from '../../helper/detectPropertyChanges.js';
 
 
@@ -1578,40 +1579,58 @@ export const completePropertyListing = async (req, res) => {
   try {
     const { propertyId } = req.params;
     
-    // Check if property exists and belongs to user
-const property = await Property.findById(propertyId);
+    // Check if property exists
+    const property = await Property.findById(propertyId);
 
-if (!property) {
-  return errorResponse(res, 404, 'Property not found');
-}
+    if (!property) {
+      return errorResponse(res, 404, 'Property not found');
+    }
 
-// Check ownership or admin access
-if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-  return errorResponse(res, 403, 'Unauthorized access');
-}
-    
-    // Check if all steps are completed
-    const { step1Completed, step2Completed, step3Completed, step4Completed, step5Completed, step6Completed, step7Completed  } = property.formProgress;
-    
-    if (!step1Completed || !step2Completed || !step3Completed || !step4Completed || !step5Completed || !step6Completed || !step7Completed) {
-      return errorResponse(res, 400, 'Cannot complete listing - some steps are incomplete', {
-        step1Completed,
-        step2Completed,
-        step3Completed,
-        step4Completed,
-        step5Completed,
-        step6Completed,
-        step7Completed,
-      });
+    // Check ownership or admin access
+    if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return errorResponse(res, 403, 'Unauthorized access');
     }
     
+    // Check if all steps are completed
+    const { step1Completed, step2Completed, step3Completed, step4Completed, step5Completed, step6Completed, step7Completed } = property.formProgress;
+    
+    if (!step1Completed || !step2Completed || !step3Completed || !step4Completed || !step5Completed || !step6Completed || !step7Completed) {
+      return errorResponse(res, 400, 'Cannot complete listing - some steps are incomplete', property.formProgress);
+    }
+
+    // --- NEW: FORCE SLUG GENERATION ---
+    // This runs if the slug is missing, regardless of whether placeName changed in this request
+    if (!property.slug) {
+      const name = property.placeName || 'property';
+      const city = property.location?.city || '';
+      const baseString = `${name} ${city}`.trim();
+      
+      let generatedSlug = slugify(baseString, { lower: true, strict: true, trim: true });
+
+      // Check for uniqueness to avoid errors
+      const slugExists = await Property.findOne({ 
+        slug: generatedSlug, 
+        _id: { $ne: property._id } 
+      });
+
+      if (slugExists) {
+        generatedSlug = `${generatedSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+      
+      property.slug = generatedSlug;
+    }
+    // ----------------------------------
+
     // Mark property as complete
     property.formProgress.formCompleted = true;
-    await property.save({ validateBeforeSave: false });
+    
+    // Save without the 'validateBeforeSave: false' flag to ensure slug is recorded
+    await property.save(); 
     
     return res.status(200).json({
       success: true,
       message: 'Property listing completed successfully',
+      slug: property.slug, // Returning slug so frontend can redirect to the new URL
       property,
     });
   } catch (error) {

@@ -8,11 +8,10 @@ dotenv.config();
 
 const updateExistingSlugs = async () => {
   try {
-    // 1. Connect to your database
     await mongoose.connect(process.env.dbURL);
-    console.log('Connected to MongoDB for migration...');
+    console.log('Connected to MongoDB...');
 
-    // 2. Find all properties that don't have a slug yet
+    // Find all properties where slug is missing, null, or empty string
     const properties = await Property.find({ 
       $or: [
         { slug: { $exists: false } }, 
@@ -24,40 +23,25 @@ const updateExistingSlugs = async () => {
     console.log(`Found ${properties.length} properties to update.`);
 
     for (const property of properties) {
-      // Ensure we have the data needed for Option 1 (Name + City)
       const name = property.placeName || 'property';
       const city = property.location?.city || '';
-      
       const baseString = `${name} ${city}`.trim();
       
-      // Generate the slug
-      let generatedSlug = slugify(baseString, { 
-        lower: true, 
-        strict: true, 
-        trim: true 
-      });
+      let generatedSlug = slugify(baseString, { lower: true, strict: true });
 
-      // Handle potential duplicates during migration
-      const slugExists = await Property.findOne({ 
-        slug: generatedSlug, 
-        _id: { $ne: property._id } 
-      });
-
-      if (slugExists) {
-        generatedSlug = `${generatedSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
-      }
-
-      // Update the document
-      property.slug = generatedSlug;
-      await property.save();
+      // Direct update to bypass any middleware logic that might be blocking the save
+      await Property.updateOne(
+        { _id: property._id },
+        { $set: { slug: generatedSlug } }
+      );
       
-      console.log(`Updated: "${property.placeName}" -> ${generatedSlug}`);
+      console.log(`Updated ID ${property._id} with slug: ${generatedSlug}`);
     }
 
-    console.log('✅ All properties updated successfully!');
+    console.log('Migration completed successfully');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Migration failed:', error);
+    console.error('Migration failed:', error);
     process.exit(1);
   }
 };

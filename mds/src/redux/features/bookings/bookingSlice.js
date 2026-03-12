@@ -2,58 +2,38 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { bookingAPI } from './bookingAPI';
 
-// Initial state
 const initialState = {
-  bookings: [],
-  selfBookings: [], // Add this for user's own bookings
-  currentBooking: null,
-  bookingStats: null,
-  selfBookingStats: null, // Add this for user's booking stats
+  bookings:          [],
+  selfBookings:      [],
+  currentBooking:    null,
+  bookingStats:      null,
+  selfBookingStats:  null,
   pagination: {
-    currentPage: 1,
-    totalPages: 0,
-    totalBookings: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
+    currentPage: 1, totalPages: 0, totalBookings: 0,
+    hasNextPage: false, hasPrevPage: false,
   },
-  selfPagination: { // Add separate pagination for self bookings
-    currentPage: 1,
-    totalPages: 0,
-    totalBookings: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
+  selfPagination: {
+    currentPage: 1, totalPages: 0, totalBookings: 0,
+    hasNextPage: false, hasPrevPage: false,
   },
   filters: {
-    page: 1,
-    limit: 10,
-    status: '',
-    propertyId: '',
-    checkIn: '',
-    checkOut: '',
-    guestName: '',
-    bookingId: '',
-    paymentStatus: '',
+    page: 1, limit: 10, status: '', propertyId: '',
+    checkIn: '', checkOut: '', guestName: '', bookingId: '', paymentStatus: '',
   },
-  selfFilters: { // Add separate filters for self bookings
-    page: 1,
-    limit: 10,
-    status: '',
-    propertyId: '',
-    checkIn: '',
-    checkOut: '',
-    guestName: '',
-    bookingId: '',
-    paymentStatus: '',
+  selfFilters: {
+    page: 1, limit: 10, status: '', propertyId: '',
+    checkIn: '', checkOut: '', guestName: '', bookingId: '', paymentStatus: '',
   },
-  isLoading: false,
-  isSelfLoading: false, // Add separate loading state for self bookings
-  isCreating: false,
-  isUpdating: false,
-  error: null,
-  selfError: null, // Add separate error state for self bookings
+  isLoading:    false,
+  isSelfLoading: false,
+  isCreating:   false,
+  isUpdating:   false,
+  error:        null,
+  selfError:    null,
 };
 
-// Async thunks
+// ─── Async Thunks ─────────────────────────────────────────────────────────────
+
 export const fetchAllBookings = createAsyncThunk(
   'booking/fetchAllBookings',
   async (params, { rejectWithValue }) => {
@@ -63,10 +43,9 @@ export const fetchAllBookings = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch bookings');
     }
-  }
+  },
 );
 
-// Add fetchSelfBookings thunk
 export const fetchSelfBookings = createAsyncThunk(
   'booking/fetchSelfBookings',
   async (params, { rejectWithValue }) => {
@@ -76,7 +55,7 @@ export const fetchSelfBookings = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch your bookings');
     }
-  }
+  },
 );
 
 export const fetchBookingById = createAsyncThunk(
@@ -88,7 +67,7 @@ export const fetchBookingById = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch booking');
     }
-  }
+  },
 );
 
 export const createBooking = createAsyncThunk(
@@ -100,7 +79,7 @@ export const createBooking = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create booking');
     }
-  }
+  },
 );
 
 export const updateBooking = createAsyncThunk(
@@ -112,7 +91,7 @@ export const updateBooking = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update booking');
     }
-  }
+  },
 );
 
 export const updatePayment = createAsyncThunk(
@@ -124,7 +103,7 @@ export const updatePayment = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update payment');
     }
-  }
+  },
 );
 
 export const updateStatus = createAsyncThunk(
@@ -136,7 +115,7 @@ export const updateStatus = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update status');
     }
-  }
+  },
 );
 
 export const checkInGuest = createAsyncThunk(
@@ -148,7 +127,7 @@ export const checkInGuest = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to check in guest');
     }
-  }
+  },
 );
 
 export const checkOutGuest = createAsyncThunk(
@@ -160,7 +139,7 @@ export const checkOutGuest = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to check out guest');
     }
-  }
+  },
 );
 
 export const cancelBooking = createAsyncThunk(
@@ -172,7 +151,7 @@ export const cancelBooking = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to cancel booking');
     }
-  }
+  },
 );
 
 export const fetchBookingStats = createAsyncThunk(
@@ -184,10 +163,9 @@ export const fetchBookingStats = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch booking stats');
     }
-  }
+  },
 );
 
-// Add fetchSelfBookingStats thunk
 export const fetchSelfBookingStats = createAsyncThunk(
   'booking/fetchSelfBookingStats',
   async (params, { rejectWithValue }) => {
@@ -197,380 +175,190 @@ export const fetchSelfBookingStats = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch your booking stats');
     }
-  }
+  },
 );
 
+/**
+ * createBookingWithValidation
+ *
+ * Updated for multi-room support.
+ *
+ * Expected bookingData shape:
+ * {
+ *   propertyId,
+ *   rooms: [{ roomId, guestCount: { adults, children } }, ...],
+ *   primaryGuest: { firstName, lastName, email, phone, idType, idNumber, age, gender },
+ *   checkIn,
+ *   checkOut,
+ *   paymentMethod,
+ * }
+ */
 export const createBookingWithValidation = createAsyncThunk(
   'booking/createBookingWithValidation',
   async (bookingData, { rejectWithValue }) => {
     try {
-      // Validate required fields
-      const requiredFields = ['propertyId', 'roomId', 'primaryGuest', 'checkIn', 'checkOut', 'guestCount']
-      const missingFields = requiredFields.filter(field => !bookingData[field])
-      
+      // ── Top-level required fields ──────────────────────────────────────────
+      const requiredFields  = ['propertyId', 'rooms', 'primaryGuest', 'checkIn', 'checkOut'];
+      const missingFields   = requiredFields.filter((f) => !bookingData[f]);
       if (missingFields.length > 0) {
-        throw new Error(`Missing required fields: ${missingFields.join(', ')}`)
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
       }
 
-      // Validate guest details
-      const guestRequiredFields = ['firstName', 'lastName', 'email', 'phone', 'idType', 'idNumber']
-      const missingGuestFields = guestRequiredFields.filter(field => !bookingData.primaryGuest[field])
-      
-      if (missingGuestFields.length > 0) {
-        throw new Error(`Missing guest details: ${missingGuestFields.join(', ')}`)
+      // ── Validate rooms array ───────────────────────────────────────────────
+      if (!Array.isArray(bookingData.rooms) || bookingData.rooms.length === 0) {
+        throw new Error('At least one room must be selected');
       }
 
-      // Validate dates
-      const checkIn = new Date(bookingData.checkIn)
-      const checkOut = new Date(bookingData.checkOut)
-      const today = new Date()
-      
-      if (checkIn < today) {
-        throw new Error('Check-in date cannot be in the past')
-      }
-      
-      if (checkOut <= checkIn) {
-        throw new Error('Check-out date must be after check-in date')
+      for (const [i, r] of bookingData.rooms.entries()) {
+        if (!r.roomId) throw new Error(`Room at index ${i} is missing roomId`);
+        if (!r.guestCount?.adults || r.guestCount.adults < 1) {
+          throw new Error(`Room at index ${i} must have at least 1 adult`);
+        }
       }
 
-      const response = await bookingAPI.createBooking(bookingData)
-      return response.data
+      // Check for duplicate room selections
+      // const roomIds = bookingData.rooms.map((r) => r.roomId);
+      // if (new Set(roomIds).size !== roomIds.length) {
+      //   throw new Error('Duplicate room selections are not allowed');
+      // }
+
+      // ── Validate primary guest ─────────────────────────────────────────────
+      const guestRequired  = ['firstName', 'lastName', 'email', 'phone', 'idType', 'idNumber', 'age', 'gender'];
+      const missingGuest   = guestRequired.filter((f) => !bookingData.primaryGuest[f]);
+      if (missingGuest.length > 0) {
+        throw new Error(`Missing guest details: ${missingGuest.join(', ')}`);
+      }
+
+      // ── Validate dates ─────────────────────────────────────────────────────
+      const checkIn  = new Date(bookingData.checkIn);
+      const checkOut = new Date(bookingData.checkOut);
+      const today    = new Date();
+
+      if (checkIn < today)      throw new Error('Check-in date cannot be in the past');
+      if (checkOut <= checkIn)  throw new Error('Check-out date must be after check-in date');
+
+      const response = await bookingAPI.createBooking(bookingData);
+      return response.data;
+
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to create booking')
+      return rejectWithValue(error.message || 'Failed to create booking');
     }
+  },
+);
+
+// ─── Slice ────────────────────────────────────────────────────────────────────
+
+const updateBookingInArrays = (state, updatedBooking) => {
+  const update = (arr) => {
+    const idx = arr.findIndex((b) => b._id === updatedBooking._id);
+    if (idx !== -1) arr[idx] = updatedBooking;
+  };
+  update(state.bookings);
+  update(state.selfBookings);
+  if (state.currentBooking?._id === updatedBooking._id) {
+    state.currentBooking = updatedBooking;
   }
-)
+};
 
 const bookingSlice = createSlice({
   name: 'booking',
   initialState,
   reducers: {
-    clearBookingError: (state) => {
-      state.error = null;
-    },
-    clearSelfBookingError: (state) => {
-      state.selfError = null;
-    },
-    setCurrentBooking: (state, action) => {
-      state.currentBooking = action.payload;
-    },
-    updateFilters: (state, action) => {
-      state.filters = { ...state.filters, ...action.payload };
-    },
-    updateSelfFilters: (state, action) => {
-      state.selfFilters = { ...state.selfFilters, ...action.payload };
-    },
+    clearBookingError:     (state) => { state.error     = null; },
+    clearSelfBookingError: (state) => { state.selfError = null; },
+    setCurrentBooking:     (state, action) => { state.currentBooking = action.payload; },
+    clearCurrentBooking:   (state) => { state.currentBooking = null; },
+    updateFilters:         (state, action) => { state.filters     = { ...state.filters,     ...action.payload }; },
+    updateSelfFilters:     (state, action) => { state.selfFilters = { ...state.selfFilters, ...action.payload }; },
     resetFilters: (state) => {
-      state.filters = {
-        page: 1,
-        limit: 10,
-        status: '',
-        propertyId: '',
-        checkIn: '',
-        checkOut: '',
-        guestName: '',
-        bookingId: '',
-        paymentStatus: '',
-      };
+      state.filters = { page: 1, limit: 10, status: '', propertyId: '', checkIn: '', checkOut: '', guestName: '', bookingId: '', paymentStatus: '' };
     },
     resetSelfFilters: (state) => {
-      state.selfFilters = {
-        page: 1,
-        limit: 10,
-        status: '',
-        propertyId: '',
-        checkIn: '',
-        checkOut: '',
-        guestName: '',
-        bookingId: '',
-        paymentStatus: '',
-      };
-    },
-    clearCurrentBooking: (state) => {
-      state.currentBooking = null;
+      state.selfFilters = { page: 1, limit: 10, status: '', propertyId: '', checkIn: '', checkOut: '', guestName: '', bookingId: '', paymentStatus: '' };
     },
   },
   extraReducers: (builder) => {
-    // Fetch all bookings
     builder
-      .addCase(fetchAllBookings.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
+      // fetchAllBookings
+      .addCase(fetchAllBookings.pending,   (state) => { state.isLoading = true;  state.error = null; })
+      .addCase(fetchAllBookings.fulfilled, (state, { payload }) => {
+        state.isLoading  = false;
+        state.bookings   = payload.bookings;
+        state.pagination = payload.pagination;
       })
-      .addCase(fetchAllBookings.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.bookings = action.payload.bookings;
-        state.pagination = action.payload.pagination;
-      })
-      .addCase(fetchAllBookings.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
+      .addCase(fetchAllBookings.rejected,  (state, { payload }) => { state.isLoading = false; state.error = payload; })
 
-    // Fetch self bookings
-      .addCase(fetchSelfBookings.pending, (state) => {
-        state.isSelfLoading = true;
-        state.selfError = null;
+      // fetchSelfBookings
+      .addCase(fetchSelfBookings.pending,   (state) => { state.isSelfLoading = true;  state.selfError = null; })
+      .addCase(fetchSelfBookings.fulfilled, (state, { payload }) => {
+        state.isSelfLoading  = false;
+        state.selfBookings   = payload.bookings;
+        state.selfPagination = payload.pagination;
       })
-      .addCase(fetchSelfBookings.fulfilled, (state, action) => {
-        state.isSelfLoading = false;
-        state.selfBookings = action.payload.bookings;
-        state.selfPagination = action.payload.pagination;
-      })
-      .addCase(fetchSelfBookings.rejected, (state, action) => {
-        state.isSelfLoading = false;
-        state.selfError = action.payload;
-      })
+      .addCase(fetchSelfBookings.rejected,  (state, { payload }) => { state.isSelfLoading = false; state.selfError = payload; })
 
-    // Fetch booking by ID
-      .addCase(fetchBookingById.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchBookingById.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.currentBooking = action.payload;
-      })
-      .addCase(fetchBookingById.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload || "Failed to fetch booking" 
-      })
+      // fetchBookingById
+      .addCase(fetchBookingById.pending,   (state) => { state.isLoading = true; state.error = null; })
+      .addCase(fetchBookingById.fulfilled, (state, { payload }) => { state.isLoading = false; state.currentBooking = payload; })
+      .addCase(fetchBookingById.rejected,  (state, { payload }) => { state.isLoading = false; state.error = payload || 'Failed to fetch booking'; })
 
-    // Create booking
-      .addCase(createBooking.pending, (state) => {
-        state.isCreating = true;
-        state.error = null;
-      })
-      .addCase(createBooking.fulfilled, (state, action) => {
+      // createBooking
+      .addCase(createBooking.pending,   (state) => { state.isCreating = true; state.error = null; })
+      .addCase(createBooking.fulfilled, (state, { payload }) => {
         state.isCreating = false;
-        state.bookings.unshift(action.payload);
-        state.selfBookings.unshift(action.payload); // Also add to self bookings
-        state.currentBooking = action.payload;
+        state.bookings.unshift(payload);
+        state.selfBookings.unshift(payload);
+        state.currentBooking = payload;
       })
-      .addCase(createBooking.rejected, (state, action) => {
-        state.isCreating = false;
-        state.error = action.payload;
-      })
+      .addCase(createBooking.rejected,  (state, { payload }) => { state.isCreating = false; state.error = payload; })
 
-    // Update booking
-      .addCase(updateBooking.pending, (state) => {
-        state.isUpdating = true;
-        state.error = null;
-      })
-      .addCase(updateBooking.fulfilled, (state, action) => {
-        state.isUpdating = false;
-        const updatedBooking = action.payload;
-        
-        // Update in bookings array
-        const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (index !== -1) {
-          state.bookings[index] = updatedBooking;
-        }
-        
-        // Update in self bookings array
-        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (selfIndex !== -1) {
-          state.selfBookings[selfIndex] = updatedBooking;
-        }
-        
-        if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
-          state.currentBooking = updatedBooking;
-        }
-      })
-      .addCase(updateBooking.rejected, (state, action) => {
-        state.isUpdating = false;
-        state.error = action.payload;
-      })
+      // updateBooking
+      .addCase(updateBooking.pending,   (state) => { state.isUpdating = true; state.error = null; })
+      .addCase(updateBooking.fulfilled, (state, { payload }) => { state.isUpdating = false; updateBookingInArrays(state, payload); })
+      .addCase(updateBooking.rejected,  (state, { payload }) => { state.isUpdating = false; state.error = payload; })
 
-    // Update payment
-      .addCase(updatePayment.pending, (state) => {
-        state.isUpdating = true;
-        state.error = null;
-      })
-      .addCase(updatePayment.fulfilled, (state, action) => {
-        state.isUpdating = false;
-        const updatedBooking = action.payload;
-        
-        // Update in bookings array
-        const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (index !== -1) {
-          state.bookings[index] = updatedBooking;
-        }
-        
-        // Update in self bookings array
-        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (selfIndex !== -1) {
-          state.selfBookings[selfIndex] = updatedBooking;
-        }
-        
-        if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
-          state.currentBooking = updatedBooking;
-        }
-      })
-      .addCase(updatePayment.rejected, (state, action) => {
-        state.isUpdating = false;
-        state.error = action.payload;
-      })
+      // updatePayment
+      .addCase(updatePayment.pending,   (state) => { state.isUpdating = true; state.error = null; })
+      .addCase(updatePayment.fulfilled, (state, { payload }) => { state.isUpdating = false; updateBookingInArrays(state, payload); })
+      .addCase(updatePayment.rejected,  (state, { payload }) => { state.isUpdating = false; state.error = payload; })
 
-      // Update status
-      .addCase(updateStatus.pending, (state) => {
-        state.isUpdating = true;
-        state.error = null;
-      })
-      .addCase(updateStatus.fulfilled, (state, action) => {
-        state.isUpdating = false;
-        const updatedBooking = action.payload;
-        
-        // Update in bookings array
-        const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (index !== -1) {
-          state.bookings[index] = updatedBooking;
-        }
-        
-        // Update in self bookings array
-        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (selfIndex !== -1) {
-          state.selfBookings[selfIndex] = updatedBooking;
-        }
-        
-        if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
-          state.currentBooking = updatedBooking;
-        }
-      })
-      .addCase(updateStatus.rejected, (state, action) => {
-        state.isUpdating = false;
-        state.error = action.payload;
-      })
+      // updateStatus
+      .addCase(updateStatus.pending,   (state) => { state.isUpdating = true; state.error = null; })
+      .addCase(updateStatus.fulfilled, (state, { payload }) => { state.isUpdating = false; updateBookingInArrays(state, payload); })
+      .addCase(updateStatus.rejected,  (state, { payload }) => { state.isUpdating = false; state.error = payload; })
 
-    // Check-in guest
-      .addCase(checkInGuest.pending, (state) => {
-        state.isUpdating = true;
-        state.error = null;
-      })
-      .addCase(checkInGuest.fulfilled, (state, action) => {
-        state.isUpdating = false;
-        const updatedBooking = action.payload;
-        
-        // Update in bookings array
-        const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (index !== -1) {
-          state.bookings[index] = updatedBooking;
-        }
-        
-        // Update in self bookings array
-        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (selfIndex !== -1) {
-          state.selfBookings[selfIndex] = updatedBooking;
-        }
-        
-        if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
-          state.currentBooking = updatedBooking;
-        }
-      })
-      .addCase(checkInGuest.rejected, (state, action) => {
-        state.isUpdating = false;
-        state.error = action.payload;
-      })
+      // checkInGuest
+      .addCase(checkInGuest.pending,   (state) => { state.isUpdating = true; state.error = null; })
+      .addCase(checkInGuest.fulfilled, (state, { payload }) => { state.isUpdating = false; updateBookingInArrays(state, payload); })
+      .addCase(checkInGuest.rejected,  (state, { payload }) => { state.isUpdating = false; state.error = payload; })
 
-    // Check-out guest
-      .addCase(checkOutGuest.pending, (state) => {
-        state.isUpdating = true;
-        state.error = null;
-      })
-      .addCase(checkOutGuest.fulfilled, (state, action) => {
-        state.isUpdating = false;
-        const updatedBooking = action.payload;
-        
-        // Update in bookings array
-        const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (index !== -1) {
-          state.bookings[index] = updatedBooking;
-        }
-        
-        // Update in self bookings array
-        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (selfIndex !== -1) {
-          state.selfBookings[selfIndex] = updatedBooking;
-        }
-        
-        if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
-          state.currentBooking = updatedBooking;
-        }
-      })
-      .addCase(checkOutGuest.rejected, (state, action) => {
-        state.isUpdating = false;
-        state.error = action.payload;
-      })
+      // checkOutGuest
+      .addCase(checkOutGuest.pending,   (state) => { state.isUpdating = true; state.error = null; })
+      .addCase(checkOutGuest.fulfilled, (state, { payload }) => { state.isUpdating = false; updateBookingInArrays(state, payload); })
+      .addCase(checkOutGuest.rejected,  (state, { payload }) => { state.isUpdating = false; state.error = payload; })
 
-    // Cancel booking
-      .addCase(cancelBooking.pending, (state) => {
-        state.isUpdating = true;
-        state.error = null;
-      })
-      .addCase(cancelBooking.fulfilled, (state, action) => {
-        state.isUpdating = false;
-        const updatedBooking = action.payload;
-        
-        // Update in bookings array
-        const index = state.bookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (index !== -1) {
-          state.bookings[index] = updatedBooking;
-        }
-        
-        // Update in self bookings array
-        const selfIndex = state.selfBookings.findIndex(booking => booking._id === updatedBooking._id);
-        if (selfIndex !== -1) {
-          state.selfBookings[selfIndex] = updatedBooking;
-        }
-        
-        if (state.currentBooking && state.currentBooking._id === updatedBooking._id) {
-          state.currentBooking = updatedBooking;
-        }
-      })
-      .addCase(cancelBooking.rejected, (state, action) => {
-        state.isUpdating = false;
-        state.error = action.payload;
-      })
-      
-    // Fetch booking stats
-      .addCase(fetchBookingStats.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchBookingStats.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.bookingStats = action.payload;
-      })
-      .addCase(fetchBookingStats.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-      
-    // Fetch self booking stats
-      .addCase(fetchSelfBookingStats.pending, (state) => {
-        state.isSelfLoading = true;
-        state.selfError = null;
-      })
-      .addCase(fetchSelfBookingStats.fulfilled, (state, action) => {
-        state.isSelfLoading = false;
-        state.selfBookingStats = action.payload;
-      })
-      .addCase(fetchSelfBookingStats.rejected, (state, action) => {
-        state.isSelfLoading = false;
-        state.selfError = action.payload;
-      });
+      // cancelBooking
+      .addCase(cancelBooking.pending,   (state) => { state.isUpdating = true; state.error = null; })
+      .addCase(cancelBooking.fulfilled, (state, { payload }) => { state.isUpdating = false; updateBookingInArrays(state, payload); })
+      .addCase(cancelBooking.rejected,  (state, { payload }) => { state.isUpdating = false; state.error = payload; })
+
+      // fetchBookingStats
+      .addCase(fetchBookingStats.pending,   (state) => { state.isLoading = true; state.error = null; })
+      .addCase(fetchBookingStats.fulfilled, (state, { payload }) => { state.isLoading = false; state.bookingStats = payload; })
+      .addCase(fetchBookingStats.rejected,  (state, { payload }) => { state.isLoading = false; state.error = payload; })
+
+      // fetchSelfBookingStats
+      .addCase(fetchSelfBookingStats.pending,   (state) => { state.isSelfLoading = true; state.selfError = null; })
+      .addCase(fetchSelfBookingStats.fulfilled, (state, { payload }) => { state.isSelfLoading = false; state.selfBookingStats = payload; })
+      .addCase(fetchSelfBookingStats.rejected,  (state, { payload }) => { state.isSelfLoading = false; state.selfError = payload; });
   },
 });
 
 export const {
-  clearBookingError,
-  clearSelfBookingError,
-  setCurrentBooking,
-  updateFilters,
-  updateSelfFilters,
-  resetFilters,
-  resetSelfFilters,
-  clearCurrentBooking,
+  clearBookingError, clearSelfBookingError,
+  setCurrentBooking, clearCurrentBooking,
+  updateFilters, updateSelfFilters,
+  resetFilters,  resetSelfFilters,
 } = bookingSlice.actions;
 
 export default bookingSlice.reducer;

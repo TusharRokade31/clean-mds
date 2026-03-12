@@ -185,7 +185,9 @@ export default function Listing() {
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Location</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status Update</th>
+            {isAdmin && (
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status Update</th>
+            )}
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
           </tr>
         </thead>
@@ -197,7 +199,9 @@ export default function Listing() {
               <td className="whitespace-nowrap px-6 py-4 text-sm">
                 {property.location?.city}, {property.location?.state}
               </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm flex space-x-2">
+              
+              {/* STATUS COLUMN */}
+              <td className="whitespace-nowrap px-6 py-4 text-sm flex space-x-2 items-center">
                 <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                   property.status === 'published' ? 'bg-green-100 text-green-800' : 
                   property.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 
@@ -208,10 +212,10 @@ export default function Listing() {
                   {property.status}
                 </span>
 
-                {isAdmin && property.status === 'pending' && (
+                {isAdmin && (
                   <>
                     <button 
-                      className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed ml-2"
                       title="Approve Property"
                       onClick={() => handleReviewClick(property, 'approve')}
                       disabled={reviewLoading === property._id}
@@ -232,28 +236,17 @@ export default function Listing() {
                     </button>
                   </>
                 )}
-                
-                {(isAdmin || property.status !== 'published') && (
-                  <button 
-                    className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Delete Property"
-                    onClick={() => handleDelete(property._id)}
-                    disabled={deleteLoading === property._id}
-                  >
-                    {deleteLoading === property._id ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
-                    ) : <Trash2 className="h-5 w-5" />}
-                  </button>
-                )}
               </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm space-x-2">
-                { (
+              
+              {/* STATUS UPDATE COLUMN (ADMIN ONLY) */}
+             {isAdmin && ( <td className="whitespace-nowrap px-6 py-4 text-sm space-x-2">
+                
                   <div>
                     <select
                       value={property.status}
                       onChange={(e) => handleStatusChange(property, e.target.value)}
                       disabled={statusLoading === property._id || reviewLoading === property._id}
-                      className="ml-2 rounded-md border px-2 py-1 text-sm"
+                      className="rounded-md border px-2 py-1 text-sm"
                       title="Change status"
                     >
                       {statusOptions.map(opt => (
@@ -261,19 +254,37 @@ export default function Listing() {
                       ))}
                     </select>
                     {statusLoading === property._id && (
-                      <span className="ml-2 inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2"></span>
+                      <span className="ml-2 inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-gray-600"></span>
                     )}
                   </div>
-                )}
+                
               </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm space-x-2">
-                <Link 
-                  href={`/host/onboarding/${property._id}`} 
-                  className="text-green-600 hover:text-green-900"
-                  title="Edit Property"
-                >
-                  <Edit className="h-5 w-5" />
-                </Link> 
+              )}
+              
+              {/* ACTIONS COLUMN */}
+              <td className="whitespace-nowrap px-6 py-4 text-sm">
+                <div className="flex items-center space-x-4">
+                  <Link 
+                    href={`/host/onboarding/${property._id}`} 
+                    className="text-green-600 hover:text-green-900"
+                    title="Edit Property"
+                  >
+                    <Edit className="h-5 w-5" />
+                  </Link> 
+                  
+                  {(isAdmin || property.status !== 'published') && (
+                    <button 
+                      className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete Property"
+                      onClick={() => handleDelete(property._id)}
+                      disabled={deleteLoading === property._id}
+                    >
+                      {deleteLoading === property._id ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
+                      ) : <Trash2 className="h-5 w-5" />}
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
