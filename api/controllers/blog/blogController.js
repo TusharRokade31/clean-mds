@@ -67,12 +67,21 @@ export const getAllPublicBlogs = asyncHandler(async (req, res) => {
   if (tag) query.tags = tag;
   if (category) query.category = category;
 
-  const blogs = await Blog
-    .find(query)
-    .populate('author', 'name email')
-    .sort({ createdAt: -1 })
-    .skip((page - 1) * limit)
-    .limit(Number(limit));
+const blogs = await Blog.aggregate([
+  { $match: query },
+  { $sort: { createdAt: -1 } },
+  { $skip: (page - 1) * limit },
+  { $limit: Number(limit) },
+  {
+    $lookup: {
+      from: 'users', // ensure this matches your actual user collection name
+      localField: 'author',
+      foreignField: '_id',
+      as: 'author'
+    }
+  },
+  { $unwind: '$author' }
+]).allowDiskUse(true);
 
   const total = await Blog.countDocuments(query);
 
@@ -106,12 +115,21 @@ export const getAllBlogs = asyncHandler(async (req, res) => {
   query.isDeleted = isDeleted ? true : false;
 
 
-  const blogs = await Blog
-    .find(query)
-    .populate('author', 'name email')
-    .sort({ createdAt: -1 })
-    .skip((page - 1) * limit)
-    .limit(Number(limit));
+const blogs = await Blog.aggregate([
+  { $match: query },
+  { $sort: { createdAt: -1 } },
+  { $skip: (page - 1) * limit },
+  { $limit: Number(limit) },
+  {
+    $lookup: {
+      from: 'users', // ensure this matches your actual user collection name
+      localField: 'author',
+      foreignField: '_id',
+      as: 'author'
+    }
+  },
+  { $unwind: '$author' }
+]).allowDiskUse(true);
 
   const total = await Blog.countDocuments(query);
 

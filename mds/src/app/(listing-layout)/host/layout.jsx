@@ -62,10 +62,10 @@ export default function HotelDashboardLayout({ children }) {
         </div>
         
         <nav className="space-y-1 px-2">
-          <NavItem icon={<MapPinHouse className="h-5 w-5" />} label="Properties" />
-          <NavItem icon={<MapPinPlus className="h-5 w-5" />} label="Onboarding" />
-          <NavItem icon={<NotebookText className="h-5 w-5" />} label="All-Bookings" />
-          <NavItem icon={<BedDouble className="h-5 w-5" />} label="Occupancy" />
+<NavItem icon={<MapPinHouse className="h-5 w-5" />} label="Properties" onClose={() => setSidebarOpen(false)} />
+<NavItem icon={<MapPinPlus className="h-5 w-5" />} label="Onboarding" onClose={() => setSidebarOpen(false)} />
+<NavItem icon={<NotebookText className="h-5 w-5" />} label="All-Bookings" onClose={() => setSidebarOpen(false)} />
+<NavItem icon={<BedDouble className="h-5 w-5" />} label="Occupancy" onClose={() => setSidebarOpen(false)} />
           
           {/* Booking Dropdown */}
           {/* <div className="relative">
@@ -155,7 +155,7 @@ export default function HotelDashboardLayout({ children }) {
         </header>
 
         {/* Main content area */}
-        <main className="flex-1 overflow-auto p-4 lg:p-6">
+        <main className="flex-1 overflow-auto p-1 md:p-4 lg:p-6">
           {children}
         </main>
 
@@ -168,10 +168,11 @@ export default function HotelDashboardLayout({ children }) {
   )
 }
 
-function NavItem({ icon, label, active }) {
+function NavItem({ icon, label, active, onClose }) {
   return (
     <Link
       href={`/host/${label.toLowerCase()}`}
+      onClick={onClose}  // 👈 closes sidebar on click
       className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium ${active ? "bg-blue-800" : "hover:bg-blue-800"}`}
     >
       {icon}

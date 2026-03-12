@@ -1,6 +1,7 @@
 import { useHTMLContent } from "@/hooks/useHTMLContent"
 import { Clock, ArrowRight } from "lucide-react"
 import staticImg from "../../../public/featured-places/Ambaji.png"
+import Link from "next/link"
 
 export default function ArticleCard({ article }) {
   const getCategoryColor = (category) => {
@@ -36,7 +37,11 @@ export default function ArticleCard({ article }) {
   const truncatedContent = useHTMLContent(article.content, { maxLength: 150 })
 
   return (
-    <div className="overflow-hidden rounded-xl hover:shadow-lg hover:-translate-2 border border-[#1034ac23] transition-shadow duration-300">
+    <Link href={`/blogs/${article.slug}`}>
+      <div className="group overflow-hidden rounded-xl border border-[#1034ac23] 
+                 transition-all duration-300 ease-out
+                 hover:shadow-xl hover:-translate-y-2 
+                 will-change-transform transform-gpu">
       <div className="relative w-full aspect-video overflow-hidden"> 
   <img 
     src={article.image || staticImg.src} 
@@ -66,19 +71,16 @@ export default function ArticleCard({ article }) {
               </span>
             ))}
           </div>
-          <footer className="pt-0">
-            <button
-              variant="outline"
-              size="sm"
-              className="w-full flex items-center group hover:text-[#1035ac]"
-              onClick={() => window.location.href = `/blogs/${article.slug}`}
-            >
+         <footer className="pt-0">
+      {/* Changed button to div/span because it's already inside a Link */}
+            <div className="w-full flex items-center text-sm font-medium group-hover:text-[#1035ac] transition-colors">
               Read More
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </div>
           </footer>
         </div>
       </div>
     </div>
+    </Link>
   )
 }

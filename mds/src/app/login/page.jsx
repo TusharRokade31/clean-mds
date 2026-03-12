@@ -89,6 +89,7 @@ const googleLogin = useGoogleLogin({
       ...credentials,
       [e.target.name]: e.target.value,
     });
+    if (error) dispatch({ type: 'auth/clearError' }); // clear error on input change
   };
 
 const handleSubmit = async (e) => {
@@ -158,9 +159,27 @@ const handleSubmit = async (e) => {
           </div>
           {/* FORM */}
           <form className="grid grid-cols-1 gap-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="text-red-500 text-sm">{error  == "Failed to fetch user" || error == "Not authorized to access this route" ? "" : error}</div>
-            )}
+{error && (
+  <div className="text-red-500 text-sm space-y-1">
+    {(Array.isArray(error) 
+        ? error 
+        : [{ message: error }] // Turn "Invalid credentials" into [{ message: "Invalid credentials" }]
+    )
+      .filter((err) => {
+        const msg = err?.message || err; // Handle cases where err might be the string itself
+        return (
+          msg !== "Failed to fetch user" &&
+          msg !== "Not authorized to access this route"
+        );
+      })
+      .map((err, index) => (
+        <p key={index}>
+          {/* If it's an object use .message, otherwise use the string itself */}
+          {typeof err === 'string' ? err : err.message}
+        </p>
+      ))}
+  </div>
+)}
             <label className="flex items-start flex-col">
               <span className="text-neutral-800 ">
                 {"Email address"}
@@ -186,6 +205,7 @@ const handleSubmit = async (e) => {
               <input
                 type={showpassword} // Uses your existing state
                 name="password"
+                placeholder="password"
                 className="w-full border border-[#e5e7eb] py-3 px-4 pr-12 rounded-2xl focus-within:outline-2 focus-within:outline-indigo-200"
                 value={credentials.password}
                 onChange={handleChange}

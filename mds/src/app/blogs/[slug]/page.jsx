@@ -40,7 +40,7 @@ export default function BlogDetail() {
 
       // Update canonical URL
       const canonical = document.querySelector('link[rel="canonical"]')
-      const canonicalUrl = `${window.location.origin}/blog/${params.slug}`
+      const canonicalUrl = `${window.location.origin}/blogs/${params.slug}`
       if (canonical) {
         canonical.setAttribute('href', canonicalUrl)
       } else {

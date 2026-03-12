@@ -1,26 +1,22 @@
 "use client"
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { useDispatch, useSelector } from "react-redux"
 import BookingConfirmation from "@/component/onlinebooking/BookingConfirmation"
+import { fetchBookingById } from "@/redux/features/bookings/bookingSlice"
 
 export default function BookingConfirmationRoute() {
   const params = useParams()
-  const [loading, setLoading] = useState(true)
-  const [bookingExists, setBookingExists] = useState(false)
+  const router = useRouter()
+  const dispatch = useDispatch()
+
+  const { currentBooking, loading, error } = useSelector((state) => state.booking)
 
   useEffect(() => {
-    // Check if booking data exists in localStorage
-    const currentBooking = JSON.parse(localStorage.getItem('currentBooking') || '{}')
-    console.log(currentBooking)
-    
-    if (currentBooking && currentBooking._id === params.bookingId) {
-      setBookingExists(true)
-    } else if (currentBooking && currentBooking.bookingId === params.bookingId) {
-      setBookingExists(true)
+    if (params.bookingId) {
+      dispatch(fetchBookingById(params.bookingId))
     }
-    
-    setLoading(false)
-  }, [params.bookingId])
+  }, [params.bookingId, dispatch])
 
   if (loading) {
     return (
@@ -30,7 +26,7 @@ export default function BookingConfirmationRoute() {
     )
   }
 
-  if (!bookingExists) {
+  if (!loading && (error || !currentBooking)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-auto px-4">
@@ -49,14 +45,14 @@ export default function BookingConfirmationRoute() {
             <li>• The booking ID is invalid</li>
           </ul>
           <div className="space-y-3">
-            <button 
-              onClick={() => window.location.href = '/'}
+            <button
+              onClick={() => router.push('/')}
               className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
             >
               Search Again
             </button>
-            <button 
-              onClick={() => window.location.href = '/my-bookings'}
+            <button
+              onClick={() => router.push('/my-bookings')}
               className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 font-medium"
             >
               View My Bookings

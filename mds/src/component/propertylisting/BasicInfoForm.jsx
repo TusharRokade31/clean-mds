@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { 
   TextField, FormControl, InputLabel, Select, 
   MenuItem, FormHelperText, Grid, Typography,
-  Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions
+  Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+  Checkbox,
+  ListItemText
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { checkEmailVerificationStatus, sendEmailOTP, verifyEmailOTP } from '@/redux/features/property/propertySlice';
@@ -73,6 +75,12 @@ export default function BasicInfoForm({ formData, onChange, errors, propertyId, 
     'Dharamshala', 'Ashram(Spiritual centers offering meditation/yoga stay with a guru or community)', 'Trust Guest House( Guesthouses owned/operated by temple or religious trusts)', 'Yatri Niwas / Pilgrim Lodge(Budget stays designed for pilgrims by governments or religious orgs)'
   ];
   
+
+  const languageOptions = [
+  'English', 'Hindi', 'Gujarati', 'Marathi', 'Bengali', 
+  'Kannada', 'Tamil', 'Telugu', 'Malayalam', 'Punjabi'
+];
+
   // const rentalForms = ['Entire place', 'Private room', 'Share room'];
 
  const ratingArray = Array.from({ length: 5 }, (_, i) => 5 - i);
@@ -179,7 +187,8 @@ const bookingYearOptions = formData.propertyBuilt
         
         
         <Grid item size={{xs:12, md:4}}>
-          <FormControl            
+          <FormControl
+          fullWidth            
             sx={{
               "& .MuiOutlinedInput-root": {
                 color: "#000",
@@ -200,25 +209,24 @@ const bookingYearOptions = formData.propertyBuilt
                   },
                 },
               },
-            }} fullWidth error={!!errors?.propertyBuilt}>
-            <InputLabel>When was the property built?</InputLabel>
+            }} >
+            <InputLabel>When was the property built? (Optional)</InputLabel>
            <Select
             value={formData.propertyBuilt || ''}
             onChange={(e) => onChange('propertyBuilt', e.target.value)}
-            label="When was the property built?"
+            label="When was the property built? (Optional)"
           >
             {builtYearOptions.map(year => (
               <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
             ))}
           </Select>
-            {errors?.propertyBuilt && (
-              <FormHelperText>{errors.propertyBuilt}</FormHelperText>
-            )}
+           
           </FormControl>
         </Grid>
         
         <Grid item size={{xs:12, md:4}}>
-          <FormControl            
+          <FormControl
+          fullWidth            
             sx={{
               "& .MuiOutlinedInput-root": {
                 color: "#000",
@@ -239,20 +247,18 @@ const bookingYearOptions = formData.propertyBuilt
                   },
                 },
               },
-            }} fullWidth error={!!errors?.bookingSince}>
-            <InputLabel>Accepting booking since?</InputLabel>
+            }}>
+            <InputLabel>Accepting booking since? (Optional)</InputLabel>
             <Select
               value={formData.bookingSince || ''}
               onChange={(e) => onChange('bookingSince', e.target.value)}
-              label="Accepting booking since?"
+              label="Accepting booking since? (Optional)"
             >
               {bookingYearOptions.map(year => (
                 <MenuItem key={year} value={year.toString()}>{year}</MenuItem>
               ))}
             </Select>
-            {errors?.bookingSince && (
-              <FormHelperText>{errors.bookingSince}</FormHelperText>
-            )}
+            
           </FormControl>
         </Grid>
         <Grid item size={{xs:12, md:4}}>
@@ -332,7 +338,6 @@ const bookingYearOptions = formData.propertyBuilt
         
         <Grid item sx={{xs:12, md:6}}>
           <TextField
-                     
             sx={{
               "& .MuiOutlinedInput-root": {
                 color: "#000",
@@ -357,18 +362,38 @@ const bookingYearOptions = formData.propertyBuilt
             fullWidth
             label="Mobile Number"
             value={formData.mobileNumber}
-            onChange={(e) => onChange('mobileNumber', e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, ""); // strips non-digits
+              onChange('mobileNumber', value);
+            }}
             error={!!errors.mobileNumber}
-            // helperText={errors.mobileNumber || 'Enter 10 digit mobile number'}
-
             placeholder=""
             inputProps={{
               maxLength: 10,
               pattern: '[0-9]*',
               inputMode: 'numeric'
             }}
-          />
+            />
         </Grid>
+        <Grid item size={{xs:12, md:4}}>
+  <FormControl fullWidth>
+    <InputLabel>Languages Spoken</InputLabel>
+    <Select
+      multiple
+      value={formData.languagesSpoken || []}
+      onChange={(e) => onChange('languagesSpoken', e.target.value)}
+      renderValue={(selected) => selected.join(', ')}
+      label="Languages Spoken"
+    >
+      {languageOptions.map((name) => (
+        <MenuItem key={name} value={name}>
+          <Checkbox checked={(formData.languagesSpoken || []).indexOf(name) > -1} />
+          <ListItemText primary={name} />
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+</Grid>
         
         <Grid item sx={{xs:12, md:6}}>
           <TextField

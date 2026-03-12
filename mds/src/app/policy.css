@@ -7,7 +7,7 @@
 }
 
 /* The wrapper for the text content */
-.legal-content h2 {
+.legal-content h1 {
   font-size: 2rem;
   font-weight: 700;
   color: #1a202c; /* Dark gray */

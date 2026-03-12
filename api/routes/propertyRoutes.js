@@ -15,8 +15,6 @@ import {
   updateRoom,
   deleteRoom,
   completePropertyListing,
-
-  // New routes I suggested
   getPropertiesByState,
   getPropertiesByCity,
   searchProperties,
@@ -45,6 +43,8 @@ import {
   getPropertyStatus,
   getFilteredProperties,
   changePropertyStatus,
+  getFeaturedByLocation,
+  getSimilarProperties,
 } from '../controllers/property/propertyController.js';
 
 
@@ -85,6 +85,7 @@ import { validateFilterQuery } from '../middleware/validation.js';
 const router = express.Router();
 
 router.get('/suggestions', getSuggestions);
+router.get('/featured-by-location', getFeaturedByLocation);
 
 router.get('/property-listing',setDefaultLocation, validatePropertyQuery, getPropertiesByQuery);
 
@@ -108,8 +109,8 @@ router.put(
   [
     check('propertyType', 'Property type is required').not().isEmpty(),
     check('placeName', 'Place name is required').not().isEmpty(),
-    check('propertyBuilt', 'Property built year is required').not().isEmpty(),
-    check('bookingSince', 'Booking since date is required').not().isEmpty(),
+    // check('propertyBuilt', 'Property built year is required').not().isEmpty(),
+    // check('bookingSince', 'Booking since date is required').not().isEmpty(),
     check('rentalForm', 'Rental form is required').not().isEmpty(),
   ],
   saveBasicInfo,
@@ -176,6 +177,8 @@ router.delete(
   protect,
   deleteRoom,
 );
+
+router.get('/:propertyId/similar', getSimilarProperties);
 
 router.post(
   '/:propertyId/rooms/:roomId/media', 
@@ -327,7 +330,7 @@ router.get('/draft', protect, getDraftProperties); // Protect route so only auth
 // Get single property
 router.get('/:id', protect, getProperty);
 
-router.get('/view/:id',  getViewProperty);
+router.get('/view/:slug',  getViewProperty);
 
 // Admin routes
 router.put('/:id/review', protect, reviewProperty);
@@ -344,7 +347,7 @@ router.delete('/:id', protect, deleteProperty);
 router.get('/state/:state', getPropertiesByState);
 
 // Get properties by city - public route
-router.get('/city/:city', getPropertiesByCity);
+router.get('/city/:city', getPropertiesByCity);           
 
 // Search properties with filters - public route
 // router.get('/search', searchProperties);
@@ -413,7 +416,7 @@ router.delete('/:propertyId/legal/document/:documentId',
 
 
 // routes/financeLegalRoutes.js
-router.post('/:propertyId/legal/complete-step', completeFinanceLegalStep);
+router.post('/:propertyId/legal/complete-step', protect, completeFinanceLegalStep);
 
 // Delete finance legal data
 router.delete('/:propertyId/finance-legal', protect, deleteFinanceLegal);

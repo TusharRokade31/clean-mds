@@ -19,6 +19,8 @@ import {
 import { ArrowUpward, ArrowDownward, Refresh } from "@mui/icons-material"
 import { clearError, fetchDashboardStats, fetchRecentBookings, refreshAllDashboardData, selectDashboardError, selectDashboardLoading, selectLastUpdated, selectMetricCards, selectReservationTrend, selectRoomAvailability } from "@/redux/features/stats/dashboardSlice"
 import { getAllProperties } from "@/redux/features/property/propertySlice"
+import Link from "next/link"
+import { Plus } from "lucide-react"
 
 
 // Component for metric cards
@@ -316,6 +318,13 @@ const HotelDashboard = () => {
         <Typography variant="h6" color="text.secondary">
           No published properties found. Please publish a property first.
         </Typography>
+        <Link
+            href="/host/onboarding/new"
+            className="inline-flex items-center mt-5 gap-2 rounded-md bg-[#1035ac] px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
+            >
+                    <Plus className="h-4  w-4" />
+                    Create New Property
+                  </Link>
       </Box>
     );
   }

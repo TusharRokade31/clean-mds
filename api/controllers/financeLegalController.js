@@ -97,10 +97,8 @@ export const updateFinanceDetails = async (req, res) => {
     const { propertyId } = req.params;
     const { bankDetails, taxDetails } = req.body;
 
-    let financeLegal = await FinanceLegal.findOne({ 
-      property: propertyId,
-      owner: req.user._id, 
-    });
+    const query = buildOwnerQuery(req, propertyId);
+    let financeLegal = await FinanceLegal.findOne(query);
 
     if (!financeLegal) {
       return res.status(404).json({
@@ -162,10 +160,8 @@ export const updateLegalDetails = async (req, res) => {
     const { propertyId } = req.params;
     const { ownershipDetails } = req.body;
 
-    let financeLegal = await FinanceLegal.findOne({ 
-      property: propertyId,
-      owner: req.user._id, 
-    });
+    const query = buildOwnerQuery(req, propertyId);
+    let financeLegal = await FinanceLegal.findOne(query);
 
     if (!financeLegal) {
       return res.status(404).json({
@@ -221,7 +217,8 @@ export const uploadRegistrationDocument = async (req, res) => {
     }
 
     // ✅ Query only by property first to confirm record exists
-    let financeLegal = await FinanceLegal.findOne({ property: propertyId });
+    const query = buildOwnerQuery(req, propertyId);
+    let financeLegal = await FinanceLegal.findOne(query);
 
     console.log('Found FL:', financeLegal?._id);
     console.log('FL owner:', financeLegal?.owner);
@@ -354,9 +351,8 @@ export const completeFinanceLegalStep = async (req, res) => {
     }
 
     // Get finance legal data
-    let financeLegal = await FinanceLegal.findOne({ 
-      property: propertyId, 
-    });
+    const query = buildOwnerQuery(req, propertyId);
+    let financeLegal = await FinanceLegal.findOne(query);
 
     if (!financeLegal) {
       return res.status(404).json({
@@ -475,6 +471,7 @@ if (!ownershipDetails.registrationDocuments || ownershipDetails.registrationDocu
 export const deleteFinanceLegal = async (req, res) => {
   try {
     const { propertyId } = req.params;
+    
 
     const result = await FinanceLegal.findOneAndDelete({ 
       property: propertyId,

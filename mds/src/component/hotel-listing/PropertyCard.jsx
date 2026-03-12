@@ -9,6 +9,7 @@ import { toast } from "react-hot-toast" // or your toast library
 
 export function PropertyCard({
   id,
+  slug,
   name,
   location,
   rating,
@@ -75,7 +76,7 @@ export function PropertyCard({
   const hasMoreImages = images.length > 4
 
   return (
-    <Link href={`/hotel-details/${id}`}>
+    <Link href={`/hotel-details/${slug}`} className="block">
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-blue-200 group">
       <div className="flex flex-col">
         {/* Mobile Layout */}
@@ -158,7 +159,7 @@ export function PropertyCard({
                 </div>
                 <div className="text-xs text-gray-500">per night + taxes</div>
               </div>
-              <Link href={`/hotel-details/${id}`}>
+              <Link href={`/hotel-details/${slug}`} className="block">
                 <Button 
                   variant="contained"
                   sx={{
@@ -296,7 +297,7 @@ export function PropertyCard({
                   <div className="text-sm text-gray-500 mb-1">per night</div>
                 </div>
                 
-                <Link href={`/hotel-details/${id}`}>
+                <Link href={`/hotel-details/${slug}`} className="block">
                   <Button sx={{
                     background: 'linear-gradient(135deg, #1035ac 0%, #7c3aed 100%)',
                     color: 'white',

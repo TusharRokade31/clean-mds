@@ -6,12 +6,12 @@ export default function Header({featuredArticle}) {
     <>
     <header className="bg-[#1035ac] relative text-white py-16">
       <div className="container mx-auto px-4 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">Spiritual Journey Insights</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">Spiritual Travel Blogs & Sacred Journeys</h1>
         <p className="text-xl mb-8 text-blue-100">
           Discover sacred places, travel wisdom, and inspiring stories from fellow pilgrims
         </p>
 
-        <div className="flex justify-center items-center gap-8 md:gap-12">
+        {/* <div className="flex justify-center items-center gap-8 md:gap-12">
           <div className="flex items-center gap-2">
             <MapPin className="w-6 h-6 text-red-400" />
             <span className="text-sm md:text-base">Sacred Destinations</span>
@@ -24,7 +24,7 @@ export default function Header({featuredArticle}) {
             <Heart className="w-6 h-6 text-yellow-400" />
             <span className="text-sm md:text-base">Inspiring Stories</span>
           </div>
-        </div>
+        </div> */}
       </div>
        
     </header>

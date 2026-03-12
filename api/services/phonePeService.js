@@ -40,7 +40,7 @@ const phonePeService = {
         .amount(amountInPaise)
         .metaInfo(metaInfo)
         .redirectUrl(
-          `${process.env.API_PRO_URL}/payments/phonepe/callback?merchantTransactionId=${merchantOrderId}`
+          `${process.env.API_URL}/payments/phonepe/callback?merchantTransactionId=${merchantOrderId}`
         )
         .expireAfter(3600)
         .build();

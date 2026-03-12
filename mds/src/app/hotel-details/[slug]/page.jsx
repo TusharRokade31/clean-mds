@@ -18,19 +18,20 @@ import LocationSection from "@/component/hotel-details/location-section"
 import PropertyRules from "@/component/hotel-details/property-rules"
 import { getViewProperty } from "@/redux/features/property/propertySlice"
 import PropertyOverview from "@/component/hotel-details/PropertyOverview"
+import SimilarProperties from "@/component/hotel-details/SimilarProperties"
 
 const sections = [
-  { id: "overview", label: "OVERVIEW", component: PropertyOverview },
-  { id: "rooms", label: "ROOMS", component: RoomsSection },
-  { id: "location", label: "LOCATION", component: LocationSection },
-  { id: "rules", label: "PROPERTY RULES", component: PropertyRules },
-  { id: "reviews", label: "USER REVIEWS", component: null },
-  { id: "similar", label: "SIMILAR PROPERTIES", component: null },
+  { id: "overview",  label: "OVERVIEW",            component: PropertyOverview    },
+  { id: "rooms",     label: "ROOMS",               component: RoomsSection        },
+  { id: "location",  label: "LOCATION",            component: LocationSection     },
+  { id: "rules",     label: "PROPERTY RULES",      component: PropertyRules       },
+  // { id: "reviews", label: "USER REVIEWS", component: null },
+  { id: "similar",   label: "SIMILAR PROPERTIES",  component: SimilarProperties  },
 ]
 
 export default function PropertyDetailsPage() {
   
-  const { id } = useParams()
+  const { slug } = useParams()
   const dispatch = useDispatch()
   const { ViewProperty, loading, error } = useSelector((state) => state.property)
   console.log(ViewProperty)
@@ -41,10 +42,10 @@ export default function PropertyDetailsPage() {
   const navRef = useRef(null)
 
   useEffect(() => {
-    if (id) {
-      dispatch(getViewProperty(id))
+    if (slug) {
+      dispatch(getViewProperty(slug))
     }
-  }, [id, dispatch])
+  }, [slug, dispatch])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -199,25 +200,24 @@ export default function PropertyDetailsPage() {
         {/* Sections */}
         <Box sx={{ space: 6 }}>
           {sections.map((section) => (
-            <Box
-              key={section.id}
-              ref={(el) => (sectionRefs.current[section.id] = el)}
-              id={section.id}
-              sx={{ mb: 6 }}
-            >
+           <Box 
+    key={section.id} 
+    ref={(el) => (sectionRefs.current[section.id] = el)}
+    sx={{ mb: 6 }}
+  >
+    {/* Only render the component if we have ViewProperty data */}
+    {section?.component && ViewProperty && (
+      <section.component 
+        setActiveSection={scrollToSection}
+        data={ViewProperty}
+        propertyId={ViewProperty?._id}
+        location={ViewProperty?.location} // Ensure this contains lat/lng
+        rooms={ViewProperty?.rooms}
+        amenities={ViewProperty?.amenities}
+      />
+    )}
               
-              {section?.component && (
-                
-                <section.component 
-                  setActiveSection={scrollToSection}
-                  data={ViewProperty}
-                  location={ViewProperty?.location}
-                  rooms={ViewProperty?.rooms}
-                  amenities={ViewProperty?.amenities}
-                />
-              )}
-              
-              {section.id === "reviews" && (
+              {/* {section.id === "reviews" && (
                 <Paper sx={{ p: 4, textAlign: "center" }}>
                   <Typography variant="h5" fontWeight="semibold" gutterBottom>
                     User Reviews
@@ -237,7 +237,7 @@ export default function PropertyDetailsPage() {
                     Similar properties section coming soon...
                   </Typography>
                 </Paper>
-              )}
+              )} */}
             </Box>
           ))}
         </Box>

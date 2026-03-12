@@ -53,6 +53,7 @@ import {
   deleteRegistrationDocument,
 } from '@/redux/features/property/propertySlice';
 import toast, { Toaster } from "react-hot-toast";
+import { useConfirm } from '@/hooks/useConfirm';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -82,6 +83,8 @@ const UploadArea = styled(Box)(({ theme }) => ({
 
 const FinanceLegalForm = ({ propertyId, onComplete }) => {
   const dispatch = useDispatch();
+  const { confirm, ConfirmDialog } = useConfirm();
+
   const { currentFinanceLegal, isLoading, error } = useSelector(state => state.property);
 
   const errorMessage = typeof error === 'string' 
@@ -243,7 +246,13 @@ const FinanceLegalForm = ({ propertyId, onComplete }) => {
   };
 
 const handleDeleteDocument = async (doc) => {
-  if (!window.confirm('Are you sure you want to delete this document?')) return;
+   const ok = await confirm({
+    title: 'Delete Document?',
+    description: 'This document will be permanently removed.',
+    confirmText: 'Delete',
+    confirmColor: 'error',
+  });
+  if (!ok) return;
 
   try {
     // ✅ Use _id if exists, fallback to filename
@@ -303,6 +312,7 @@ const handleDeleteDocument = async (doc) => {
   return (
     <Paper elevation={2} sx={{ p: 3, mx: 'auto', mt: 2 }}>
       <Toaster position="top-right" />
+      <ConfirmDialog />
       
       <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
         <Tab 

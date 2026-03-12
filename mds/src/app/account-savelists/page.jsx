@@ -172,7 +172,7 @@ export default function WishlistPage() {
                   </button>
 
                   {/* Property Image */}
-                  <Link href={`/hotel-details/${property._id}`}>
+                  <Link href={`/hotel-details/${property.slug}`}>
                     <div className="relative h-56 overflow-hidden cursor-pointer">
                       {imageUrl ? (
                         <img
@@ -202,7 +202,7 @@ export default function WishlistPage() {
 
                   {/* Property Details */}
                   <div className="p-5">
-                    <Link href={`/hotel-details/${property._id}`}>
+                    <Link href={`/hotel-details/${property.slug}`}>
                       <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-2 cursor-pointer line-clamp-2">
                         {property.placeName}
                       </h3>
@@ -248,7 +248,7 @@ export default function WishlistPage() {
                     </div>
 
                     {/* View Details Button */}
-                    <Link href={`/hotel-details/${property._id}`}>
+                    <Link href={`/hotel-details/${property.slug}`}>
                       <Button 
                         variant="contained"
                         fullWidth

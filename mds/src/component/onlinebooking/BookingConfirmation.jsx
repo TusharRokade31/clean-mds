@@ -1,21 +1,14 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSelector } from "react-redux"
 import BookingInvoice from "./BookingInvoice"
 
 export default function BookingConfirmation({ bookingId }) {
   const router = useRouter()
-  const [booking, setBooking] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [showInvoice, setShowInvoice] = useState(false)
 
-  useEffect(() => {
-    const currentBooking = JSON.parse(localStorage.getItem('currentBooking') || '{}')
-    if (currentBooking) {
-      setBooking(currentBooking)
-      setLoading(false)
-    }
-  }, [bookingId])
+  const { currentBooking: booking, loading } = useSelector((state) => state.booking)
 
   if (loading) {
     return (
@@ -82,7 +75,7 @@ export default function BookingConfirmation({ bookingId }) {
                   <h3 className="text-lg font-semibold mb-3">Payment Details</h3>
                   <div className="space-y-2">
                     <p><span className="text-gray-600">Total Amount:</span> ₹{booking?.pricing?.totalAmount}</p>
-                    <p><span className="text-gray-600">Payment Status:</span> 
+                    <p><span className="text-gray-600">Payment Status:</span>
                       <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
                         {booking?.payment?.status?.toUpperCase()}
                       </span>
@@ -94,7 +87,7 @@ export default function BookingConfirmation({ bookingId }) {
 
               {/* Action Buttons */}
               <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                <button 
+                <button
                   onClick={() => setShowInvoice(true)}
                   className="flex-1 bg-[#1e3a8a] text-white py-3 px-4 rounded-lg font-medium hover:bg-[#1e40af] flex items-center justify-center"
                 >
@@ -103,7 +96,7 @@ export default function BookingConfirmation({ bookingId }) {
                   </svg>
                   Download Invoice
                 </button>
-                <button 
+                <button
                   onClick={() => router.push('/my-bookings')}
                   className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 flex items-center justify-center"
                 >
@@ -131,9 +124,9 @@ export default function BookingConfirmation({ bookingId }) {
 
       {/* Invoice Modal */}
       {showInvoice && (
-        <BookingInvoice 
-          booking={booking} 
-          onClose={() => setShowInvoice(false)} 
+        <BookingInvoice
+          booking={booking}
+          onClose={() => setShowInvoice(false)}
         />
       )}
     </>

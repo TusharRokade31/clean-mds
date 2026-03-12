@@ -70,7 +70,7 @@ export function PropertyList({
   return (
     <div className="flex-1">
       {/* Desktop Sort Options */}
-      <div className="hidden md:flex bg-white shadow-lg p-5 rounded-2xl flex-wrap items-center justify-between mb-8 border border-gray-200">
+      {/* <div className="hidden md:flex bg-white shadow-lg p-5 rounded-2xl flex-wrap items-center justify-between mb-8 border border-gray-200">
         <div className="flex items-center gap-3">
           <div className="w-1 h-8 bg-linear-to-b from-blue-600 to-purple-600 rounded-full"></div>
           <span className="text-lg font-bold text-gray-800">Sort by:</span>
@@ -106,7 +106,7 @@ export function PropertyList({
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Sort Modal for Mobile */}
       <Modal
@@ -335,6 +335,7 @@ function sortProperties(properties, sortBy) {
 function mapPropertyData(property) {
   return {
     id: property._id,
+    slug: property.slug,
     name: property.placeName,
     location: `${property.location.city}, ${property.location.state}`,
     rating: property.placeRating || 4.5,

@@ -13,65 +13,33 @@ import {
   Grid,
   Paper,
   IconButton,
-  Chip,
   Box,
   Checkbox,
   FormControlLabel,
   Card,
   CardContent,
-  Tabs,
-  Tab,
-  RadioGroup,
-  Radio,
-  FormLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Alert,
-  LinearProgress,
-  Badge,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  CardMedia,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
 } from "@mui/material";
 
 import {
   Delete as DeleteIcon,
   Add as AddIcon,
   Edit as EditIcon,
-  CloudUpload,
-  Star,
-  StarBorder,
   Image as ImageIcon,
-  VideoFile,
-  Close,
-  Warning,
-  ExpandMore,
-  ArrowBack,
-  ArrowForward,
-  Search,
   ContentCopy,
-  Delete,
 } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
 import {
   addRooms,
   deleteRoom,
   updateRoom,
-  uploadRoomMedia,
-  updateRoomMediaItem,
-  deleteRoomMediaItem,
-  getProperty,
   completeRoomsStep,
 } from "@/redux/features/property/propertySlice";
 import RoomsAmenities from "./RoomsAmenities";
 import toast from "react-hot-toast";
+import { useConfirm } from "@/hooks/useConfirm";
+import SingleRoomMediaForm from "./SingleRoomMediaForm";
+
 
 export default function RoomsForm({
   rooms = [],
@@ -91,9 +59,6 @@ export default function RoomsForm({
   const [localRooms, setLocalRooms] = useState(rooms);
   const [selectedAmenityTab, setSelectedAmenityTab] = useState(0);
   const [currentRoomId, setCurrentRoomId] = useState(null);
-  const [editingMedia, setEditingMedia] = useState(null);
-  const [editDialog, setEditDialog] = useState(false);
-  const [customTag, setCustomTag] = useState("");
   const [validationError, setValidationError] = useState("");
 
   useEffect(() => {
@@ -107,22 +72,7 @@ export default function RoomsForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFileSubmiting, setIsFileSubmiting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
-  const fileInputRef = useRef(null);
-
-  // All available tags for room media
-  const availableRoomTags = [
-    "Bed",
-    "Bathroom/Washroom",
-    "Room View",
-    "Balcony",
-    "Furniture",
-    "Amenities",
-    "Decor",
-    "Lighting",
-    "Storage",
-    "Window View",
-    "Others",
-  ];
+  const { confirm, ConfirmDialog } = useConfirm();
 
   const roomAmenityCategories = {
     basicFacilities: {
@@ -256,36 +206,6 @@ export default function RoomsForm({
     };
   }
 
-  // Media helper functions
-  const getRoomMediaItems = (room) => {
-    if (!room || !room.media) return [];
-    const images = room.media.images || [];
-    const videos = room.media.videos || [];
-    return [...images, ...videos];
-  };
-
-  const getRoomMediaByTag = (room) => {
-    const allMedia = getRoomMediaItems(room);
-    const groupedMedia = {};
-
-    allMedia.forEach((item) => {
-      if (item.tags && item.tags.length > 0) {
-        item.tags.forEach((tag) => {
-          if (!groupedMedia[tag]) {
-            groupedMedia[tag] = [];
-          }
-          groupedMedia[tag].push(item);
-        });
-      }
-    });
-
-    return groupedMedia;
-  };
-
-  const getRoomItemsWithoutTags = (room) => {
-    const allMedia = getRoomMediaItems(room);
-    return allMedia.filter((item) => !item.tags || item.tags.length === 0);
-  };
   const calculateMaxOccupancy = (beds, floorBedding) => {
     // Formula: (bed accommodates * number of beds) + (number of gaddi * people per gaddi)
     const bedOccupancy = beds.reduce(
@@ -540,205 +460,7 @@ const handleCompleteRooms = (propertyId) => {
   onComplete?.();
 };
 
-const handleAddRoom = async () => {
 
-    // 2. Validate basic room data
-  if (!validateRoomData()) {
-    toast.error("Please fill in all required fields.");
-    return;
-  }
-  
-  // 1. Validate Amenities first (The "Toast" error)
-  // const amenityValidation = validateRoomAmenities();
-  // if (!amenityValidation.valid) {
-  //   toast.error(amenityValidation.message, {
-  //     duration: 4000,
-  //     position: "top-center",
-  //   });
-  //   return;
-  // }
-
-
-
-  setIsSubmitting(true);
-  try {
-    const result = await dispatch(
-      addRooms({
-        id: propertyId,
-        data: currentRoomData,
-      }),
-    ).unwrap();
-
-    // setIsComplete(true);
-
-    if (result.room) {
-      const roomID = result.room._id;
-      setCurrentRoomId(roomID);
-
-      const updatedRooms = [...localRooms, result.room];
-      setLocalRooms(updatedRooms);
-      onAddRoom(updatedRooms);
-      
-      toast.success("Room saved successfully!");
-
-      // 3. AUTO-SCROLL TO MEDIA SECTION
-      // Timeout ensures the DOM renders the media section before scrolling
-      setTimeout(() => {
-        const mediaSection = document.getElementById("media-upload-anchor");
-        if (mediaSection) {
-          mediaSection.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 300);
-    }
-  } catch (error) {
-    console.error("Failed to add room:", error);
-    toast.error("Failed to create room. Please try again.");
-    setIsSubmitting(false);
-  } finally {
-    // setIsSubmitting(false);
-    // Note: You might want to keep isSubmitting true if you want to 
-    // keep the upload buttons active as per your previous logic
-  }
-};
-
-  // Media upload functions
-  const handleFileSelect = async (event) => {
-    const files = Array.from(event.target.files);
-
-    setValidationError("");
-    if (files.length > 20) {
-      setValidationError("You can upload maximum 20 files at once");
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      return;
-    }
-
-    if (files.length === 0) return;
-
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append("media", file);
-    });
-
-    setIsFileSubmiting(true);
-    try {
-      const result = await dispatch(
-        uploadRoomMedia({
-          propertyId,
-          roomId: currentRoomId,
-          formData,
-        }),
-      ).unwrap();
-
-      setCurrentRoomData(result.room);
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } catch (error) {
-      console.log(error.message);
-      console.error("Upload failed:", error);
-
-      // Handle validation errors from the response
-      if (error.invalidFiles && error.invalidFiles.length > 0) {
-        // Create a user-friendly error message from invalidFiles
-        const fileErrors = error.invalidFiles
-          .map((file) => `${file.filename}: ${file.error}`)
-          .join("\n");
-
-        setValidationError(`Upload failed:\n${fileErrors}`);
-      } else {
-        // Fallback error message
-        setValidationError(
-          error.message || "Failed to upload media. Please try again.",
-        );
-      }
-    } finally {
-      setIsFileSubmiting(false);
-    }
-  };
-  const handleDeleteMedia = async (mediaId) => {
-    if (
-      !currentRoomId ||
-      !window.confirm("Are you sure you want to delete this media item?")
-    )
-      return;
-
-    try {
-      await dispatch(
-        deleteRoomMediaItem({
-          propertyId,
-          roomId: currentRoomId,
-          mediaId,
-        }),
-      ).unwrap();
-    } catch (error) {
-      console.error("Delete failed:", error);
-    }
-  };
-
-  const handleEditMedia = (mediaItem) => {
-    setEditingMedia({
-      ...mediaItem,
-      roomId: currentRoomId,
-      tags: mediaItem.tags || [],
-    });
-    setEditDialog(true);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingMedia || !editingMedia.tags || editingMedia.tags.length === 0) {
-      toast.error("Please select at least one tag before saving.");
-      return;
-    }
-
-    try {
-      const result = await dispatch(
-        updateRoomMediaItem({
-          propertyId,
-          roomId: currentRoomId,
-          mediaId: editingMedia._id,
-          data: {
-            tags: editingMedia.tags,
-            isCover: editingMedia.isCover,
-            displayOrder: editingMedia.displayOrder,
-          },
-        }),
-      ).unwrap();
-
-      setCurrentRoomData(result.room);
-
-      setEditDialog(false);
-      setEditingMedia(null);
-    } catch (error) {
-      console.error("Update failed:", error);
-    }
-  };
-
-
-
-//   const validateRoomAmenities = () => {
-//   const categories = roomAmenityCategories;
-//   const roomAmenities = currentRoomData.amenities;
-  
-//   for (const [catKey, category] of Object.entries(categories)) {
-//     for (const item of category.items) {
-//       const sanitizedKey = item.name.replace(/[^a-zA-Z0-9]/g, '');
-//       const savedValue = roomAmenities?.[catKey]?.[sanitizedKey];
-
-//       // Check if 'available' is specifically true or false
-//       if (savedValue?.available === undefined) {
-//         return {
-//           valid: false,
-//           message: `Please select Yes or No for ${item.name} in ${category.title}`,
-//           categoryKey: catKey
-//         };
-//       }
-//     }
-//   }
-//   return { valid: true };
-// };
 
 
 const isAmenitiesComplete = () => {
@@ -750,58 +472,15 @@ const isAmenitiesComplete = () => {
   );
 };
 
-  const handleTagToggle = (tag) => {
-    if (!editingMedia) return;
-
-    const currentTags = editingMedia.tags || [];
-    const isSelected = currentTags.includes(tag);
-
-    if (isSelected) {
-      setEditingMedia((prev) => ({
-        ...prev,
-        tags: prev.tags.filter((t) => t !== tag),
-      }));
-    } else {
-      setEditingMedia((prev) => ({
-        ...prev,
-        tags: [...prev.tags, tag],
-      }));
-    }
-  };
-
-  const handleUpdateRoom = async () => {
-    if (!validateRoomData()) return;
-
-    try {
-      const roomToUpdate = localRooms[editingRoomIndex];
-      const roomId = roomToUpdate._id || roomToUpdate.id;
-
-      const result = await dispatch(
-        updateRoom({
-          id: propertyId,
-          roomId: roomId,
-          data: currentRoomData,
-        }),
-      ).unwrap();
-      setIsComplete(true);
-      if (result.type.endsWith("/fulfilled")) {
-        console.log("in the condition....");
-        const updatedRooms = [...localRooms];
-        updatedRooms[editingRoomIndex] = currentRoomData;
-        setLocalRooms(updatedRooms);
-        onAddRoom(updatedRooms);
-
-        setIsEditingRoom(false);
-        setEditingRoomIndex(-1);
-        setCurrentRoomData(getInitialRoomData());
-        setFormErrors({});
-      }
-    } catch (error) {
-      console.error("Failed to update room:", error);
-    }
-  };
 
   const handleDeleteRoom = async (index) => {
+     const ok = await confirm({
+    title: 'Delete Room?',
+    description: 'This action cannot be undone.',
+    confirmText: 'Delete',
+    confirmColor: 'error',
+  });
+  if (!ok) return;
     const roomToDelete = localRooms[index];
     const roomId = roomToDelete._id || roomToDelete.id;
 
@@ -880,273 +559,68 @@ const handleAddNewForm = () => {
     }, 100); // Reduced delay for snappier UX
 };
 
-  // Tag Group Card Component
-  const TagGroupCard = ({ tag, mediaItems }) => {
-    const firstImage = mediaItems[0];
-    const imageCount = mediaItems.filter(
-      (item) => item.type === "image",
-    ).length;
-    const videoCount = mediaItems.filter(
-      (item) => item.type === "video",
-    ).length;
 
-    return (
-      <Card
-        sx={{
-          width: 280,
-          height: 200,
-          position: "relative",
-          cursor: "pointer",
-          border: "1px solid #e0e0e0",
-          borderRadius: 2,
-          overflow: "hidden",
-          "&:hover": {
-            transform: "scale(1.02)",
-            transition: "transform 0.2s ease-in-out",
-            boxShadow: 3,
-          },
-        }}
-      >
-        {firstImage.type === "image" ? (
-          <CardMedia
-            component="img"
-            image={`${firstImage.url}`}
-            alt={firstImage.filename}
-            sx={{ width: "100%", height: "70%", objectFit: "cover" }}
-          />
-        ) : (
-          <video
-            src={`${firstImage.url}`}
-            style={{ width: "100%", height: "70%", objectFit: "cover" }}
-            muted
-            loop
-            autoPlay
-            preload="metadata"
-          />
-        )}
+const handleAddRoom = async () => {
+  if (!validateRoomData()) {
+    toast.error("Please fill in all required fields.");
+    return;
+  }
 
-        <CardContent sx={{ height: "30%", p: 1.5 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
-            {tag}
-          </Typography>
-          <Box sx={{ display: "flex", gap: 1 }}>
-            {imageCount > 0 && (
-              <Chip
-                label={`${imageCount} Images`}
-                size="small"
-                color="primary"
-                variant="outlined"
-              />
-            )}
-            {videoCount > 0 && (
-              <Chip
-                label={`${videoCount} Videos`}
-                size="small"
-                color="secondary"
-                variant="outlined"
-              />
-            )}
-          </Box>
-        </CardContent>
+  setIsSubmitting(true);
+  try {
+    const result = await dispatch(
+      addRooms({ id: propertyId, data: currentRoomData })
+    ).unwrap();
 
-        <Badge
-          badgeContent={mediaItems.length}
-          color="primary"
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            "& .MuiBadge-badge": {
-              fontSize: "0.75rem",
-              minWidth: 20,
-              height: 20,
-            },
-          }}
-        />
-      </Card>
-    );
-  };
+    if (result.room) {
+      const roomID = result.room._id;
+      setCurrentRoomId(roomID);
+      const updatedRooms = [...localRooms, result.room];
+      setLocalRooms(updatedRooms);
+      onAddRoom(updatedRooms);
+      toast.success("Room saved successfully!");
 
-  // Render media upload step
-  const renderMediaUploadStep = () => {
-    const currentRoom = currentRoomData;
-    if (!currentRoom) return null;
+      setTimeout(() => {
+        const mediaSection = document.getElementById("media-upload-anchor");
+        if (mediaSection) {
+          mediaSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 300);
+    }
+  } catch (error) {
+    console.error("Failed to add room:", error);
+    toast.error("Failed to create room. Please try again.");
+    setIsSubmitting(false);
+  }
+};
 
-    const groupedMedia = getRoomMediaByTag(currentRoom);
-    const untaggedItems = getRoomItemsWithoutTags(currentRoom);
-    const totalMedia = getRoomMediaItems(currentRoom);
+const handleUpdateRoom = async () => {
+  if (!validateRoomData()) return;
 
-    return (
-      <Box>
-        <div id="media-upload-anchor" style={{ marginTop: "-100px", paddingTop: "100px" }}> 
-          <Typography variant="h5" gutterBottom>
-          Upload Media for {currentRoom.roomName}
-        </Typography>
-        </div>
+  try {
+    const roomToUpdate = localRooms[editingRoomIndex];
+    const roomId = roomToUpdate._id || roomToUpdate.id;
 
-        <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-          Upload photos and videos for this room. Each media item must have at
-          least one tag.
-        </Typography>
+    const result = await dispatch(
+      updateRoom({ id: propertyId, roomId, data: currentRoomData })
+    ).unwrap();
 
-        {validationError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {validationError}
-          </Alert>
-        )}
+    // setIsComplete(true);
+    const updatedRooms = [...localRooms];
+    updatedRooms[editingRoomIndex] = currentRoomData;
+    setLocalRooms(updatedRooms);
+    onAddRoom(updatedRooms);
+    setIsEditingRoom(false);
+    setEditingRoomIndex(-1);
+    setCurrentRoomData(getInitialRoomData());
+    setFormErrors({});
+  } catch (error) {
+    console.error("Failed to update room:", error);
+  }
+};
 
-        {/* Upload Section */}
-        <Box
-          sx={{
-            mb: 3,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div></div>
-          <Box>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              onChange={handleFileSelect}
-              style={{ display: "none" }}
-            />
-            <Button
-              variant="contained"
-              startIcon={<CloudUpload />}
-              onClick={() => fileInputRef.current?.click()}
-              // disabled={!isSubmitting && !isEditingRoom}
-              disabled={!currentRoomId || isFileSubmiting}
-            >
-              {console.log(isEditingRoom, "isEdting room")}
-              {!isSubmitting
-                ? isEditingRoom
-                  ? "Upload Files"
-                  : "Save Room to upload media"
-                : isEditingRoom
-                  ? "Upload Files"
-                  : isFileSubmiting
-                    ? "Uploading..."
-                    : "Upload Files"}
-            </Button>
-          </Box>
-        </Box>
 
-        {isFileSubmiting && (
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={{ mb: 1 }}>
-              Uploading files...
-            </Typography>
-            <LinearProgress />
-          </Box>
-        )}
 
-        {/* Tagged Media Groups */}
-        {Object.keys(groupedMedia).length > 0 && (
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Media by Tags
-            </Typography>
-            <Grid container spacing={2}>
-              {Object.entries(groupedMedia).map(([tag, mediaItems]) => (
-                <Grid item key={tag}>
-                  <TagGroupCard tag={tag} mediaItems={mediaItems} />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        )}
-
-        {/* Untagged Media */}
-        {untaggedItems.length > 0 && (
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" gutterBottom color="error">
-              Untagged Media ({untaggedItems.length})
-            </Typography>
-            <Grid container spacing={2}>
-              {untaggedItems.map((mediaItem) => (
-                <Grid item key={mediaItem._id}>
-                  <Card
-                    sx={{
-                      width: 200,
-                      height: 150,
-                      position: "relative",
-                      cursor: "pointer",
-                      border: "2px solid #f44336",
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      "&:hover": {
-                        transform: "scale(1.02)",
-                        transition: "transform 0.2s ease-in-out",
-                        boxShadow: 3,
-                      },
-                    }}
-                    onClick={() => handleEditMedia(mediaItem)}
-                  >
-                    {mediaItem.type === "image" ? (
-                      <CardMedia
-                        component="img"
-                        image={`${mediaItem.url}`}
-                        alt={mediaItem.filename}
-                        sx={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <video
-                        src={`${mediaItem.url}`}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                        muted
-                        loop
-                        autoPlay
-                        preload="metadata"
-                      />
-                    )}
-                    <Chip
-                      label="Needs Tags"
-                      color="error"
-                      size="small"
-                      sx={{
-                        position: "absolute",
-                        top: 8,
-                        left: 8,
-                        fontSize: "0.7rem",
-                        height: 20,
-                      }}
-                    />
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        )}
-
-        {/* Status Alerts */}
-        {totalMedia.length === 0 && (
-          <Alert severity="info">
-            No media uploaded for this room yet. Upload some photos and videos
-            to showcase this room.
-          </Alert>
-        )}
-
-        {untaggedItems.length > 0 && (
-          <Alert severity="warning" sx={{ mt: 2 }}>
-            {untaggedItems.length} media item(s) need tags. Click on items with
-            red borders to add tags.
-          </Alert>
-        )}
-      </Box>
-    );
-  };
 
   const bedTypes = [
     "Single Bed",
@@ -1253,13 +727,14 @@ const handleAddNewForm = () => {
   };
 
   const handleDuplicateRoom = async (index) => {
-    if (
-      !window.confirm(
-        "Do you want to duplicate this room? Media will not be copied.",
-      )
-    ) {
-      return;
-    }
+  const ok = await confirm({
+    title: 'Duplicate Room?',
+    description: 'Media will not be copied to the duplicated room.',
+    confirmText: 'Duplicate',
+    confirmColor: 'primary',
+  });
+  if (!ok) return;
+    
     const roomToDuplicate = localRooms[index];
 
     // Create a deep copy of the room data, excluding the _id and media
@@ -1316,549 +791,177 @@ const handleAddNewForm = () => {
   };
 
   // Main render logic
-  if (isAddingRoom) {
-    // Room details step - render your existing room form here
-    return (
-      <Paper className="p-4 mb-4">
-        <Typography variant="h6" gutterBottom>
-          {isEditingRoom ? "Edit Room" : "Add New Room"}
-        </Typography>
+if (isAddingRoom) {
+  return (
+    <Paper className="p-4 mb-4">
+      <ConfirmDialog />
+      <Typography variant="h6" gutterBottom>
+        {isEditingRoom ? "Edit Room" : "Add New Room"}
+      </Typography>
 
-        {/* Edit Media Dialog */}
-        <Dialog
-          open={editDialog}
-          onClose={() => setEditDialog(false)}
-          maxWidth="lg"
-          fullWidth
-        >
-          <DialogTitle>Edit Media Tags</DialogTitle>
-          <DialogContent>
-            {editingMedia && (
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  {editingMedia.type === "image" ? (
-                    <img
-                      src={`${editingMedia.url}`}
-                      alt={editingMedia.filename}
-                      style={{
-                        width: "100%",
-                        height: "400px",
-                        objectFit: "cover",
-                        borderRadius: "8px",
-                      }}
-                    />
-                  ) : (
-                    <video
-                      src={`${editingMedia.url}`}
-                      style={{
-                        width: "100%",
-                        height: "400px",
-                        objectFit: "cover",
-                        borderRadius: "8px",
-                      }}
-                      controls
-                    />
-                  )}
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    startIcon={<Delete />}
-                    onClick={() => handleDeleteMedia(editingMedia._id)}
-                  >
-                    Delete
-                  </Button>
-                </Grid>
+      {validationError && (
+        <Alert severity="error" sx={{ mb: 2 }}>{validationError}</Alert>
+      )}
 
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" gutterBottom>
-                    Tags Added
-                  </Typography>
+      {/* ── ROOM DETAILS FORM ── */}
+      <Grid container spacing={3}>
 
-                  <Box
-                    sx={{
-                      mb: 2,
-                      minHeight: 60,
-                      border: `1px solid ${!editingMedia.tags || editingMedia.tags.length === 0 ? "#f44336" : "#e0e0e0"}`,
-                      borderRadius: 1,
-                      p: 2,
-                      bgcolor: "#f9f9f9",
-                      display: "flex",
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                      gap: 1,
-                    }}
-                  >
-                    {editingMedia.tags.length > 0 ? (
-                      editingMedia.tags.map((tag) => (
-                        <Chip
-                          key={tag}
-                          label={tag}
-                          onDelete={() => {
-                            setEditingMedia((prev) => ({
-                              ...prev,
-                              tags: prev.tags.filter((t) => t !== tag),
-                            }));
-                          }}
-                          deleteIcon={<Close />}
-                          color="primary"
-                          variant="outlined"
-                        />
-                      ))
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No tags selected
-                      </Typography>
-                    )}
-                  </Box>
+        {/* Room Name */}
+        <Grid item size={{ xs: 12, md: 6 }}>
+          <TextField
+            name="roomName"
+            fullWidth
+            label="Room Name *"
+            value={currentRoomData.roomName}
+            onChange={(e) => handleRoomChange("roomName", e.target.value)}
+            error={!!formErrors.roomName}
+            helperText={formErrors.roomName}
+            sx={{
+              "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": { borderColor: "#2e2e2e" },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#1976d2" },
+            }}
+          />
 
-                  <TextField
-                    fullWidth
-                    size="small"
-                    placeholder="Add Custom Tag"
-                    value={customTag}
-                    onChange={(e) => setCustomTag(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (
-                        e.key === "Enter" &&
-                        customTag.trim() &&
-                        !editingMedia.tags.includes(customTag.trim())
-                      ) {
-                        setEditingMedia((prev) => ({
-                          ...prev,
-                          tags: [...prev.tags, customTag.trim()],
-                        }));
-                        setCustomTag("");
-                      }
-                    }}
-                    sx={{ mb: 2 }}
-                  />
-
-                  <Box
-                    sx={{
-                      maxHeight: 300,
-                      overflow: "auto",
-                      border: "1px solid #e0e0e0",
-                      borderRadius: 1,
-                    }}
-                  >
-                    <List>
-                      {availableRoomTags.map((tag) => (
-                        <ListItem
-                          key={tag}
-                          dense
-                          button
-                          onClick={() => handleTagToggle(tag)}
-                        >
-                          <ListItemIcon>
-                            <Checkbox
-                              edge="start"
-                              checked={editingMedia.tags.includes(tag)}
-                              size="small"
-                            />
-                          </ListItemIcon>
-                          <ListItemText primary={tag} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
-                </Grid>
-              </Grid>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => {
-                setEditDialog(false);
-              }}
-            >
-              Back
-            </Button>
-            <Button
-              onClick={handleSaveEdit}
-              variant="contained"
-              disabled={!editingMedia?.tags || editingMedia.tags.length === 0}
-            >
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Tag Group Dialog - Add your existing tag group dialog here */}
-
-        <Grid container spacing={3}>
-          {/* Basic Room Details - Same as before */}
-          <Grid item size={{ xs: 12, md: 6 }}>
-            <TextField
-              name="roomName"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#2e2e2e",
-                  },
-                  "&.Mui-focused": {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#1976d2",
-                    },
-                  },
-                  "& .MuiInputLabel-outlined": {
-                    color: "#2e2e2e",
-                    "&.Mui-focused": {
-                      color: "secondary.main",
-                    },
-                  },
-                },
-              }}
-              fullWidth
-              label="Room Name *"
-              value={currentRoomData.roomName}
-              onChange={(e) => handleRoomChange("roomName", e.target.value)}
-              error={!!formErrors.roomName}
-              helperText={formErrors.roomName}
-              className="mb-4"
-            />
-
-            <Grid container spacing={2}>
-              <Grid item size={{ xs: 8 }}>
-                <TextField
-                  name="roomSize"
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
-                        "&.Mui-focused": {
-                          color: "secondary.main",
-                        },
-                      },
-                    },
-                    marginTop: "10px",
-                  }}
-                  fullWidth
-                  label="Room Size *"
-                  type="number"
-                  slotProps={{
-                    htmlInput: {
-                      onWheel: (e) => e.currentTarget.blur(),
-                    },
-                  }}
-                  value={currentRoomData.roomSize}
-                  onChange={(e) => handleRoomChange("roomSize", e.target.value)}
-                  error={!!formErrors.roomSize}
-                  helperText={formErrors.roomSize}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <FormControl
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
-                        "&.Mui-focused": {
-                          color: "secondary.main",
-                        },
-                      },
-                    },
-                    marginTop: "10px",
-                  }}
-                  fullWidth
-                >
-                  <InputLabel>Unit</InputLabel>
-                  <Select
-                    value={currentRoomData.sizeUnit}
-                    onChange={(e) =>
-                      handleRoomChange("sizeUnit", e.target.value)
-                    }
-                    label="Unit"
-                  >
-                    <MenuItem value="sqft">sq ft</MenuItem>
-                    <MenuItem value="sqm">sq m</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Grid>
-
-          <Grid item size={{ xs: 12, md: 6 }}>
-            <TextField
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#2e2e2e",
-                  },
-                  "&.Mui-focused": {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#1976d2",
-                    },
-                  },
-                  "& .MuiInputLabel-outlined": {
-                    color: "#2e2e2e",
-                    "&.Mui-focused": {
-                      color: "secondary.main",
-                    },
-                  },
-                },
-              }}
-              fullWidth
-              label="Description"
-              multiline
-              rows={4}
-              value={currentRoomData.description}
-              onChange={(e) => handleRoomChange("description", e.target.value)}
-              className="mb-4"
-            />
-          </Grid>
-
-          {/* Bed Configuration - Same as before */}
-          <Grid item size={{ xs: 12 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Bed Configuration *
-            </Typography>
-
-            {currentRoomData.beds.map((bed, index) => (
-              <Grid
-                container
-                spacing={2}
-                key={index}
-                className="mb-3 items-end"
-              >
-                <Grid item size={{ xs: 12 }} sm={4}>
-                  <FormControl
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#2e2e2e",
-                        },
-                        "&.Mui-focused": {
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#1976d2",
-                          },
-                        },
-                        "& .MuiInputLabel-outlined": {
-                          color: "#2e2e2e",
-                          "&.Mui-focused": {
-                            color: "secondary.main",
-                          },
-                        },
-                      },
-                    }}
-                    fullWidth
-                    error={!!formErrors.beds?.[index]?.bedType}
-                  >
-                    <InputLabel>Bed Type *</InputLabel>
-                    <Select
-                      name="beds"
-                      value={bed.bedType}
-                      onChange={(e) =>
-                        handleBedChange(index, "bedType", e.target.value)
-                      }
-                      label="Bed Type *"
-                    >
-                      {bedTypes.map((type) => (
-                        <MenuItem key={type} value={type}>
-                          {type}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {formErrors.beds?.[index]?.bedType && (
-                      <FormHelperText>
-                        {formErrors.beds[index].bedType}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-
-                <Grid item size={{ xs: 12, md: 3 }}>
-                  <TextField
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#2e2e2e",
-                        },
-                        "&.Mui-focused": {
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#1976d2",
-                          },
-                        },
-                        "& .MuiInputLabel-outlined": {
-                          color: "#2e2e2e",
-                          "&.Mui-focused": {
-                            color: "secondary.main",
-                          },
-                        },
-                      },
-                    }}
-                    name="beds"
-                    fullWidth
-                    label="Number of Beds(of this type) *"
-                    type="number"
-                    slotProps={{
-                      htmlInput: {
-                        onWheel: (e) => e.currentTarget.blur(),
-                      },
-                    }}
-                    value={bed.count}
-                    onChange={(e) =>
-                      handleBedChange(index, "count", parseInt(e.target.value))
-                    }
-                    error={!!formErrors.beds?.[index]?.count}
-                    helperText={formErrors.beds?.[index]?.count}
-                    InputProps={{ inputProps: { min: 1 } }}
-                  />
-                </Grid>
-
-                <Grid item size={{ xs: 12, md: 3 }}>
-                  <TextField
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#2e2e2e",
-                        },
-                        "&.Mui-focused": {
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#1976d2",
-                          },
-                        },
-                        "& .MuiInputLabel-outlined": {
-                          color: "#2e2e2e",
-                          "&.Mui-focused": {
-                            color: "secondary.main",
-                          },
-                        },
-                      },
-                    }}
-                    fullWidth
-                    label="Accommodates *"
-                    type="number"
-                    slotProps={{
-                      htmlInput: {
-                        onWheel: (e) => e.currentTarget.blur(),
-                      },
-                    }}
-                    value={bed.accommodates}
-                    onChange={(e) =>
-                      handleBedChange(
-                        index,
-                        "accommodates",
-                        parseInt(e.target.value),
-                      )
-                    }
-                    error={!!formErrors.beds?.[index]?.accommodates}
-                    helperText={formErrors.beds?.[index]?.accommodates}
-                    InputProps={{ inputProps: { min: 1 } }}
-                  />
-                </Grid>
-
-                <Grid
-                  item
-                  size={{ xs: 12 }}
-                  sm={2}
-                  className="flex justify-end"
-                >
-                  <IconButton
-                    color="error"
-                    onClick={() => removeBed(index)}
-                    disabled={currentRoomData.beds.length <= 1}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Grid>
-              </Grid>
-            ))}
-
-            <Button
-              startIcon={<AddIcon />}
-              variant="outlined"
-              onClick={addBed}
-              className="mt-2"
-            >
-              Add Another Bed
-            </Button>
-          </Grid>
-
-          {/* Bed Configuration - Same as before */}
-          <Grid item size={{ xs: 12 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Number of rooms (of this type) *
-            </Typography>
-
-            <Grid item size={{ xs: 4 }}>
+          <Grid container spacing={2} sx={{ mt: 0 }}>
+            <Grid item size={{ xs: 8 }}>
               <TextField
-                name="numberRoom"
-                label="Number of rooms (of this type) *"
-                type="number"
+                name="roomSize"
                 fullWidth
-                value={currentRoomData.numberRoom}
-                onChange={(e) => handleRoomChange("numberRoom", e.target.value)}
-                error={!!formErrors.numberRoom}
-                helperText={formErrors.numberRoom}
-                slotProps={{
-                  htmlInput: {
-                    onWheel: (e) => e.currentTarget.blur(),
-                  },
-                }}
-                sx={{
-                  marginTop: "10px",
-                  "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                    {
-                      display: "none",
-                      appearance: "none",
-                      margin: 0,
-                    },
-                  "& input[type=number]": {
-                    MozAppearance: "textfield",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
-                    },
-                    "&.Mui-focused": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
-                      },
-                    },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
-                      "&.Mui-focused": {
-                        color: "secondary.main",
-                      },
-                    },
-                  },
-                }}
+                label="Room Size *"
+                type="number"
+                slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                value={currentRoomData.roomSize}
+                onChange={(e) => handleRoomChange("roomSize", e.target.value)}
+                error={!!formErrors.roomSize}
+                helperText={formErrors.roomSize}
+                sx={{ mt: "10px" }}
               />
             </Grid>
+            <Grid item xs={4}>
+              <FormControl fullWidth sx={{ mt: "10px" }}>
+                <InputLabel>Unit</InputLabel>
+                <Select
+                  value={currentRoomData.sizeUnit}
+                  onChange={(e) => handleRoomChange("sizeUnit", e.target.value)}
+                  label="Unit"
+                >
+                  <MenuItem value="sqft">sq ft</MenuItem>
+                  <MenuItem value="sqm">sq m</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
           </Grid>
+        </Grid>
 
+        {/* Description */}
+        <Grid item size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            label="Description"
+            multiline
+            rows={4}
+            value={currentRoomData.description}
+            onChange={(e) => handleRoomChange("description", e.target.value)}
+          />
+        </Grid>
+
+        {/* Bed Configuration */}
+        <Grid item size={{ xs: 12 }}>
+          <Typography variant="subtitle1" gutterBottom>Bed Configuration *</Typography>
+          {currentRoomData.beds.map((bed, index) => (
+            <Grid container spacing={2} key={index} className="mb-3 items-end">
+              <Grid item size={{ xs: 12 }} sm={4}>
+                <FormControl fullWidth error={!!formErrors.beds?.[index]?.bedType}>
+                  <InputLabel>Bed Type *</InputLabel>
+                  <Select
+                    name="beds"
+                    value={bed.bedType}
+                    onChange={(e) => handleBedChange(index, "bedType", e.target.value)}
+                    label="Bed Type *"
+                  >
+                    {bedTypes.map((type) => (
+                      <MenuItem key={type} value={type}>{type}</MenuItem>
+                    ))}
+                  </Select>
+                  {formErrors.beds?.[index]?.bedType && (
+                    <FormHelperText>{formErrors.beds[index].bedType}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+              <Grid item size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Number of Beds *"
+                  type="number"
+                  slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                  value={bed.count}
+                  onChange={(e) => handleBedChange(index, "count", parseInt(e.target.value))}
+                  error={!!formErrors.beds?.[index]?.count}
+                  helperText={formErrors.beds?.[index]?.count}
+                  InputProps={{ inputProps: { min: 1 } }}
+                />
+              </Grid>
+              <Grid item size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Accommodates *"
+                  type="number"
+                  slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                  value={bed.accommodates}
+                  onChange={(e) => handleBedChange(index, "accommodates", parseInt(e.target.value))}
+                  error={!!formErrors.beds?.[index]?.accommodates}
+                  helperText={formErrors.beds?.[index]?.accommodates}
+                  InputProps={{ inputProps: { min: 1 } }}
+                />
+              </Grid>
+              <Grid item size={{ xs: 12 }} sm={2} className="flex justify-end">
+                <IconButton
+                  color="error"
+                  onClick={() => removeBed(index)}
+                  disabled={currentRoomData.beds.length <= 1}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Grid>
+            </Grid>
+          ))}
+          <Button startIcon={<AddIcon />} variant="outlined" onClick={addBed}>
+            Add Another Bed
+          </Button>
+        </Grid>
+
+        {/* Number of Rooms */}
+        <Grid item size={{ xs: 12 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Number of rooms (of this type) *
+          </Typography>
+          <Grid item size={{ xs: 4 }}>
+            <TextField
+              name="numberRoom"
+              label="Number of rooms (of this type) *"
+              type="number"
+              fullWidth
+              value={currentRoomData.numberRoom}
+              onChange={(e) => handleRoomChange("numberRoom", e.target.value)}
+              error={!!formErrors.numberRoom}
+              helperText={formErrors.numberRoom}
+              slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+              sx={{ mt: "10px" }}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Floor Bedding */}
+        <Grid item size={{ xs: 12 }}>
           <FormControlLabel
             control={
               <Checkbox
                 checked={currentRoomData.FloorBedding.available}
-                onChange={(e) =>
-                  handleNestedChange(
-                    "FloorBedding",
-                    "available",
-                    e.target.checked,
-                  )
-                }
+                onChange={(e) => handleNestedChange("FloorBedding", "available", e.target.checked)}
               />
             }
             label="Floor Bedding (Gaddi)"
           />
-
           {currentRoomData.FloorBedding.available && (
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={6} md={3}>
@@ -1866,574 +969,244 @@ const handleAddNewForm = () => {
                   fullWidth
                   label="Number of Gaddi"
                   type="number"
-                  slotProps={{
-                    htmlInput: {
-                      onWheel: (e) => e.currentTarget.blur(),
-                    },
-                  }}
+                  slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
                   value={currentRoomData.FloorBedding.count}
                   onChange={(e) =>
-                    handleNestedChange(
-                      "FloorBedding",
-                      "count",
-                      parseInt(e.target.value),
-                    )
+                    handleNestedChange("FloorBedding", "count", parseInt(e.target.value))
                   }
                 />
               </Grid>
-              {/* NEW BOX: People per floor bedding */}
               <Grid item xs={6} md={3}>
                 <TextField
                   fullWidth
                   label="People per Gaddi *"
                   type="number"
-                  slotProps={{
-                    htmlInput: {
-                      onWheel: (e) => e.currentTarget.blur(),
-                    },
-                  }}
+                  slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
                   value={currentRoomData.FloorBedding.peoplePerFloorBedding}
                   onChange={(e) =>
-                    handleNestedChange(
-                      "FloorBedding",
-                      "peoplePerFloorBedding",
-                      parseInt(e.target.value),
-                    )
+                    handleNestedChange("FloorBedding", "peoplePerFloorBedding", parseInt(e.target.value))
                   }
-                  error={!!formErrors.peoplePerFloorBedding}
                 />
               </Grid>
             </Grid>
           )}
+        </Grid>
 
-          {/* Occupancy, Bathroom, Meal Plan sections - Same as before */}
-          <Grid item size={{ xs: 12 }}>
-            <Divider className="my-3" />
-            <Typography
-              sx={{ marginTop: "5px" }}
-              variant="subtitle1"
-              gutterBottom
-            >
-              Occupancy
-            </Typography>
-
-            <Grid container spacing={3}>
-              <Grid sx={{ marginTop: "10px" }} item size={{ xs: 12, md: 6 }}>
-                <TextField
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
-                        "&.Mui-focused": {
-                          color: "secondary.main",
-                        },
-                      },
-                    },
-                  }}
-                  fullWidth
-                  label="Base Adults *"
-                  type="number"
-                  slotProps={{
-                    htmlInput: {
-                      onWheel: (e) => e.currentTarget.blur(),
-                    },
-                  }}
-                  value={currentRoomData.occupancy?.baseAdults}
-                  onChange={(e) =>
-                    handleNestedChange(
-                      "occupancy",
-                      "baseAdults",
-                      parseInt(e.target.value),
-                    )
-                  }
-                  InputProps={{ inputProps: { min: 1 } }}
-                />
-              </Grid>
-
-              {/* <Grid item size={{ xs: 12, md: 6 }}> */}
-              {/* <TextField sx={{
-                  "& .MuiOutlinedInput-root": {
-
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
-                    },
-                    "&.Mui-focused": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
-                      },
-                    },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
-                      "&.Mui-focused": {
-                        color: "secondary.main",
-
-                      },
-                    },
-                  },
-                }}
-                  fullWidth
-                  label="Maximum Adults *"
-                  type="number"
-                    slotProps={{
-                      htmlInput: {
-                        onWheel: (e) => e.currentTarget.blur(),
-                      },
-                    }}
-                  value={currentRoomData.occupancy.maximumAdults}
-                  onChange={(e) => handleNestedChange('occupancy', 'maximumAdults', parseInt(e.target.value))}
-                  InputProps={{ inputProps: { min: 1 } }}
-                /> */}
-              {/* </Grid> */}
-
-              {/* <Grid item size={{ xs: 12, md: 6 }}> */}
-              {/* <TextField sx={{
-                  "& .MuiOutlinedInput-root": {
-
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
-                    },
-                    "&.Mui-focused": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
-                      },
-                    },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
-                      "&.Mui-focused": {
-                        color: "secondary.main",
-
-                      },
-                    },
-                  },
-                }}
-                  fullWidth
-                  label="Maximum Children"
-                  type="number"
-                    slotProps={{
-                      htmlInput: {
-                        onWheel: (e) => e.currentTarget.blur(),
-                      },
-                    }}
-                  value={currentRoomData.occupancy?.maximumChildren}
-                  onChange={(e) => handleNestedChange('occupancy', 'maximumChildren', parseInt(e.target.value))}
-                  InputProps={{ inputProps: { min: 0 } }}
-                /> */}
-              {/* </Grid> */}
-
-              <Grid item size={{ xs: 12, md: 6 }} sx={{ marginTop: "10px" }}>
-                <TextField
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
-                        "&.Mui-focused": {
-                          color: "secondary.main",
-                        },
-                      },
-                    },
-                  }}
-                  fullWidth
-                  label="Maximum Occupancy"
-                  type="number"
-                  slotProps={{
-                    htmlInput: {
-                      onWheel: (e) => e.currentTarget.blur(),
-                    },
-                  }}
-                  value={currentRoomData.occupancy?.maximumOccupancy}
-                  InputProps={{ readOnly: true }}
-                  helperText=""
-                />
-              </Grid>
-            </Grid>
-          </Grid>
-
-          {/* Bathroom */}
-          <Grid item size={{ xs: 12, md: 6 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Bathroom
-            </Typography>
-
-            <Grid container spacing={2}>
-              <Grid sx={{ marginTop: "10px" }} item xs={6}>
-                <TextField
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
-                        "&.Mui-focused": {
-                          color: "secondary.main",
-                        },
-                      },
-                    },
-                  }}
-                  fullWidth
-                  label="Bathroom Count *"
-                  type="number"
-                  slotProps={{
-                    htmlInput: {
-                      onWheel: (e) => e.currentTarget.blur(),
-                    },
-                  }}
-                  value={currentRoomData.bathrooms.count}
-                  onChange={(e) =>
-                    handleNestedChange(
-                      "bathrooms",
-                      "count",
-                      parseInt(e.target.value),
-                    )
-                  }
-                  InputProps={{ inputProps: { min: 0 } }}
-                />
-              </Grid>
-
-              <Grid item xs={6}>
-                <Box display="flex" gap={2}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={currentRoomData.bathrooms.private}
-                        onChange={(e) =>
-                          handleBathroomTypeChange("private", e.target.checked)
-                        }
-                      />
-                    }
-                    label="Private Bathroom"
-                  />
-                  {formErrors.bathroomType && (
-                    <FormHelperText error>
-                      {formErrors.bathroomType}
-                    </FormHelperText>
-                  )}
-
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={currentRoomData.bathrooms.shared}
-                        onChange={(e) =>
-                          handleBathroomTypeChange("shared", e.target.checked)
-                        }
-                      />
-                    }
-                    label="Shared Bathroom"
-                  />
-                </Box>
-              </Grid>
-            </Grid>
-          </Grid>
-
-          {/* Meal Plan */}
-          <Grid item size={{ xs: 12, md: 6 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Meal Plan
-            </Typography>
-
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={currentRoomData.mealPlan.available}
-                  onChange={(e) =>
-                    handleNestedChange(
-                      "mealPlan",
-                      "available",
-                      e.target.checked,
-                    )
-                  }
-                />
-              }
-              label="Meal Plan Available"
-            />
-            {formErrors.mealPlan && (
-              <FormHelperText error>{formErrors.mealPlan}</FormHelperText>
-            )}
-
-            {currentRoomData.mealPlan.available && (
-              <FormControl
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
-                    },
-                    "&.Mui-focused": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
-                      },
-                    },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
-                      "&.Mui-focused": {
-                        color: "secondary.main",
-                      },
-                    },
-                  },
-                }}
+        {/* Occupancy */}
+        <Grid item size={{ xs: 12 }}>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="subtitle1" gutterBottom>Occupancy</Typography>
+          <Grid container spacing={3}>
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
                 fullWidth
-              >
-                <InputLabel>Meal</InputLabel>
-                <Select
-                  value={currentRoomData.mealPlan.planType}
-                  onChange={(e) =>
-                    handleNestedChange("mealPlan", "planType", e.target.value)
-                  }
-                  label="Plan Type"
-                >
-                  <MenuItem value="Accommodation only">
-                    Accommodation only
-                  </MenuItem>
-                  <MenuItem value="Free Breakfast">Free Breakfast</MenuItem>
-                  <MenuItem value="Free Breakfast + Lunch">
-                    Free Breakfast + Lunch
-                  </MenuItem>
-                  <MenuItem value="Free Breakfast + Dinner">
-                    Free Breakfast + Dinner{" "}
-                  </MenuItem>
-                  <MenuItem value="Free Lunch">Free Lunch</MenuItem>
-                  <MenuItem value="Free Dinner">Free Dinner</MenuItem>
-                  <MenuItem value="Free Lunch + Dinner">
-                    Free Lunch + Dinner{" "}
-                  </MenuItem>
-                  <MenuItem value="Free Breakfast + Lunch + Dinner">
-                    Free Breakfast + Lunch + Dinner{" "}
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            )}
-          </Grid>
-
-          {/* Pricing */}
-          <Grid item size={{ xs: 12 }}>
-            <Divider className="my-3" />
-            <Typography
-              sx={{ marginTop: "10px" }}
-              variant="subtitle1"
-              gutterBottom
-            >
-              Pricing
-            </Typography>
-
-            <Grid container spacing={3}>
-              <Grid sx={{ marginTop: "10px" }} item size={{ xs: 12 }} md={4}>
-                <TextField
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
-                        "&.Mui-focused": {
-                          color: "secondary.main",
-                        },
-                      },
-                    },
-                  }}
-                  name="baseAdultsCharge"
-                  fullWidth
-                  label="Base Price (per night) *"
-                  type="number"
-                  slotProps={{
-                    htmlInput: {
-                      onWheel: (e) => e.currentTarget.blur(),
-                    },
-                  }}
-                  value={currentRoomData.pricing?.baseAdultsCharge}
-                  onChange={(e) =>
-                    handleNestedChange(
-                      "pricing",
-                      "baseAdultsCharge",
-                      parseFloat(e.target.value),
-                    )
-                  }
-                  error={!!formErrors.baseAdultsCharge}
-                  helperText={formErrors.baseAdultsCharge}
-                  InputProps={{ startAdornment: "₹" }}
-                />
-              </Grid>
-
-              <Grid item size={{ xs: 12 }} md={4}>
-                <TextField
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#2e2e2e",
-                      },
-                      "&.Mui-focused": {
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      },
-                      "& .MuiInputLabel-outlined": {
-                        color: "#2e2e2e",
-                        "&.Mui-focused": {
-                          color: "secondary.main",
-                        },
-                      },
-                    },
-                  }}
-                  name="extraFloorBeddingCharge"
-                  fullWidth
-                  label="Extra Floor Bedding (Gaddi) Charge"
-                  type="number"
-                  slotProps={{
-                    htmlInput: {
-                      onWheel: (e) => e.currentTarget.blur(),
-                    },
-                  }}
-                  value={currentRoomData.pricing?.extraFloorBeddingCharge}
-                  onChange={(e) =>
-                    handleNestedChange(
-                      "pricing",
-                      "extraFloorBeddingCharge",
-                      parseFloat(e.target.value),
-                    )
-                  }
-                  InputProps={{ startAdornment: "₹" }}
-                  error={!!formErrors.extraFloorBeddingCharge}
-                  helperText={formErrors.extraFloorBeddingCharge}
-                />
-              </Grid>
-
-              {/* <Grid item size={{ xs: 12 }} md={4}>
-                <TextField sx={{
-                  "& .MuiOutlinedInput-root": {
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#2e2e2e",
-                    },
-                    "&.Mui-focused": {
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#1976d2",
-                      },
-                    },
-                    "& .MuiInputLabel-outlined": {
-                      color: "#2e2e2e",
-                      "&.Mui-focused": {
-                        color: "secondary.main",
-
-                      },
-                    },
-                  },
-                }}
-                name='childCharge'
-                  fullWidth
-                  label="Child Charge"
-                  type="number"
-                    slotProps={{
-                      htmlInput: {
-                        onWheel: (e) => e.currentTarget.blur(),
-                      },
-                    }}
-                  value={currentRoomData.pricing?.childCharge}
-                  onChange={(e) => handleNestedChange('pricing', 'childCharge', parseFloat(e.target.value))}
-                  InputProps={{ startAdornment: '₹' }}
-                  error={!!formErrors.childCharge}
-                  helperText={formErrors.childCharge}
-                />
-              </Grid> */}
+                label="Base Adults *"
+                type="number"
+                slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                value={currentRoomData.occupancy?.baseAdults}
+                onChange={(e) =>
+                  handleNestedChange("occupancy", "baseAdults", parseInt(e.target.value))
+                }
+                error={!!formErrors.baseAdults}
+                helperText={formErrors.baseAdults}
+                InputProps={{ inputProps: { min: 1 } }}
+              />
+            </Grid>
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Maximum Occupancy (auto-calculated)"
+                type="number"
+                value={currentRoomData.occupancy?.maximumOccupancy}
+                InputProps={{ readOnly: true }}
+              />
             </Grid>
           </Grid>
         </Grid>
 
-        
+        {/* Bathroom */}
+        <Grid item size={{ xs: 12, md: 6 }}>
+          <Typography variant="subtitle1" gutterBottom>Bathroom</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={6} sx={{ mt: "10px" }}>
+              <TextField
+                fullWidth
+                label="Bathroom Count *"
+                type="number"
+                slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                value={currentRoomData.bathrooms.count}
+                onChange={(e) =>
+                  handleNestedChange("bathrooms", "count", parseInt(e.target.value))
+                }
+                error={!!formErrors.bathroomCount}
+                helperText={formErrors.bathroomCount}
+                InputProps={{ inputProps: { min: 0 } }}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Box display="flex" flexDirection="column">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={currentRoomData.bathrooms.private}
+                      onChange={(e) => handleBathroomTypeChange("private", e.target.checked)}
+                    />
+                  }
+                  label="Private Bathroom"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={currentRoomData.bathrooms.shared}
+                      onChange={(e) => handleBathroomTypeChange("shared", e.target.checked)}
+                    />
+                  }
+                  label="Shared Bathroom"
+                />
+                {formErrors.bathroomType && (
+                  <FormHelperText error>{formErrors.bathroomType}</FormHelperText>
+                )}
+              </Box>
+            </Grid>
+          </Grid>
+        </Grid>
 
-        {/* Room Amenities */}
-        <RoomsAmenities
-          roomAmenityCategories={roomAmenityCategories}
-          currentRoomData={currentRoomData}
-          selectedAmenityTab={selectedAmenityTab}
-          setSelectedAmenityTab={setSelectedAmenityTab}
-          handleRoomAmenityChange={handleRoomAmenityChange}
-        />
+        {/* Meal Plan */}
+        <Grid item size={{ xs: 12, md: 6 }}>
+          <Typography variant="subtitle1" gutterBottom>Meal Plan</Typography>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={currentRoomData.mealPlan.available}
+                onChange={(e) => handleNestedChange("mealPlan", "available", e.target.checked)}
+              />
+            }
+            label="Meal Plan Available"
+          />
+          {formErrors.mealPlan && (
+            <FormHelperText error>{formErrors.mealPlan}</FormHelperText>
+          )}
+          {currentRoomData.mealPlan.available && (
+            <FormControl fullWidth sx={{ mt: 1 }}>
+              <InputLabel>Meal Plan Type</InputLabel>
+              <Select
+                value={currentRoomData.mealPlan.planType}
+                onChange={(e) => handleNestedChange("mealPlan", "planType", e.target.value)}
+                label="Meal Plan Type"
+              >
+                <MenuItem value="Accommodation only">Accommodation only</MenuItem>
+                <MenuItem value="Free Breakfast">Free Breakfast</MenuItem>
+                <MenuItem value="Free Breakfast + Lunch">Free Breakfast + Lunch</MenuItem>
+                <MenuItem value="Free Breakfast + Dinner">Free Breakfast + Dinner</MenuItem>
+                <MenuItem value="Free Lunch">Free Lunch</MenuItem>
+                <MenuItem value="Free Dinner">Free Dinner</MenuItem>
+                <MenuItem value="Free Lunch + Dinner">Free Lunch + Dinner</MenuItem>
+                <MenuItem value="Free Breakfast + Lunch + Dinner">Free Breakfast + Lunch + Dinner</MenuItem>
+              </Select>
+            </FormControl>
+          )}
+        </Grid>
 
+        {/* Pricing */}
+        <Grid item size={{ xs: 12 }}>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="subtitle1" gutterBottom>Pricing</Typography>
+          <Grid container spacing={3}>
+            <Grid item size={{ xs: 12 }} md={4}>
+              <TextField
+                name="baseAdultsCharge"
+                fullWidth
+                label="Base Price (per night) *"
+                type="number"
+                slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                value={currentRoomData.pricing?.baseAdultsCharge}
+                onChange={(e) =>
+                  handleNestedChange("pricing", "baseAdultsCharge", parseFloat(e.target.value))
+                }
+                error={!!formErrors.baseAdultsCharge}
+                helperText={formErrors.baseAdultsCharge}
+                InputProps={{ startAdornment: "₹" }}
+              />
+            </Grid>
+            <Grid item size={{ xs: 12 }} md={4}>
+              <TextField
+                name="extraFloorBeddingCharge"
+                fullWidth
+                label="Extra Floor Bedding Charge"
+                type="number"
+                slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
+                value={currentRoomData.pricing?.extraFloorBeddingCharge}
+                onChange={(e) =>
+                  handleNestedChange("pricing", "extraFloorBeddingCharge", parseFloat(e.target.value))
+                }
+                InputProps={{ startAdornment: "₹" }}
+              />
+            </Grid>
+          </Grid>
+        </Grid>
+
+      </Grid>
+
+      {/* Amenities */}
+      <RoomsAmenities
+        roomAmenityCategories={roomAmenityCategories}
+        currentRoomData={currentRoomData}
+        selectedAmenityTab={selectedAmenityTab}
+        setSelectedAmenityTab={setSelectedAmenityTab}
+        handleRoomAmenityChange={handleRoomAmenityChange}
+      />
+
+      {/* Save / Back Buttons */}
+      <div className="flex justify-end mt-4 gap-2">
+        <Button variant="outlined" onClick={handleCancelForm}>Back</Button>
+        <Button
+          variant="contained"
+          color="primary"
+          disabled={isSubmitting && !isEditingRoom}
+          onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
+        >
+          {isEditingRoom ? "Update Room" : "Save Room"}
+        </Button>
+      </div>
+
+      {/* ── MEDIA UPLOAD (below the form, only active after room is saved) ── */}
+      <Divider sx={{ my: 4 }} />
+      <SingleRoomMediaForm
+        propertyId={propertyId}
+        singleRoom={currentRoomData}        // ← always passes current data
+        singleRoomId={currentRoomId}        // ← null until saved, disables upload button
+        isFileSubmitting={isFileSubmiting}
+        hideCompleteButton={true}
+        onMediaUploaded={(updatedRoom) => {
+      setCurrentRoomData(prev => ({ ...prev, media: updatedRoom.media }));
+    }}
+        onBack={handleCancelForm}
+      />
+
+      {/* Add New Room / Next */}
+      {/* {!isEditingRoom && (
         <div className="flex justify-end mt-4 gap-2">
-          <Button
-            variant="outlined"
-            onClick={() => {
-              handleCancelForm();
-            }}
-          >
-            Back
+          <Button variant="outlined" onClick={handleAddNewForm}>
+            Add New Room
           </Button>
-
-         <Button
-  variant="contained"
-  color="primary"
-  disabled={isSubmitting && !isEditingRoom} 
-  onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
->
-  {isEditingRoom ? 'Update Room' : 'Save Room'}
-</Button>
-
-          {/* <Button
+          <Button
             variant="contained"
             color="primary"
-            disabled={isSubmitting}
-            onClick={isEditingRoom ? handleUpdateRoom : handleAddRoom}
+            disabled={localRooms.length === 0}
+            onClick={() => handleCompleteRooms(propertyId)}
           >
-            {isEditingRoom ? "Update Room" : "Save Room"}
-          </Button> */}
+            Next
+          </Button>
         </div>
-
-        <div id="media-upload-section" className="my-5">{renderMediaUploadStep()}</div>
-
-        {!isEditingRoom && (
-          <div className="flex justify-end mt-4 gap-2">
-            <Button
-              variant="outlined"
-              onClick={() => {
-                handleAddNewForm();
-              }}
-            >
-              Add New Room
-            </Button>
-
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={localRooms.length == 0}
-              onClick={() => {
-                handleCompleteRooms(propertyId)
-              }}
-            >
-              Next
-            </Button>
-          </div>
-        )}
-      </Paper>
-    );
-  }
+      )} */}
+    </Paper>
+  );
+}
 
   // Room list view - your existing room list JSX
   return (
     <Box>
+      <ConfirmDialog />
       <Typography variant="h5" gutterBottom>
         Property Rooms
       </Typography>

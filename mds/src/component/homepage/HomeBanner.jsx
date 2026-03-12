@@ -10,12 +10,13 @@ const HomeBanner = () => {
       <div className="nc-SectionHero relative flex flex-col-reverse lg:flex-col pt-12  lg:pt-16">
         <div className="flex flex-col lg:flex-row lg:items-center">
           <div className="flex flex-shrink-0 flex-col items-start  `lg:me-10 lg:w-1/2 lg:pb-64 xl:me-0 xl:pe-14">
-            <h2 className="text-4xl font-bold !leading-[114%] md:text-5xl xl:text-7xl">
+            <h1 className="text-4xl font-bold !leading-[114%] md:text-5xl xl:text-7xl">
               Find Your <br /> Divine Stay
-            </h2>
-            <span className="text-base text-neutral-500 mt-5   md:text-lg">
-              From Kashi to Kedarnath, Find Peaceful, Affordable, and Trusted
-              Religious Stays at Your Fingertips
+              {/* Book Dharamshala, Temple & Ashram Stays Online */}
+            </h1>
+            <span className="text-base normal-case text-neutral-500 mt-5   md:text-lg">
+              From kashi to kedarnath, find peaceful, affordable, and trusted
+              religious stays at your fingertips
             </span>
           </div>
           <div className="flex-grow">

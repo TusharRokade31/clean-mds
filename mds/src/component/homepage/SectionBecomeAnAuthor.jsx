@@ -14,20 +14,20 @@ const features = [
     icon: CheckBadgeIcon,
     iconBg: 'bg-green-100 text-green-600',
   },
-  {
-    title: 'GST Bills',
-    description:
-      'Transparent pricing with proper GST invoices for all your bookings',
-    icon: DocumentTextIcon,
-    iconBg: 'bg-blue-100 text-blue-600',
-  },
-  {
-    title: '24x7 Support',
-    description:
-      'Round-the-clock customer support for any assistance during your spiritual journey',
-    icon: ClockIcon,
-    iconBg: 'bg-purple-100 text-purple-600',
-  },
+  // {
+  //   title: 'GST Bills',
+  //   description:
+  //     'Transparent pricing with proper GST invoices for all your bookings',
+  //   icon: DocumentTextIcon,
+  //   iconBg: 'bg-blue-100 text-blue-600',
+  // },
+  // {
+  //   title: '24x7 Support',
+  //   description:
+  //     'Round-the-clock customer support for any assistance during your spiritual journey',
+  //   icon: ClockIcon,
+  //   iconBg: 'bg-purple-100 text-purple-600',
+  // },
   {
     title: 'UPI Payments',
     description:
@@ -48,7 +48,7 @@ export default function SectionBecomeAnAuthor() {
           Trust indicators that make your spiritual journey safe and blessed
         </p>
 
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
           {features.map((feature) => (
             <div
               key={feature.title}

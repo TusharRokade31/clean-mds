@@ -67,7 +67,8 @@ export const getDraftProperties = async (req, res) => {
 // Get single property
 export const getViewProperty = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    // Search by slug instead of findById
+    const property = await Property.findOne({ slug: req.params.slug });
     
     if (!property) {
       return res.status(404).json({
@@ -76,7 +77,6 @@ export const getViewProperty = async (req, res) => {
       });
     }
 
-    
     res.status(200).json({
       success: true,
       data: property,
@@ -89,6 +89,64 @@ export const getViewProperty = async (req, res) => {
   }
 };
 
+export const getFeaturedByLocation = async (req, res) => {
+  try {
+    const featuredStays = await Property.aggregate([
+      // 1. Only get published properties
+      { $match: { status: 'published' } },
+
+      // 2. Group by State first, then by City
+      {
+        $group: {
+          _id: {
+            state: "$location.state",
+            city: "$location.city"
+          },
+          properties: { 
+            $push: { 
+              id: "$_id",
+              placeName: "$placeName", 
+              slug: "$slug",
+              coverImage: "$media.coverImage" 
+            } 
+          }
+        }
+      },
+
+      // 3. Group again to nest cities under states
+      {
+        $group: {
+          _id: "$_id.state",
+          cities: {
+            $push: {
+              cityName: "$_id.city",
+              stays: "$properties"
+            }
+          }
+        }
+      },
+
+      // 4. Clean up the output format
+      {
+        $project: {
+          _id: 0,
+          state: "$_id",
+          cities: 1
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: featuredStays
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};  
 
 export const getProperty = async (req, res) => {
   try {
@@ -359,7 +417,7 @@ export const saveBasicInfo = async (req, res) => {
     }
 
     const { propertyId } = req.params;
-    const { propertyType, placeName, placeRating, propertyBuilt, bookingSince, rentalForm, email, mobileNumber, landline } = req.body;
+    const { propertyType, placeName, placeRating, propertyBuilt, bookingSince, rentalForm, email, mobileNumber, landline, languagesSpoken } = req.body;
     
     // Check if property exists and belongs to user
 const property = await Property.findById(propertyId);
@@ -396,7 +454,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     // Check for changes if property is published
     const hasChanges = detectPropertyChanges(property, {
       propertyType, placeName, placeRating, propertyBuilt, 
-      bookingSince, rentalForm, email, mobileNumber, landline
+      bookingSince, rentalForm, email, mobileNumber, landline, languagesSpoken
     }, 1);
 
     if (hasChanges) {
@@ -412,6 +470,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     property.rentalForm = rentalForm;
     property.email = email;
     property.mobileNumber = mobileNumber;
+    property.languagesSpoken = languagesSpoken;
     property.landline = landline;
    
     
@@ -554,6 +613,7 @@ export const saveAmenities = async (req, res) => {
     // Process amenities data
     property.amenities = amenities;
     property.formProgress.step3Completed = true;
+    property.formProgress.step4Completed = true;
     
     await property.save({ validateBeforeSave: false });
     
@@ -607,6 +667,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     property.rooms.push(roomData);
 
     property.formProgress.step4Completed = false;
+    property.formProgress.step3Completed = false;
     
     await property.save({ validateBeforeSave: false });
     
@@ -675,6 +736,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
       property.rooms[roomIndex][key] = roomData[key];
     });
     property.formProgress.step4Completed = false;
+    property.formProgress.step3Completed = false;
     
     await property.save({ validateBeforeSave: false });
     
@@ -733,6 +795,7 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     property.formProgress.step4Completed = property.rooms.length > 0;
 
      property.formProgress.step4Completed = false;
+     property.formProgress.step3Completed = false;
     
     await property.save({ validateBeforeSave: false });
     
@@ -772,7 +835,8 @@ if (property.owner.toString() !== req.user._id.toString() && req.user.role !== '
     }
     
     // Mark step 4 as completed
-    property.formProgress.step4Completed = true;
+    // property.formProgress.step4Completed = true;
+    property.formProgress.step3Completed = true;
     
     await property.save({ validateBeforeSave: false });
     
@@ -1783,6 +1847,129 @@ export const deleteProperty = async (req, res) => {
   }
 };
 
+export const getSimilarProperties = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    const { limit = 6 } = req.query;
+
+    // 1. Find the reference property
+    const property = await Property.findOne({
+      _id: propertyId,
+      status: 'published',
+    }).select('location.city location.state propertyType rentalForm');
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found',
+      });
+    }
+
+    const { city, state } = property.location;
+    const { propertyType, rentalForm } = property;
+
+    // 2. Build a scored similarity pipeline using aggregation
+    const similarProperties = await Property.aggregate([
+      {
+        $match: {
+          _id: { $ne: property._id },         // Exclude current property
+          status: 'published',
+        },
+      },
+      {
+        // 3. Score each property based on matching fields
+        $addFields: {
+          similarityScore: {
+            $add: [
+              // +3 if same city (strongest signal)
+              {
+                $cond: [{ $eq: ['$location.city', city] }, 3, 0],
+              },
+              // +2 if same property type
+              {
+                $cond: [{ $eq: ['$propertyType', propertyType] }, 2, 0],
+              },
+              // +1 if same rental form
+              {
+                $cond: [{ $eq: ['$rentalForm', rentalForm] }, 1, 0],
+              },
+              // +1 if same state but different city (fallback for nearby)
+              {
+                $cond: [
+                  {
+                    $and: [
+                      { $eq: ['$location.state', state] },
+                      { $ne: ['$location.city', city] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            ],
+          },
+        },
+      },
+      {
+        // 4. Only return properties with at least some relevance
+        $match: {
+          similarityScore: { $gte: 1 },
+        },
+      },
+      { $sort: { similarityScore: -1, createdAt: -1 } },
+      { $limit: parseInt(limit) },
+      {
+        // 5. Shape the response — only send fields needed for a card UI
+        $project: {
+        placeName: 1,
+        slug: 1,
+        propertyType: 1,
+        rentalForm: 1,
+        placeRating: 1,
+        location: {
+          city: '$location.city',
+          state: '$location.state',
+        },
+        media: {
+          images: { $slice: ['$media.images', 1] }, // ✅ first image object with .url
+        },
+        'rooms.roomName': 1,
+        'rooms.pricing.baseAdultsCharge': 1,
+        'rooms.occupancy.maximumOccupancy': 1,
+        similarityScore: 1,
+      },
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: similarProperties.length,
+      referenceProperty: {
+        id: propertyId,
+        city,
+        state,
+        propertyType,
+        rentalForm,
+      },
+      data: similarProperties,
+    });
+
+  } catch (error) {
+    // Handle invalid ObjectId format gracefully
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid property ID format',
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching similar properties',
+      error: error.message,
+    });
+  }
+};
 
 // Get properties by state
 export const getPropertiesByState = async (req, res) => {

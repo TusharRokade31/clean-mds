@@ -19,9 +19,11 @@ const getSearchQueryFromLocal = () => {
 // Initial state
 const initialState = {
   properties: [],
+  similarProperties: [],
   draftProperties: [],
   currentProperty: null,
   ViewProperty: {},
+  featuredByLocation:[],
   currentFinanceLegal: null,
   currentMedia: [],
   featuredProperties: [],
@@ -117,9 +119,9 @@ export const getProperty = createAsyncThunk(
 
 export const getViewProperty = createAsyncThunk(
   'property/getViewProperty',
-  async (id, { rejectWithValue }) => {
+  async (slug, { rejectWithValue }) => {
     try {
-      const response = await propertyAPI.getViewProperty(id);
+      const response = await propertyAPI.getViewProperty(slug);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch property');
@@ -127,6 +129,18 @@ export const getViewProperty = createAsyncThunk(
   }
 );
 
+
+export const getFeaturedByLocation = createAsyncThunk(
+  'property/getFeaturedByLocation',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getFeaturedByLocation();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch featured properties');
+    }
+  }
+)
 
 
 export const fetchSuggestions = createAsyncThunk(
@@ -556,6 +570,19 @@ export const getFeaturedProperties = createAsyncThunk(
   }
 );
 
+export const getSimilarProperties = createAsyncThunk(
+  'property/getSimilarProperties',
+  async (propertyId, { rejectWithValue }) => {
+    try {
+      const response = await propertyAPI.getSimilarProperties(propertyId);
+      
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch similar properties');
+    }
+  }
+);
+
 export const checkPropertyAvailability = createAsyncThunk(
   'property/checkPropertyAvailability',
   async ({ id, params }, { rejectWithValue }) => {
@@ -833,6 +860,19 @@ const propertySlice = createSlice({
       state.ViewProperty = action.payload;
     });
     builder.addCase(getViewProperty.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
+    builder.addCase(getFeaturedByLocation.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getFeaturedByLocation.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.featuredByLocation = action.payload;
+    });
+    builder.addCase(getFeaturedByLocation.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });
@@ -1318,6 +1358,20 @@ builder.addCase(uploadPropertyMedia.rejected, (state, action) => {
       state.featuredProperties = action.payload;
     });
     builder.addCase(getFeaturedProperties.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+    
+    // Get similar properties
+    builder.addCase(getSimilarProperties.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(getSimilarProperties.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.similarProperties = action.payload;
+    });
+    builder.addCase(getSimilarProperties.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });

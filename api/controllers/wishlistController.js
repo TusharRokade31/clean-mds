@@ -19,7 +19,7 @@ export const getWishlist = async (req, res) => {
     let wishlist = await Wishlist.findOne({ user: req.user._id })
       .populate({
         path: 'properties.property',
-        select: 'placeName location media propertyType placeRating',
+        select: 'placeName location media propertyType placeRating slug',
       });
 
     // Create wishlist if doesn't exist

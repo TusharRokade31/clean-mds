@@ -105,7 +105,7 @@ const FeaturedStays2 = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {displayProperties.slice(0, 8).map((property) => (
             <Link 
-              href={`/hotel-details/${property._id}`} 
+              href={`/hotel-details/${property.slug}`} 
               key={property._id}
               className="group relative block w-full h-72 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
             >

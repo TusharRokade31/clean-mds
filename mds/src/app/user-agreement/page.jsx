@@ -5,13 +5,13 @@ export const metadata = {
     title: "User Agreement | Essential Guidelines for All Users",
     description: "Read the User Agreement to understand your rights and responsibilities. Book confidently on My Divine Stays knowing the rules are clear and transparent.",
     alternates: {
-        canonical: "https://mydivinestays.com/user-agreement/",
+        canonical: "https://mydivinestays.com/user-agreement",
     },
 };
 
 const page = () => {
   return (
-    <div className='legal-container legal-content my-24 px-20'><h2><strong>User Agreement (Terms of Use)</strong></h2>
+    <div className='legal-container legal-content my-24 px-20'><h1><strong>User Agreement (Terms of Use)</strong></h1>
 <p>Welcome to My Divine Stays. By accessing or using our website and services, you agree to the terms outlined below. Please read them carefully before making a booking or listing a dharamshala.</p>
 <h3><strong>Platform Role</strong></h3>
 <p>My Divine Stays is a <strong>technology platform</strong> that facilitates online bookings between pilgrims and the dharamshala management.<br />We <strong>do not own, operate, or manage</strong> any dharamshala listed on the platform.</p>

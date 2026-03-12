@@ -140,8 +140,13 @@ export const propertyAPI = {
   },
 
   // Get single view property
-  getViewProperty: async (id) => {
-    const response = await axiosInstance.get(`/properties/view/${id}`);
+  getViewProperty: async (slug) => {
+    const response = await axiosInstance.get(`/properties/view/${slug}`);
+    return response.data;
+  },
+
+  getFeaturedByLocation: async (slug) => {
+    const response = await axiosInstance.get(`/properties/featured-by-location`);
     return response.data;
   },
 
@@ -232,6 +237,12 @@ export const propertyAPI = {
   // Get properties by city
   getPropertiesByCity: async (city) => {
     const response = await axiosInstance.get(`/properties/city/${city}`);
+    return response.data;
+  },
+
+    // Get properties by city
+  getSimilarProperties: async (propertyId) => {
+    const response = await axiosInstance.get(`/properties/${propertyId}/similar`);
     return response.data;
   },
   
