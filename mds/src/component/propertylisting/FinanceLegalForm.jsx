@@ -124,6 +124,8 @@ const FinanceLegalForm = ({ propertyId, onComplete }) => {
   const [selectedDocIndex, setSelectedDocIndex] = useState(0);
   
   const fileInputRef = useRef(null);
+  const initialLoadRef = useRef(true);
+  const hasAutoCompleted = useRef(false);
 
   useEffect(() => {
     if (propertyId) {
@@ -142,6 +144,51 @@ const FinanceLegalForm = ({ propertyId, onComplete }) => {
       });
     }
   }, [currentFinanceLegal]);
+
+useEffect(() => {
+    // 1. Wait until the data actually exists
+    if (!currentFinanceLegal) return;
+
+    const isFinanceDone = currentFinanceLegal.financeCompleted;
+    const isLegalDone = currentFinanceLegal.legalCompleted;
+
+    // 2. Handle the very first time the data loads from the server
+    if (initialLoadRef.current) {
+      // Check if data is actually populated (not just an empty object)
+      if (Object.keys(currentFinanceLegal).length > 0) {
+        initialLoadRef.current = false; 
+        
+        // If it came from the server ALREADY complete, don't fire the API again
+        if (isFinanceDone && isLegalDone) {
+          hasAutoCompleted.current = true;
+          onComplete?.(); // Just notify the parent it's done so the tab unlocks
+        }
+      }
+      return;
+    }
+
+    // 3. Reset the tracker if the user makes something incomplete (e.g., deletes a document)
+    if (!isFinanceDone || !isLegalDone) {
+      hasAutoCompleted.current = false;
+      return;
+    }
+
+    // 4. Fire API ONLY if both are done, it's NOT the initial load, and we haven't fired it yet
+    if (isFinanceDone && isLegalDone && !hasAutoCompleted.current) {
+      hasAutoCompleted.current = true; // Prevent infinite loops
+
+      dispatch(completeFinanceLegalStep(propertyId))
+        .unwrap()
+        .then(() => {
+          onComplete?.();
+          toast.success('Finance & Legal step automatically completed!');
+        })
+        .catch((error) => {
+          hasAutoCompleted.current = false; // Allow retry if it fails
+          toast.error(`Validation errors:\n${error.errors?.join('\n') || error.message}`);
+        });
+    }
+  }, [currentFinanceLegal, dispatch, propertyId, onComplete]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -379,7 +426,7 @@ const handleDeleteDocument = async (doc) => {
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <FormControl fullWidth required>
+                    <FormControl sx={{ minWidth: 180 }} fullWidth required>
                       <InputLabel>Bank Name</InputLabel>
                       <Select
                         value={financeData.bankDetails.bankName}
@@ -811,16 +858,6 @@ const handleDeleteDocument = async (doc) => {
             />
           )}
         </Box>
-        
-        <Button 
-          variant="contained" 
-          size="large"
-          onClick={handleCompleteStep}
-          disabled={isLoading}
-          sx={{ minWidth: '200px' }}
-        >
-          Complete Finance & Legal
-        </Button>
       </Box>
     </Paper>
   );

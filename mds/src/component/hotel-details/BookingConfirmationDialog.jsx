@@ -45,13 +45,14 @@ const theme = createTheme({
 })
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
-const nightlyRate = (room, adults, children) => {
+const nightlyRate = (room, adults, extraGaddis = 0) => {
   if (!room) return 0
-  const base  = room.pricing?.baseAdultsCharge  || 0
-  const eRate = room.pricing?.extraAdultsCharge || 0
-  const cRate = room.pricing?.childCharge       || 0
-  const extra = Math.max(0, adults - (room.occupancy?.baseAdults || 1))
-  return base + extra * eRate + children * cRate
+  const bedCapacity   = room?.beds?.reduce((s, b) => s + (b.count * b.accommodates), 0) || 1
+  const perGaddi      = parseInt(room?.FloorBedding?.peoplePerFloorBedding || 1)
+  const gaddiRate     = room.pricing?.extraFloorBeddingCharge || 0
+  const extraAdults   = Math.max(0, adults - bedCapacity)
+  const matsForAdults = extraAdults > 0 ? Math.ceil(extraAdults / perGaddi) : 0
+  return (room.pricing?.baseAdultsCharge || 0) + (matsForAdults + extraGaddis) * gaddiRate
 }
 
 const fmtINR = (n) =>
@@ -210,7 +211,7 @@ export default function BookingConfirmationDialog({
 
   const effectiveRooms = useMemo(() => {
     if (selectedRooms.length > 0) return selectedRooms
-    if (room) return [{ cartKey: room._id, roomId: room._id, roomName: room.roomName, guestCount: { adults: 1, children: 0 } }]
+    if (room) return [{ cartKey: room._id, roomId: room._id, roomName: room.roomName, guestCount: { adults: 1, extraGaddis: 0 } }]
     return []
   }, [selectedRooms, room])
 
@@ -241,16 +242,16 @@ export default function BookingConfirmationDialog({
 
   const totalGuests = useMemo(() =>
     effectiveRooms.reduce((s, r) => ({
-      adults:   s.adults   + (r.guestCount?.adults   || 0),
-      children: s.children + (r.guestCount?.children || 0),
-    }), { adults: 0, children: 0 }),
+      adults:      s.adults      + (r.guestCount?.adults      || 0),
+      extraGaddis: s.extraGaddis + (r.guestCount?.extraGaddis || 0),
+    }), { adults: 0, extraGaddis: 0 }),
   [effectiveRooms])
 
   const estimatedTotal = useMemo(() => {
     if (!nights) return 0
     return effectiveRooms.reduce((sum, er) => {
       const ro   = getRoomObj(er.roomId)
-      const rate = nightlyRate(ro, er.guestCount?.adults || 1, er.guestCount?.children || 0)
+      const rate = nightlyRate(ro, er.guestCount?.adults || 1, er.guestCount?.extraGaddis || 0)
       return sum + rate * nights
     }, 0)
   }, [effectiveRooms, nights])
@@ -266,52 +267,90 @@ export default function BookingConfirmationDialog({
     return !Object.keys(e).length
   }
 
-  const handleConfirm = async () => {
-    if (!isAuthenticated) { onClose(); router.push("/login"); return }
-    if (!validate()) return
+const handleConfirm = async () => {
+  // ── Not logged in → close modal, redirect to login ───────────────────────
+  // (Only redirect in this case — everything else stays inside the modal.)
+  if (!isAuthenticated) {
+    onClose()
+    router.push("/login")
+    return
+  }
+ 
+  // ── Client-side date validation ───────────────────────────────────────────
+  if (!validate()) return   // validate() already sets field errors, no redirect
+ 
+  // ── Availability check ────────────────────────────────────────────────────
+  setAvailabilityLoading(true)
+  setAvailabilityError("")          // clear any previous error
+ 
+  try {
+    // Group cart items by roomId so we know how many units the user wants per room type
+    const roomGroups = effectiveRooms.reduce((acc, er) => {
+      if (!acc[er.roomId]) acc[er.roomId] = { roomName: er.roomName, count: 0 }
+      acc[er.roomId].count += 1
+      return acc
+    }, {})
 
-    setAvailabilityLoading(true)
-    setAvailabilityError("")
-    try {
-      const checkedIds = new Set()
-      for (const er of effectiveRooms) {
-        if (checkedIds.has(er.roomId)) continue
-        checkedIds.add(er.roomId)
-        const result = await dispatch(checkRoomAvailability({
-          roomId:    er.roomId,
+    for (const [roomId, { roomName, count: wantedCount }] of Object.entries(roomGroups)) {
+      const result = await dispatch(
+        checkRoomAvailability({
+          roomId,
           startDate: dates.checkIn.toISOString().split("T")[0],
           endDate:   dates.checkOut.toISOString().split("T")[0],
-        })).unwrap()
-        if (!result?.data?.available) {
-          setAvailabilityError(`"${er.roomName}" is not available for the selected dates.`)
-          setAvailabilityLoading(false)
-          return
-        }
-      }
-    } catch {
-      setAvailabilityError("Could not check availability. Please try again.")
-      setAvailabilityLoading(false)
-      return
-    }
-    setAvailabilityLoading(false)
+        })
+      ).unwrap()
 
-    const sq = {
-      checkin:    dates.checkIn.toISOString().split("T")[0],
-      checkout:   dates.checkOut.toISOString().split("T")[0],
-      persons:    totalGuests.adults.toString(),
-      children:   totalGuests.children.toString(),
-      location:   property?.location?.city || "",
-      propertyId: property?._id,
+      const availableUnits = result?.data?.availableUnits ?? 0
+      const totalUnits     = result?.data?.totalUnits     ?? 1
+
+      // Two failure cases:
+      // 1. Room is fully booked (0 units left)
+      // 2. User wants more units than are available (e.g. wants 3, only 2 free)
+      if (!result?.data?.available || wantedCount > availableUnits) {
+        const msg = availableUnits === 0
+          ? `"${roomName}" is fully booked for the selected dates. Please choose different dates.`
+          : `You selected ${wantedCount} unit(s) of "${roomName}", but only ${availableUnits} of ${totalUnits} are available for these dates. Please remove ${wantedCount - availableUnits} from your selection.`
+
+        setAvailabilityError(msg)
+        setAvailabilityLoading(false)
+
+        setTimeout(() => {
+          document.getElementById("availability-error-alert")?.scrollIntoView({
+            behavior: "smooth", block: "center",
+          })
+        }, 100)
+
+        return
+      }
     }
-    localStorage.setItem("lastSearchQuery",  JSON.stringify(sq))
-    localStorage.setItem("selectedRooms",    JSON.stringify(effectiveRooms))
-    localStorage.setItem("selectedProperty", JSON.stringify(property))
-    if (effectiveRooms.length === 1) {
-      const ro = getRoomObj(effectiveRooms[0].roomId)
-      if (ro) localStorage.setItem("selectedRoom", JSON.stringify(ro))
-    }
-    router.push(`/booking/${property._id}?checkIn=${sq.checkin}&checkOut=${sq.checkout}`)
+  } catch (err) {
+    // Network / server error — still stay in the modal
+    setAvailabilityError("Could not check availability. Please try again.")
+    setAvailabilityLoading(false)
+    return   // ← stays in the modal, NO redirect
   }
+ 
+  setAvailabilityLoading(false)
+ 
+  // ── All rooms available — now redirect to booking page ───────────────────
+  const sq = {
+    checkin:     dates.checkIn.toISOString().split("T")[0],
+    checkout:    dates.checkOut.toISOString().split("T")[0],
+    persons:     totalGuests.adults.toString(),
+    extraGaddis: totalGuests.extraGaddis.toString(),
+    location:    property?.location?.city || "",
+    propertyId:  property?._id,
+  }
+  localStorage.setItem("lastSearchQuery",  JSON.stringify(sq))
+  localStorage.setItem("selectedRooms",    JSON.stringify(effectiveRooms))
+  localStorage.setItem("selectedProperty", JSON.stringify(property))
+  if (effectiveRooms.length === 1) {
+    const ro = getRoomObj(effectiveRooms[0].roomId)
+    if (ro) localStorage.setItem("selectedRoom", JSON.stringify(ro))
+  }
+ 
+  router.push(`/booking/${property._id}?checkIn=${sq.checkin}&checkOut=${sq.checkout}`)
+}
 
   if (!property || effectiveRooms.length === 0) return null
   const busy = isLoading || availabilityLoading
@@ -357,7 +396,7 @@ export default function BookingConfirmationDialog({
                     />
                     <Chip
                       size="small"
-                      label={`${totalGuests.adults} Adult${totalGuests.adults > 1 ? "s" : ""}${totalGuests.children > 0 ? ` · ${totalGuests.children} Child${totalGuests.children > 1 ? "ren" : ""}` : ""}`}
+                      label={`${totalGuests.adults} Adult${totalGuests.adults > 1 ? "s" : ""}${totalGuests.extraGaddis > 0 ? ` · ${totalGuests.extraGaddis} Gaddi` : ""}`}
                       sx={{ bgcolor: "rgba(255,255,255,0.12)", color: "#fff", fontSize: "0.72rem", height: 22 }}
                     />
                     {nights > 0 && (
@@ -392,9 +431,13 @@ export default function BookingConfirmationDialog({
               </Alert>
             )}
             {availabilityError && (
-              <Alert severity="error" sx={{ mb: 2, borderRadius: "10px", fontSize: "0.82rem" }}>
-                {availabilityError}
-              </Alert>
+            <Alert
+      id="availability-error-alert"          // ← ADD THIS
+      severity="error"
+      sx={{ mb: 2, borderRadius: "10px", fontSize: "0.82rem" }}
+    >
+      {availabilityError}
+    </Alert>
             )}
 
             <Box display="flex" flexDirection="column" gap={2.5}>
@@ -429,7 +472,7 @@ export default function BookingConfirmationDialog({
                           </Typography>
                           <Chip
                             size="small"
-                            label={`${er.guestCount.adults}A${er.guestCount.children > 0 ? ` · ${er.guestCount.children}C` : ""}`}
+                            label={`${er.guestCount.adults}A${er.guestCount.extraGaddis > 0 ? ` · ${er.guestCount.extraGaddis} gaddi` : ""}`}
                             sx={{ bgcolor: "rgba(15,43,91,0.08)", color: "primary.main", fontSize: "0.67rem", fontWeight: 700, height: 20, borderRadius: "6px" }}
                           />
                           {ro && (
@@ -501,7 +544,7 @@ export default function BookingConfirmationDialog({
                     {effectiveRooms.map(er => {
                       const ro   = getRoomObj(er.roomId)
                       if (!ro) return null
-                      const rate = nightlyRate(ro, er.guestCount.adults, er.guestCount.children)
+                      const rate = nightlyRate(ro, er.guestCount?.adults, er.guestCount?.extraGaddis || 0)
                       return (
                         <Box key={er.cartKey} sx={styles.priceRow}>
                           <Box>
@@ -509,7 +552,7 @@ export default function BookingConfirmationDialog({
                               {er.roomName}
                             </Typography>
                             <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.72rem" }}>
-                              ₹{fmtINR(rate)} × {nights} night{nights > 1 ? "s" : ""} · {er.guestCount.adults}A{er.guestCount.children > 0 ? `, ${er.guestCount.children}C` : ""}
+                              ₹{fmtINR(rate)} × {nights} night{nights > 1 ? "s" : ""} · {er.guestCount.adults} adult{er.guestCount.adults > 1 ? "s" : ""}{er.guestCount.extraGaddis > 0 ? ` · ${er.guestCount.extraGaddis} gaddi` : ""}
                             </Typography>
                           </Box>
                           <Typography variant="body2" fontWeight={700} color="primary.main" sx={{ fontSize: "0.88rem" }}>

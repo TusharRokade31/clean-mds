@@ -43,17 +43,25 @@ export const roomController = {
       const paginatedRooms = rooms.slice(startIndex, endIndex);
 
       // Get current bookings for each room
+      // Uses rooms.room (multi-room schema) and respects numberRoom capacity
       const roomsWithBookings = await Promise.all(
         paginatedRooms.map(async (room) => {
-          const currentBooking = await Booking.findOne({
-            room: room._id,
-            status: 'checked-in',
+          const activeBookings = await Booking.find({
+            'rooms.room': room._id,
+            status: { $in: ['confirmed', 'checked-in'] },
           }).populate('primaryGuest');
+
+          const bookedCount    = activeBookings.length;
+          const totalUnits     = room.numberRoom ?? 1;
+          const availableUnits = Math.max(0, totalUnits - bookedCount);
 
           return {
             ...room.toObject(),
-            currentBooking: currentBooking || null,
-            status: currentBooking ? 'booked' : 'available',
+            currentBookings: activeBookings,
+            bookedUnits:     bookedCount,
+            totalUnits,
+            availableUnits,
+            status: availableUnits === 0 ? 'booked' : 'available',
           };
         }),
       );
@@ -108,16 +116,23 @@ export const roomController = {
         });
       }
 
-      // Get current booking for this room
-      const currentBooking = await Booking.findOne({
-        room: roomId,
+      // Uses rooms.room (multi-room schema) and respects numberRoom capacity
+      const activeBookings = await Booking.find({
+        'rooms.room': roomId,
         status: { $in: ['confirmed', 'checked-in'] },
       }).populate('primaryGuest');
 
+      const bookedCount    = activeBookings.length;
+      const totalUnits     = room.numberRoom ?? 1;
+      const availableUnits = Math.max(0, totalUnits - bookedCount);
+
       const roomWithBooking = {
         ...room.toObject(),
-        currentBooking: currentBooking || null,
-        status: currentBooking ? 'booked' : 'available',
+        currentBookings: activeBookings,
+        bookedUnits:     bookedCount,
+        totalUnits,
+        availableUnits,
+        status: availableUnits === 0 ? 'booked' : 'available',
       };
 
       res.status(200).json({
@@ -235,27 +250,37 @@ export const roomController = {
       const checkIn = new Date(startDate);
       const checkOut = new Date(endDate);
 
-      // Find overlapping bookings
-      const conflictingBookings = await Booking.find({
-        room: roomId,
-        status: { $in: ['confirmed', 'checked-in'] },
-        $or: [
-          {
-            checkIn: { $lt: checkOut },
-            checkOut: { $gt: checkIn },
-          },
-        ],
+      // Find the room to get its numberRoom (physical unit count)
+      const property = await Property.findOne({ 'rooms._id': roomId }).select('rooms.$');
+      const room     = property?.rooms?.[0];
+
+      if (!room) {
+        return res.status(404).json({ success: false, message: 'Room not found' });
+      }
+
+      const totalUnits = room.numberRoom ?? 1;
+
+      // Count active bookings that overlap the requested dates
+      // Uses rooms.room (multi-room booking schema), not the old `room` field
+      const bookedCount = await Booking.countDocuments({
+        'rooms.room': roomId,
+        status: { $nin: ['cancelled', 'no-show', 'draft'] },
+        checkIn:  { $lt: checkOut },
+        checkOut: { $gt: checkIn },
       });
 
-      const isAvailable = conflictingBookings.length === 0;
+      const availableUnits = Math.max(0, totalUnits - bookedCount);
+      const isAvailable    = availableUnits > 0;
 
       res.status(200).json({
         success: true,
         data: {
           available: isAvailable,
-          conflictingBookings: conflictingBookings.length,
+          totalUnits,
+          bookedUnits:bookedCount,
+          availableUnits,
           requestedDates: {
-            checkIn: checkIn.toISOString(),
+            checkIn:  checkIn.toISOString(),
             checkOut: checkOut.toISOString(),
           },
         },

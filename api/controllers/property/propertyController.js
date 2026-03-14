@@ -6,7 +6,7 @@ import State from '../../models/State.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 import { unlink } from 'fs/promises';
-import { generateOTP, sendOTPEmail } from '../../services/emailService.js';
+import { generateOTP, sendOTPEmail, sendPropertyPublishedEmail, sendPropertyRejectedEmail } from '../../services/emailService.js';
 import OTP from '../../models/OTP.js';
 import {errorResponse} from '../globalError/errorController.js';
 import slugify from 'slugify';
@@ -1797,7 +1797,22 @@ export const changePropertyStatus = async (req, res) => {
     property.status = status;
     property.updatedAt = Date.now();
 
+    // Save the property to the database FIRST
     await property.save({ validateBeforeSave: false });
+
+    // NEW CODE: Send the email if the status is published and an email exists
+    if (status === 'published' && property.email) {
+      // We don't await this so it doesn't block the API response to the admin
+      sendPropertyPublishedEmail(property.email, property.placeName).catch(err => {
+        console.error('Failed to send published notification in background:', err);
+      });
+    }
+    if (status === 'rejected' && property.email) {
+      // Pass the rejectionReason from req.body to the email function
+      sendPropertyRejectedEmail(property.email, property.placeName, rejectionReason).catch(err => {
+        console.error('Failed to send rejection notification in background:', err);
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -2294,17 +2309,11 @@ export const getPropertiesByQuery = async (req, res) => {
   }
   
   try {
-    const {
-      location, 
-      checkin, 
-      checkout, 
-      persons, 
-      skip = 0,
-      limit = 10
-    } = req.query; 
+    const { location, checkin, checkout, persons, rooms, skip = 0, limit = 10 } = req.query;
 
     const skipNum = parseInt(skip) || 0;
     const limitNum = parseInt(limit) || 10;
+    const roomsNum = parseInt(rooms) || 1;
 
     try {
       // Try Atlas Search first
@@ -2332,13 +2341,14 @@ export const getPropertiesByQuery = async (req, res) => {
                     path: 'location.state',
                   },
                 },
-              ].filter(Boolean),
+              ],
             },
           },
         },
         {
           $match: {
             status: 'published',
+            ...(roomsNum > 1 && { $expr: { $gte: [{ $size: '$rooms' }, roomsNum] } }),
           },
         },
         { $skip: skipNum },
@@ -2355,18 +2365,19 @@ export const getPropertiesByQuery = async (req, res) => {
           skip: skipNum,
           limit: limitNum,
           count: propertyList.length,
-          hasMore: propertyList.length === limitNum
-        }
+          hasMore: propertyList.length === limitNum,
+        },
       });
       
     } catch (searchError) {
       // Fallback to regular query
-      console.warn('Search index not available, using fallback query');
+      console.warn('Search index not available, using fallback query:', searchError.message);
       
       const regex = new RegExp(location, 'i');
       
       const propertyList = await Property.find({
         status: 'published',
+        ...(roomsNum > 1 && { $expr: { $gte: [{ $size: '$rooms' }, roomsNum] } }),
         $or: [
           { placeName: regex },
           { 'location.city': regex },
@@ -2386,9 +2397,9 @@ export const getPropertiesByQuery = async (req, res) => {
           skip: skipNum,
           limit: limitNum,
           count: propertyList.length,
-          hasMore: propertyList.length === limitNum
+          hasMore: propertyList.length === limitNum,
         },
-        usingFallback: true
+        usingFallback: true,
       });
     }
     
@@ -2397,11 +2408,10 @@ export const getPropertiesByQuery = async (req, res) => {
     res.status(500).json({ 
       success: false,
       error: 'Server error',
-      message: err.message 
+      message: err.message,
     });
   }
 };
-
 
 export const getFilteredProperties = async (req, res) => {
   const errors = validationResult(req);

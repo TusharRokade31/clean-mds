@@ -16,18 +16,6 @@ import {
 import toast from 'react-hot-toast';
 import { useConfirm } from '@/hooks/useConfirm';
 
-/**
- * SingleRoomMediaForm
- *
- * Props:
- *  - propertyId   : string
- *  - singleRoomId : string | null   — null = room not yet saved → upload disabled
- *  - singleRoom   : room object     — used to read current media
- *  - onMediaUploaded(updatedRoom)   — called after any successful mutation so
- *                                     parent can merge media back into form state
- *  - hideCompleteButton : bool      — hides "Save & Continue" (used inside RoomsForm)
- *  - onBack       : fn              — optional back button handler
- */
 const SingleRoomMediaForm = ({
   propertyId,
   singleRoomId,
@@ -55,7 +43,24 @@ const SingleRoomMediaForm = ({
     'Amenities', 'Decor', 'Lighting', 'Storage', 'Window View', 'Others',
   ];
 
-  // ── Media helpers (operate on singleRoom prop, not Redux) ─────────────────
+  // ── Helper to safely extract the updated room from API results ──
+  const extractUpdatedRoom = (result) => {
+    // 1. If backend returns the full response object with a 'room' key
+    if (result?.room) return result.room;
+
+    // 2. If backend returns { property: { rooms: [...] } }
+    if (result?.property?.rooms) {
+      return result.property.rooms.find(r => r._id === singleRoomId || r.id === singleRoomId) || result;
+    }
+
+    // 3. FIX: If the Redux thunk returned the 'property' object directly! 
+    // It will have a 'rooms' array, so we extract our specific room from it.
+    if (result?.rooms && Array.isArray(result.rooms)) {
+      return result.rooms.find(r => r._id === singleRoomId || r.id === singleRoomId) || result;
+    }
+
+    return result;
+  };
 
   const getAllMedia = () => {
     if (!singleRoom?.media) return [];
@@ -76,8 +81,7 @@ const SingleRoomMediaForm = ({
   const getUntaggedMedia = () =>
     getAllMedia().filter(item => !item.tags || item.tags.length === 0);
 
-  // ── Upload ─────────────────────────────────────────────────────────────────
-
+  // ── Upload ──
   const handleFileSelect = async (e) => {
     const files = Array.from(e.target.files);
     setValidationError('');
@@ -102,9 +106,7 @@ const SingleRoomMediaForm = ({
         uploadRoomMedia({ propertyId, roomId: singleRoomId, formData })
       ).unwrap();
 
-      // result should contain the updated room — pass it up so RoomsForm
-      // can merge the new media into currentRoomData
-      onMediaUploaded?.(result.room ?? result);
+      onMediaUploaded?.(extractUpdatedRoom(result));
       toast.success('Media uploaded!');
     } catch (err) {
       console.error('Upload failed:', err);
@@ -115,8 +117,7 @@ const SingleRoomMediaForm = ({
     }
   };
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
-
+  // ── Delete ──
   const handleDeleteMedia = async (mediaId) => {
     const ok = await confirm({
       title: 'Delete Media?',
@@ -131,7 +132,7 @@ const SingleRoomMediaForm = ({
         deleteRoomMediaItem({ propertyId, roomId: singleRoomId, mediaId })
       ).unwrap();
 
-      onMediaUploaded?.(result.room ?? result);
+      onMediaUploaded?.(extractUpdatedRoom(result));
       setTagGroupDialog(false);
       setEditDialog(false);
     } catch (err) {
@@ -139,8 +140,7 @@ const SingleRoomMediaForm = ({
     }
   };
 
-  // ── Edit / Tags ────────────────────────────────────────────────────────────
-
+  // ── Edit / Tags ──
   const handleEditMedia = (mediaItem) => {
     setEditingMedia({ ...mediaItem, tags: mediaItem.tags || [] });
     setEditDialog(true);
@@ -163,7 +163,7 @@ const SingleRoomMediaForm = ({
         },
       })).unwrap();
 
-      onMediaUploaded?.(result.room ?? result);
+      onMediaUploaded?.(extractUpdatedRoom(result));
       setEditDialog(false);
       setEditingMedia(null);
     } catch (err) {
@@ -180,7 +180,8 @@ const SingleRoomMediaForm = ({
         mediaId: mediaItem._id,
         data: { isCover: !mediaItem.isCover },
       })).unwrap();
-      onMediaUploaded?.(result.room ?? result);
+      
+      onMediaUploaded?.(extractUpdatedRoom(result));
     } catch (err) {
       console.error('Set cover failed:', err);
     }
@@ -206,8 +207,6 @@ const SingleRoomMediaForm = ({
     }
   };
 
-  // ── Tag Group Dialog helpers ───────────────────────────────────────────────
-
   const handleTagGroupClick = (tag, mediaItems) => {
     setSelectedTagGroup({ tag, mediaItems });
     setSelectedImageIndex(0);
@@ -224,25 +223,22 @@ const SingleRoomMediaForm = ({
       setSelectedImageIndex(i => i - 1);
   };
 
-  // ── Derived data ───────────────────────────────────────────────────────────
-
   const allMedia     = getAllMedia();
   const groupedMedia = getMediaByTag();
   const untagged     = getUntaggedMedia();
   const roomNotSaved = !singleRoomId;
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
   return (
     <Box id="media-upload-anchor">
       <ConfirmDialog />
-
-      {/* ── Header ── */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Box>
-          <Typography variant="h6">
+          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
             Room Photos &amp; Videos
             {singleRoom?.roomName ? ` — ${singleRoom.roomName}` : ''}
+            <Typography component="span" color="error.main" sx={{ ml: 1, fontSize: '0.9rem', fontWeight: 500 }}>
+              (Minimum 1 photo required)
+            </Typography>
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {roomNotSaved
@@ -250,8 +246,6 @@ const SingleRoomMediaForm = ({
               : 'Upload photos and videos. Each item must have at least one tag.'}
           </Typography>
         </Box>
-
-        {/* Upload button */}
         <Box>
           <input
             ref={fileInputRef}
@@ -273,7 +267,6 @@ const SingleRoomMediaForm = ({
         </Box>
       </Box>
 
-      {/* Alerts */}
       {roomNotSaved && (
         <Alert severity="info" sx={{ mb: 2 }}>
           Save the room details above before uploading media.
@@ -284,12 +277,10 @@ const SingleRoomMediaForm = ({
       )}
       {isUploading && <LinearProgress sx={{ mb: 2 }} />}
 
-      {/* ── No media yet ── */}
       {!roomNotSaved && allMedia.length === 0 && (
         <Alert severity="info">No media uploaded yet. Upload at least one photo to continue.</Alert>
       )}
 
-      {/* ── Tagged groups ── */}
       {Object.keys(groupedMedia).length > 0 && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="subtitle1" gutterBottom fontWeight={600}>
@@ -341,7 +332,6 @@ const SingleRoomMediaForm = ({
         </Box>
       )}
 
-      {/* ── Untagged media ── */}
       {untagged.length > 0 && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="subtitle1" gutterBottom fontWeight={600} color="error.main">
@@ -378,7 +368,6 @@ const SingleRoomMediaForm = ({
         </Box>
       )}
 
-      {/* ── Optional Save & Continue (hidden when embedded in RoomsForm) ── */}
       {!hideCompleteButton && (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
           {onBack && <Button variant="outlined" onClick={onBack}>Previous</Button>}
@@ -386,9 +375,6 @@ const SingleRoomMediaForm = ({
         </Box>
       )}
 
-      {/* ════════════════════════════════════════════
-          Tag Group Lightbox Dialog
-      ════════════════════════════════════════════ */}
       <Dialog open={tagGroupDialog} onClose={() => setTagGroupDialog(false)} maxWidth="lg" fullWidth>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6">
@@ -403,7 +389,7 @@ const SingleRoomMediaForm = ({
               {selectedTagGroup.mediaItems[selectedImageIndex]?.type === 'image' ? (
                 <img
                   src={selectedTagGroup.mediaItems[selectedImageIndex].url}
-                  style={{ width: '100%', height: 500, objectFit: 'cover', borderRadius: 8 }}
+                  style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: 8 }}
                 />
               ) : (
                 <video
@@ -454,9 +440,6 @@ const SingleRoomMediaForm = ({
         </DialogActions>
       </Dialog>
 
-      {/* ════════════════════════════════════════════
-          Edit Tags Dialog
-      ════════════════════════════════════════════ */}
       <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="lg" fullWidth>
         <DialogTitle>
           {editingMedia?.tags?.length > 0 ? editingMedia.tags[0] : 'Add Tags'}
@@ -465,7 +448,6 @@ const SingleRoomMediaForm = ({
         <DialogContent>
           {editingMedia && (
             <Grid container spacing={3}>
-              {/* Preview */}
               <Grid item xs={12} md={6}>
                 {editingMedia.type === 'image' ? (
                   <img src={editingMedia.url} alt={editingMedia.filename}
@@ -484,7 +466,6 @@ const SingleRoomMediaForm = ({
                 )}
               </Grid>
 
-              {/* Tag picker */}
               <Grid item xs={12} md={6}>
                 <Typography variant="h6" gutterBottom>Tags Added</Typography>
                 <Box sx={{

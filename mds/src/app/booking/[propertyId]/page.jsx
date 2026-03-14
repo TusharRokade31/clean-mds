@@ -42,7 +42,7 @@ export default function BookingRoute() {
         cartKey:    storedRoom._id,
         roomId:     storedRoom._id,
         roomName:   storedRoom.roomName,
-        guestCount: { adults: 1, children: 0 },
+        guestCount: { adults: 1, extraGaddis: 0 },
         roomObj:    storedRoom,
       }])
     }

@@ -139,9 +139,10 @@ export default function AmenitiesForm({ formData, amenityCategories, onChange, e
         {/* Options Dropdown */}
         {amenityValue.available && hasOptions && (
           <Grid item xs={12} sm={6} md={4}>
-            <FormControl sx={outlinedInputSx} fullWidth>
+            <FormControl sx={{ ...outlinedInputSx, minWidth: 150 }} fullWidth>
               <InputLabel>Select Options</InputLabel>
               <Select
+              fullWidth
                 multiple
                 value={amenityValue.option || []}
                 label="Select Options"

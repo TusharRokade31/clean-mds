@@ -255,7 +255,7 @@ export default function RoomsForm({
         }
 
         if (!bed.accommodates || bed.accommodates < 1) {
-          bedError.accommodates = "Accommodates must be at least 1";
+          bedError.accommodates = "People per bed must be at least 1";
         }
 
         if (Object.keys(bedError).length > 0) {
@@ -904,7 +904,7 @@ if (isAddingRoom) {
               <Grid item size={{ xs: 12, md: 3 }}>
                 <TextField
                   fullWidth
-                  label="Accommodates *"
+                  label="People per Bed *"
                   type="number"
                   slotProps={{ htmlInput: { onWheel: (e) => e.currentTarget.blur() } }}
                   value={bed.accommodates}

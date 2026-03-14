@@ -18,6 +18,7 @@ export default function Listing() {
   const [showReviewPopup, setShowReviewPopup] = useState(false)
   const [selectedProperty, setSelectedProperty] = useState(null)
   const [reviewAction, setReviewAction] = useState('')
+  const [rejectionReason, setRejectionReason] = useState('')
   
   // 1. Add Search State
   const [searchQuery, setSearchQuery] = useState('')
@@ -72,12 +73,27 @@ export default function Listing() {
     setShowReviewPopup(true)
   }
 
-  const handleReviewConfirm = async () => {
+const handleReviewConfirm = async () => {
     if (!selectedProperty || !reviewAction) return
+    
+    // Prevent submitting without a reason if rejecting
+    if (reviewAction === 'reject' && !rejectionReason.trim()) {
+      toast.error('Please provide a reason for rejection');
+      return;
+    }
+
     try {
       setReviewLoading(selectedProperty._id)
       const newStatus = reviewAction === 'approve' ? 'published' : 'rejected'
-      await dispatch(changePropertyStatus({ id: selectedProperty._id, status: newStatus })).unwrap()
+      
+      // Update the payload to include the rejectionReason
+      const payload = { 
+        id: selectedProperty._id, 
+        status: newStatus,
+        rejectionReason: reviewAction === 'reject' ? rejectionReason : undefined
+      }
+
+      await dispatch(changePropertyStatus(payload)).unwrap()
       dispatch(getAllProperties())
       dispatch(getDraftProperties())
       toast.success(`Property ${reviewAction === 'approve' ? 'approved' : 'rejected'} successfully!`)
@@ -89,6 +105,7 @@ export default function Listing() {
       setShowReviewPopup(false)
       setSelectedProperty(null)
       setReviewAction('')
+      setRejectionReason('') // Reset the reason
     }
   }
 
@@ -96,6 +113,7 @@ export default function Listing() {
     setShowReviewPopup(false)
     setSelectedProperty(null)
     setReviewAction('')
+    setRejectionReason('') // Reset the reason
   }
 
   const statusOptions = [
@@ -114,14 +132,33 @@ export default function Listing() {
 
   const handleStatusChange = async (property, newStatus) => {
     if (!property || !newStatus) return
+
+    // 1. If Admin selects "Rejected" from dropdown, open the popup with the text box!
+    if (newStatus === 'rejected') {
+      setSelectedProperty(property)
+      setReviewAction('reject')
+      setShowReviewPopup(true)
+      return // Stop here, let the popup handle the API call
+    }
+
+    // 2. If Admin selects "Published" from dropdown, open the approve popup
+    if (newStatus === 'published') {
+      setSelectedProperty(property)
+      setReviewAction('approve')
+      setShowReviewPopup(true)
+      return // Stop here, let the popup handle the API call
+    }
+
+    // 3. For all other statuses (draft, pending, pending_changes), use standard confirm
     const confirmed = window.confirm(`Change status of "${property.placeName}" to "${newStatus}"?`)
     if (!confirmed) return
+    
     try {
       setStatusLoading(property._id)
       await dispatch(changePropertyStatus({ id: property._id, status: newStatus })).unwrap()
       dispatch(getAllProperties())
       dispatch(getDraftProperties())
-      toast.success('Status updated successfully!')
+      toast.success(`Status updated to ${newStatus} successfully!`)
     } catch (error) {
       console.error('Status update failed:', error)
       toast.error('Failed to update status: ' + (error.message || 'Unknown error'))
@@ -212,7 +249,7 @@ export default function Listing() {
                   {property.status}
                 </span>
 
-                {isAdmin && (
+                {isAdmin && property.status === 'pending'&& (
                   <>
                     <button 
                       className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed ml-2"
@@ -272,7 +309,7 @@ export default function Listing() {
                     <Edit className="h-5 w-5" />
                   </Link> 
                   
-                  {(isAdmin || property.status !== 'published') && (
+                   
                     <button 
                       className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Delete Property"
@@ -283,7 +320,7 @@ export default function Listing() {
                         <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-red-600"></div>
                       ) : <Trash2 className="h-5 w-5" />}
                     </button>
-                  )}
+                  
                 </div>
               </td>
             </tr>
@@ -372,16 +409,32 @@ export default function Listing() {
       </div>
 
       {showReviewPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur-sm bg-[#00000049] bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">
               {reviewAction === 'approve' ? 'Approve Property' : 'Reject Property'}
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-4">
               Are you sure you want to {reviewAction} the property "{selectedProperty?.placeName}"?
-              {reviewAction === 'reject' && ' This will move it to rejected status.'}
             </p>
-            <div className="flex justify-end space-x-3">
+            
+            {/* NEW: Show textarea ONLY if the action is reject */}
+            {reviewAction === 'reject' && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason for rejection (Required)
+                </label>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Please explain what the host needs to fix..."
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 min-h-[100px]"
+                  required
+                />
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={handleReviewCancel}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
@@ -396,7 +449,7 @@ export default function Listing() {
                     ? 'bg-green-600 hover:bg-green-700' 
                     : 'bg-red-600 hover:bg-red-700'
                 }`}
-                disabled={reviewLoading}
+                disabled={reviewLoading || (reviewAction === 'reject' && !rejectionReason.trim())}
               >
                 {reviewLoading ? 'Processing...' : 
                   (reviewAction === 'approve' ? 'Approve' : 'Reject')

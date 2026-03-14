@@ -111,9 +111,9 @@ const RoomSelection = ({ property, bookingData, onNext, onDataChange }) => {
       if (totalGuests > selectedRoom.occupancy.maximumOccupancy) {
         errors.guests = `Room can accommodate maximum ${selectedRoom.occupancy.maximumOccupancy} guests`;
       }
-      if (adults > selectedRoom.occupancy.maximumAdults) {
-        errors.adults = `Room can accommodate maximum ${selectedRoom.occupancy.maximumAdults} adults`;
-      }
+      // if (adults > selectedRoom.occupancy.maximumAdults) {
+      //   errors.adults = `Room can accommodate maximum ${selectedRoom.occupancy.maximumAdults} adults`;
+      // }
       if (children > selectedRoom.occupancy.maximumChildren) {
         errors.children = `Room can accommodate maximum ${selectedRoom.occupancy.maximumChildren} children`;
       }

@@ -291,43 +291,46 @@ const PropertySchema = new Schema({
   // Step 2 - Location
   location: {
     houseName: { 
-      type: String, 
-      required: [false, 'House/Building Name is required'], 
+      type: String,
+      default: '',
     },
     country: { 
-      type: String, 
-      required: [false, 'Country is required'], 
+      type: String,
+      default: '',
     },
     street: { 
-      type: String, 
-      required: [false, 'Street address is required'], 
+      type: String,
+      default: '',
     },
     roomNumber: { 
-      type: String, 
+      type: String,
+      default: '',
     },
     city: { 
-      type: String, 
-      required: [false, 'City is required'], 
+      type: String,
+      default: '',
     },
     state: { 
-      type: String, 
-      required: [false, 'State is required'], 
+      type: String,
+      default: '',
     },
     stateRef: { 
       type: Schema.Types.ObjectId, 
-      ref: 'State', 
+      ref: 'State',
+      default: null,
     },
     cityRef: { 
       type: Schema.Types.ObjectId, 
       ref: 'City',
+      default: null,
     },
     postalCode: { 
-      type: String, 
-      required: [false, 'Postal code is required'], 
+      type: String,
+      default: '',
     },
     coordinates: {
-      lat: { type: Number },
-      lng: { type: Number },
+      lat: { type: Number, default: null },
+      lng: { type: Number, default: null },
     },
   },
 
@@ -405,6 +408,10 @@ const PropertySchema = new Schema({
     default: 'draft',
   },
 
+  rejectionReason: {           // <--- ADD THIS NEW FIELD
+    type: String,
+    default: null,
+  },
 
     // Track what was changed
   pendingChanges: {
@@ -437,8 +444,6 @@ const PropertySchema = new Schema({
   timestamps: true,
 });
 
-const Property = mongoose.model('Property', PropertySchema);
-
 PropertySchema.pre('save', async function(next) {
   // Run if name/city changed OR if the slug is currently empty
   if (this.isModified('placeName') || this.isModified('location.city') || !this.slug) {
@@ -464,5 +469,7 @@ PropertySchema.pre('save', async function(next) {
   }
   next();
 });
+
+const Property = mongoose.model('Property', PropertySchema);
 
 export default Property;

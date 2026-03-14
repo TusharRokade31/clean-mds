@@ -248,21 +248,20 @@ const handleSectionUpdate = async (section) => {
     return; // Exit the function early
   }
 
-  // 3. Validation for Property Rules (existing logic)
+  // 3. Validation for Property Rules
   if (section === "propertyRules") {
     const profile = formData.propertyRules?.guestProfile;
     const identityProofs = formData.propertyRules?.acceptableIdentityProofs || [];
-    
     let errors = {};
     if (profile?.allowUnmarriedCouples === undefined) errors.allowUnmarriedCouples = true;
     if (profile?.allowGuestsBelow18 === undefined) errors.allowGuestsBelow18 = true;
     if (profile?.allowOnlyMaleGuests === undefined) errors.allowOnlyMaleGuests = true;
     if (identityProofs.length === 0) errors.identityProofs = true;
-
+    
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       toast.error("Please fill in all required property rules.");
-      return; 
+      return;
     }
   }
 
@@ -277,25 +276,29 @@ const handleSectionUpdate = async (section) => {
       mealPrices: "Meal Prices"
     };
 
-    let sectionData = section === "cancellationPolicy" ? formData.cancellationPolicy : formData[section];
-
     await dispatch(
       updatePrivacyPolicySection({
         propertyId,
         section,
-        data: sectionData,
+        data: formData[section],
       })
     ).unwrap();
 
-    const sectionName = sectionNames[section] || section;
-    toast.success(`${sectionName} updated successfully!`);
+    toast.success(`${sectionNames[section] || "Section"} updated successfully!`);
 
-    if (activeTab < 6) {
+    // UPDATED LOGIC FOR MEAL SECTION
+    if (section === "mealPrices") {
+      // If it's the meal prices section, we are done
+      if (onComplete) {
+        onComplete();
+      }
+    } else if (activeTab < 6) {
+      // If it's any other section (not the last), move to the next tab
       setActiveTab((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   } catch (error) {
-    toast.error(`Failed to update ${section}`);
+    toast.error(`Failed to update ${sectionNames[section] || "section"}`);
   }
 };
 

@@ -8,6 +8,7 @@ import {
   deleteProperty,
   resetCurrentProperty,
   reviewProperty,
+  changePropertyStatus, // Make sure your propertySlice is configured to handle the rejectionReason in this thunk!
 } from "@/redux/features/property/propertySlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -40,6 +41,8 @@ export default function Listing() {
   const [showReviewPopup, setShowReviewPopup] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [reviewAction, setReviewAction] = useState("");
+  // NEW: State for the rejection reason
+  const [rejectionReason, setRejectionReason] = useState(""); 
   const [showPropertyDetails, setShowPropertyDetails] = useState(false);
   const [selectedPropertyForDetails, setSelectedPropertyForDetails] = useState(null);
   const [viewMode, setViewMode] = useState("list");
@@ -67,7 +70,7 @@ export default function Listing() {
   // Calculate statistics
   const totalProperties = properties?.length || 0;
   const pendingProperties = properties?.filter((p) => p.status === "pending").length || 0;
-  const liveProperties = properties?.filter((p) => p.status === "published").length || 0;
+  const liveProperties = properties?.filter((p) => p.status === 'published').length || 0;
   const docExpiryAlerts = 23; // This would come from your actual data
 
   // Filter properties based on search and filters
@@ -122,23 +125,54 @@ export default function Listing() {
     }
   };
 
-  const handleReviewClick = (property, action) => {
-    setSelectedProperty(property);
-    setReviewAction(action);
-    setShowReviewPopup(true);
+  // NEW: Handle dropdown changes directly from the table
+  const handleStatusChange = (property, e) => {
+    const newStatus = e.target.value;
+    if (newStatus === property.status) return;
+
+    // Reset the dropdown visually immediately; the popup handles the actual change
+    e.target.value = property.status; 
+
+    if (newStatus === 'rejected') {
+      setSelectedProperty(property);
+      setReviewAction("reject");
+      setShowReviewPopup(true);
+      return;
+    }
+
+    if (newStatus === 'published') {
+      setSelectedProperty(property);
+      setReviewAction("approve");
+      setShowReviewPopup(true);
+      return;
+    }
+
+    // Optional: If you want to handle changing back to pending or draft directly
+    if (window.confirm(`Change status to ${newStatus}?`)) {
+       // Dispatch directly here for non-popup statuses if needed
+    }
   };
 
+  // UPDATED: Include rejection reason validation and API payload
   const handleReviewConfirm = async () => {
     if (!selectedProperty || !reviewAction) return;
 
+    // Prevent submitting without a reason if rejecting
+    if (reviewAction === "reject" && !rejectionReason.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
+
     try {
       setReviewLoading(selectedProperty._id);
-      const newStatus = reviewAction === "approve" ? "published" : "rejected";
+      const newStatus = reviewAction === "approve" ? 'published' : 'rejected';
 
+      // NOTE: Ensure your propertySlice.js reviewProperty thunk expects this flattened object format
       await dispatch(
-        reviewProperty({
+        changePropertyStatus({
           id: selectedProperty._id,
-          status: { status: newStatus },
+          status: newStatus,
+          rejectionReason: reviewAction === "reject" ? rejectionReason : undefined
         })
       ).unwrap();
 
@@ -146,7 +180,7 @@ export default function Listing() {
       dispatch(getDraftProperties());
 
       toast.success(
-        `Property ${reviewAction === "approve" ? "approved" : "rejected"} successfully!`
+        `Property ${reviewAction === "approve" ? "approved" : 'rejected'} successfully!`
       );
     } catch (error) {
       console.error("Review failed:", error);
@@ -158,25 +192,28 @@ export default function Listing() {
       setShowReviewPopup(false);
       setSelectedProperty(null);
       setReviewAction("");
+      setRejectionReason(""); // Reset the reason
     }
   };
 
+  // UPDATED: Reset rejection reason on cancel
   const handleReviewCancel = () => {
     setShowReviewPopup(false);
     setSelectedProperty(null);
     setReviewAction("");
+    setRejectionReason(""); // Reset the reason
   };
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case "published":
+      case 'published':
       case "live":
         return "bg-green-100 text-green-800";
       case "approved":
         return "bg-green-100 text-green-800";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
-      case "rejected":
+      case 'rejected':
         return "bg-red-100 text-red-800";
       case "draft":
         return "bg-gray-100 text-gray-800";
@@ -187,14 +224,14 @@ export default function Listing() {
 
   const getStatusDisplayText = (status) => {
     switch (status?.toLowerCase()) {
-      case "published":
+      case 'published':
         return "Live";
       case "pending":
         return "Pending";
       case "approved":
         return "Approved";
-      case "rejected":
-        return "Rejected";
+      case 'rejected':
+        return 'Rejected';
       case "draft":
         return "Draft";
       default:
@@ -381,9 +418,9 @@ export default function Listing() {
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
                         Partner
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
+                      {/* <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
                         Status
-                      </th>
+                      </th> */}
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
                         Pricing
                       </th>
@@ -421,15 +458,33 @@ export default function Listing() {
                         <td className="py-4 px-4 text-sm text-gray-900">
                           {property.owner || "Unassigned"}
                         </td>
-                        <td className="py-4 px-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                              property.status
-                            )}`}
-                          >
-                            {getStatusDisplayText(property.status)}
-                          </span>
-                        </td>
+                        
+                        {/* UPDATED: Status column now uses a select dropdown for admins */}
+                        {/* <td className="py-4 px-4">
+                          {isAdmin ? (
+                            <select
+                              value={property.status}
+                              onChange={(e) => handleStatusChange(property, e)}
+                              className={`text-sm rounded-full px-3 py-1 font-medium border-0 ring-1 ring-inset ${getStatusColor(
+                                property.status
+                              )} cursor-pointer focus:ring-2 focus:ring-blue-600 outline-none`}
+                            >
+                              <option value="draft">Draft</option>
+                              <option value="pending">Pending</option>
+                              <option value='published'>Live</option>
+                              <option value='rejected'>Rejected</option>
+                            </select>
+                          ) : (
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                                property.status
+                              )}`}
+                            >
+                              {getStatusDisplayText(property.status)}
+                            </span>
+                          )}
+                        </td> */}
+
                         <td className="py-4 px-4 text-sm text-gray-900">
                           ₹{property.rooms?.[0]?.pricing?.baseAdultsCharge || 'N/A'}/night
                         </td>
@@ -480,12 +535,29 @@ export default function Listing() {
             <h3 className="text-lg font-semibold mb-4">
               {reviewAction === "approve" ? "Approve Property" : "Reject Property"}
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-4">
               Are you sure you want to {reviewAction} the property "
               {selectedProperty?.placeName}"?
               {reviewAction === "reject" && " This will move it to rejected status."}
             </p>
-            <div className="flex justify-end space-x-3">
+
+            {/* NEW: Textarea for Rejection Reason */}
+            {reviewAction === 'reject' && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason for rejection (Required)
+                </label>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Please explain what the host needs to fix..."
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 min-h-[100px]"
+                  required
+                />
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={handleReviewCancel}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
@@ -500,7 +572,7 @@ export default function Listing() {
                     ? "bg-green-600 hover:bg-green-700"
                     : "bg-red-600 hover:bg-red-700"
                 }`}
-                disabled={reviewLoading}
+                disabled={reviewLoading || (reviewAction === 'reject' && !rejectionReason.trim())}
               >
                 {reviewLoading
                   ? "Processing..."

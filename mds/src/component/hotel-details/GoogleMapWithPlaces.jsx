@@ -26,20 +26,32 @@ export default function GoogleMapWithPlaces({
     markersRef.current = []
   }
 
+  // Calculate distance between two coordinates
+  const calculateDistance = (lat1, lng1, lat2, lng2) => {
+    const R = 6371
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLng = (lng2 - lng1) * Math.PI / 180
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+    const distance = R * c
+    return distance.toFixed(1) + ' km'
+  }
+
   // Create custom marker with different styles
   const createMarker = (position, title, type = 'default', place = null) => {
     const iconColors = {
-      property: '#ef4444', // red
-      restaurant: '#f59e0b', // amber
-      attraction: '#3b82f6', // blue
-      transport: '#10b981', // emerald
-      default: '#6b7280' // gray
+      property: '#ef4444',
+      restaurant: '#f59e0b',
+      attraction: '#3b82f6',
+      transport: '#10b981',
+      default: '#6b7280'
     }
 
     let marker;
 
     if (type === 'property') {
-      // Special marker for main property
       marker = new window.google.maps.Marker({
         position,
         map: mapInstanceRef.current,
@@ -53,10 +65,9 @@ export default function GoogleMapWithPlaces({
           scale: 1.5,
           anchor: new window.google.maps.Point(12, 24)
         },
-        zIndex: 1000 // Ensure property marker is always on top
+        zIndex: 1000
       })
     } else {
-      // Regular markers for other places
       marker = new window.google.maps.Marker({
         position,
         map: mapInstanceRef.current,
@@ -72,7 +83,6 @@ export default function GoogleMapWithPlaces({
       })
     }
 
-    // Add click listener to show place details
     marker.addListener('click', () => {
       if (type === 'property') {
         setSelectedPlace({
@@ -83,100 +93,24 @@ export default function GoogleMapWithPlaces({
           image: location.image || null
         })
       } else if (place) {
-        setSelectedPlace({
-          ...place,
-          isProperty: false
-        })
+        setSelectedPlace({ ...place, isProperty: false })
       }
     })
 
     return marker
   }
 
-  // Calculate distance between two coordinates
-  const calculateDistance = (lat1, lng1, lat2, lng2) => {
-    const R = 6371
-    const dLat = (lat2 - lat1) * Math.PI / 180
-    const dLng = (lng2 - lng1) * Math.PI / 180
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng/2) * Math.sin(dLng/2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-    const distance = R * c
-    return distance.toFixed(1) + ' km'
-  }
-
-
-  // Search for nearby places using Places API
-const searchNearbyPlaces = async (map, location) => {
-  if (!window.google?.maps?.places) return
-  const service = new window.google.maps.places.PlacesService(map)
-
-  const createSearchPromise = (type, radius) => {
-    return new Promise((resolve) => {
-      service.nearbySearch({
-        location: { lat: location.coordinates.lat, lng: location.coordinates.lng },
-        radius: radius,
-        type: type
-      }, (results, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-          resolve(results)
-        } else { resolve([]) }
-      })
-    })
-  }
-
-  try {
-    const [rawRestaurants, rawAttractions, busStations, trainStations, airports] = await Promise.all([
-      createSearchPromise('restaurant', 5000),
-      createSearchPromise('tourist_attraction', 10000),
-      createSearchPromise('bus_station', 10000),
-      createSearchPromise('train_station', 20000),
-      createSearchPromise('airport', 100000)
-    ])
-
-const results = {
-  restaurants: rawRestaurants
-    .filter(place => (place.rating || 0) >= 4)
-    .slice(0, 5)
-    .map(place => formatPlaceData(place, 'restaurant')),
-  
-  attractions: rawAttractions
-    .filter(place => (place.rating || 0) >= 4)
-    .slice(0, 5)
-    .map(place => formatPlaceData(place, 'attraction')),
-
-  // Split transport into the specific subcategories you requested
-  "Bus station": busStations
-    .slice(0, 3)
-    .map(place => formatPlaceData(place, 'transport')),
-    
-  "Railway station": trainStations
-    .slice(0, 3)
-    .map(place => formatPlaceData(place, 'transport')),
-    
-  "Airport near Dharamshala": airports
-    .slice(0, 2)
-    .map(place => formatPlaceData(place, 'transport'))
-};
-
-    onNearbyPlacesFound?.(results)
-  } catch (error) {
-    console.error('Error fetching nearby places:', error)
-  }
-}
-
-  // Helper to format the place data and create markers
-  const formatPlaceData = (place, type) => {
+  // FIX: formatPlaceData now receives `loc` explicitly instead of closing over `location`
+  const formatPlaceData = (place, type, loc) => {
     const placeData = {
       name: place.name,
-      type: place.types?.includes('airport') ? 'Airport' : 
-            place.types?.includes('train_station') ? 'Railway Station' : 
-            place.types?.includes('bus_station') ? 'Bus Station' : 
+      type: place.types?.includes('airport') ? 'Airport' :
+            place.types?.includes('train_station') ? 'Railway Station' :
+            place.types?.includes('bus_station') ? 'Bus Station' :
             place.types?.[0]?.replace(/_/g, ' ') || 'Place',
       distance: calculateDistance(
-        location.coordinates.lat,
-        location.coordinates.lng,
+        loc.coordinates.lat,
+        loc.coordinates.lng,
         place.geometry.location.lat(),
         place.geometry.location.lng()
       ),
@@ -195,36 +129,124 @@ const results = {
     markersRef.current.push(marker)
     return placeData
   }
+
+  const searchNearbyPlaces = async (map, loc) => {
+    // importLibrary("places") returns the places namespace directly.
+    // We use it here as a fallback in case the ref on window isn't populated yet.
+    let PlacesService
+    try {
+      const placesLib = await window.google.maps.importLibrary("places")
+      PlacesService = placesLib.PlacesService
+    } catch (err) {
+      console.error('[Places] Failed to import Places library:', err)
+      return
+    }
+
+    if (!PlacesService) {
+      console.error('[Places] PlacesService is not available after importLibrary. ' +
+        'Check that the Places API is enabled in Google Cloud Console and billing is active.')
+      return
+    }
+
+    const service = new PlacesService(map)
+
+    const { PlacesServiceStatus } = await window.google.maps.importLibrary("places")
+
+    const createSearchPromise = (type, radius) => {
+      return new Promise((resolve) => {
+        service.nearbySearch({
+          location: { lat: loc.coordinates.lat, lng: loc.coordinates.lng },
+          radius: radius,
+          type: type
+        }, (results, status) => {
+          if (status === PlacesServiceStatus.OK) {
+            console.log(`[Places] '${type}' returned ${results.length} results`)
+            resolve(results)
+          } else {
+            // ZERO_RESULTS     → no places found in radius
+            // REQUEST_DENIED   → Places API not enabled or billing inactive
+            // OVER_QUERY_LIMIT → quota exceeded
+            // INVALID_REQUEST  → bad parameters
+            console.warn(`[Places] '${type}' search failed with status: ${status}`)
+            resolve([])
+          }
+        })
+      })
+    }
+
+    try {
+      const [rawRestaurants, rawAttractions, busStations, trainStations, airports] = await Promise.all([
+        createSearchPromise('restaurant', 5000),
+        createSearchPromise('tourist_attraction', 10000),
+        createSearchPromise('bus_station', 10000),
+        createSearchPromise('train_station', 20000),
+        createSearchPromise('airport', 100000)
+      ])
+
+      // FIX: Pass `loc` explicitly into formatPlaceData to avoid stale closure
+      const results = {
+        restaurants: rawRestaurants
+          .filter(place => (place.rating || 0) >= 4)
+          .slice(0, 5)
+          .map(place => formatPlaceData(place, 'restaurant', loc)),
+
+        attractions: rawAttractions
+          .filter(place => (place.rating || 0) >= 4)
+          .slice(0, 5)
+          .map(place => formatPlaceData(place, 'attraction', loc)),
+
+        "Bus station": busStations
+          .slice(0, 3)
+          .map(place => formatPlaceData(place, 'transport', loc)),
+
+        "Railway station": trainStations
+          .slice(0, 3)
+          .map(place => formatPlaceData(place, 'transport', loc)),
+
+        "Airport near Dharamshala": airports
+          .slice(0, 2)
+          .map(place => formatPlaceData(place, 'transport', loc))
+      }
+
+      console.log('[Places] Final results:', results)
+      onNearbyPlacesFound?.(results)
+    } catch (err) {
+      console.error('[Places] Unexpected error during nearby search:', err)
+    }
+  }
+
   // Initialize map
   const initializeMap = () => {
     if (!window.google || !location?.coordinates || !mapRef.current) {
-      console.error('Missing requirements for map initialization')
+      console.error('[Map] Missing requirements:', {
+        google: !!window.google,
+        coordinates: !!location?.coordinates,
+        mapRef: !!mapRef.current
+      })
       return
     }
 
     try {
       const mapOptions = {
-        center: { 
-          lat: location.coordinates.lat, 
-          lng: location.coordinates.lng 
-        },
+        center: { lat: location.coordinates.lat, lng: location.coordinates.lng },
         zoom: 14,
         mapTypeControl: true,
         streetViewControl: true,
         fullscreenControl: true,
         zoomControl: true,
         styles: [
-          {
-            featureType: 'poi',
-            elementType: 'labels',
-            stylers: [{ visibility: 'off' }]
-          }
+          { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }
         ]
       }
 
       mapInstanceRef.current = new window.google.maps.Map(mapRef.current, mapOptions)
-      
-      // Add main property marker with special styling
+
+      // FIX: Wait for map to be idle before searching so the PlacesService is fully ready
+      window.google.maps.event.addListenerOnce(mapInstanceRef.current, 'idle', () => {
+        console.log('[Map] Map is idle, starting nearby places search...')
+        searchNearbyPlaces(mapInstanceRef.current, location)
+      })
+
       const propertyMarker = createMarker(
         { lat: location.coordinates.lat, lng: location.coordinates.lng },
         location.houseName || 'Property Location',
@@ -232,13 +254,10 @@ const results = {
       )
       markersRef.current.push(propertyMarker)
 
-      // Search for nearby places
-      searchNearbyPlaces(mapInstanceRef.current, location)
-      
-      console.log('Map initialized successfully')
+      console.log('[Map] Initialized successfully at', location.coordinates)
       setIsLoading(false)
-    } catch (error) {
-      console.error('Error initializing map:', error)
+    } catch (err) {
+      console.error('[Map] Error initializing map:', err)
       setError('Failed to initialize map')
       setIsLoading(false)
     }
@@ -252,32 +271,45 @@ const results = {
       return
     }
 
-    if (!loaderRef.current) {
-      loaderRef.current = new Loader({
-        apiKey: GOOGLE_MAPS_API_KEY,
-        version: "weekly",
-        libraries: ["places"]
-      })
-    }
+    const loadMapsAndPlaces = async () => {
+      try {
+        // The Loader is a global singleton keyed by API key.
+        // If another part of the app already loaded Maps WITHOUT the "places"
+        // library, the singleton reuses that cached script and places is missing.
+        // Using importLibrary() explicitly guarantees places is always loaded,
+        // regardless of what other Loader instances have requested.
+        if (!loaderRef.current) {
+          loaderRef.current = new Loader({
+            apiKey: GOOGLE_MAPS_API_KEY,
+            version: "weekly",
+          })
+        }
 
-    loaderRef.current.load()
-      .then(() => {
-        console.log('Google Maps API loaded successfully')
+        // Load core Maps script first
+        await loaderRef.current.load()
+        console.log('[Map] Google Maps core loaded')
+
+        // Explicitly import the Places library — this works even if the Loader
+        // singleton was already resolved without it
+        await window.google.maps.importLibrary("places")
+        console.log('[Map] Places library loaded successfully')
+
         setIsMapLoaded(true)
-      })
-      .catch(error => {
-        console.error('Error loading Google Maps:', error)
+      } catch (err) {
+        console.error('[Map] Error loading Google Maps or Places:', err)
         setError('Failed to load Google Maps API')
         setIsLoading(false)
-      })
+      }
+    }
+
+    loadMapsAndPlaces()
   }, [])
 
   // Initialize map when API is loaded and location is available
   useEffect(() => {
     if (isMapLoaded && location?.coordinates && mapRef.current) {
-      setTimeout(() => {
-        initializeMap()
-      }, 100)
+      // FIX: Removed arbitrary setTimeout — using map 'idle' event instead (in initializeMap)
+      initializeMap()
     }
 
     return () => {
@@ -322,7 +354,7 @@ const results = {
   return (
     <div className="flex h-full w-full relative">
       <div ref={mapRef} style={{ minHeight: '500px' }} className="w-full h-full rounded-lg" />
-      
+
       {/* Location Details Panel */}
       {selectedPlace && (
         <div className="absolute top-4 right-4 w-80 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-10">
@@ -332,20 +364,14 @@ const results = {
           >
             ×
           </button>
-          
+
           <div className="space-y-3">
-            {/* Image */}
             {selectedPlace.photoUrl && (
               <div className="w-full h-32 rounded-lg overflow-hidden">
-                <img
-                  src={selectedPlace.photoUrl}
-                  alt={selectedPlace.name}
-                  className="w-full h-full object-cover"
-                />
+                <img src={selectedPlace.photoUrl} alt={selectedPlace.name} className="w-full h-full object-cover" />
               </div>
             )}
-            
-            {/* Header */}
+
             <div className="flex items-start space-x-2">
               {selectedPlace.isProperty ? (
                 <Home className="h-5 w-5 text-red-500 mt-1 flex-shrink-0" />
@@ -353,59 +379,41 @@ const results = {
                 <MapPin className="h-5 w-5 text-blue-500 mt-1 flex-shrink-0" />
               )}
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 text-sm">
-                  {selectedPlace.name}
-                </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  {selectedPlace.type}
-                </p>
+                <h3 className="font-semibold text-gray-900 text-sm">{selectedPlace.name}</h3>
+                <p className="text-xs text-gray-500 mt-1">{selectedPlace.type}</p>
               </div>
             </div>
-            
-            {/* Rating */}
+
             {selectedPlace.rating && (
               <div className="flex items-center space-x-1">
                 <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="text-sm text-gray-600">
-                  {selectedPlace.rating} / 5
-                </span>
+                <span className="text-sm text-gray-600">{selectedPlace.rating} / 5</span>
               </div>
             )}
-            
-            {/* Address */}
+
             <div className="text-sm text-gray-600">
               <p>{selectedPlace.address}</p>
             </div>
-            
-            {/* Distance */}
+
             {selectedPlace.distance && (
               <div className="flex items-center space-x-1">
                 <Clock className="h-4 w-4 text-gray-400" />
-                <span className="text-sm text-gray-600">
-                  {selectedPlace.distance} from property
-                </span>
+                <span className="text-sm text-gray-600">{selectedPlace.distance} from property</span>
               </div>
             )}
-            
-            {/* Additional Details (if available) */}
+
             {selectedPlace.phone && (
               <div className="flex items-center space-x-1">
                 <Phone className="h-4 w-4 text-gray-400" />
-                <span className="text-sm text-gray-600">
-                  {selectedPlace.phone}
-                </span>
+                <span className="text-sm text-gray-600">{selectedPlace.phone}</span>
               </div>
             )}
-            
+
             {selectedPlace.website && (
               <div className="flex items-center space-x-1">
                 <Globe className="h-4 w-4 text-gray-400" />
-                <a
-                  href={selectedPlace.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline"
-                >
+                <a href={selectedPlace.website} target="_blank" rel="noopener noreferrer"
+                   className="text-sm text-blue-600 hover:underline">
                   Visit Website
                 </a>
               </div>
@@ -413,7 +421,7 @@ const results = {
           </div>
         </div>
       )}
-      
+
       {/* Legend */}
       <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10">
         <div className="space-y-1 text-xs">

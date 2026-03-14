@@ -25,7 +25,6 @@ const sections = [
   { id: "rooms",     label: "ROOMS",               component: RoomsSection        },
   { id: "location",  label: "LOCATION",            component: LocationSection     },
   { id: "rules",     label: "PROPERTY RULES",      component: PropertyRules       },
-  // { id: "reviews", label: "USER REVIEWS", component: null },
   { id: "similar",   label: "SIMILAR PROPERTIES",  component: SimilarProperties  },
 ]
 
@@ -34,7 +33,6 @@ export default function PropertyDetailsPage() {
   const { slug } = useParams()
   const dispatch = useDispatch()
   const { ViewProperty, loading, error } = useSelector((state) => state.property)
-  console.log(ViewProperty)
   
   const [activeSection, setActiveSection] = useState("overview")
   const [isSticky, setIsSticky] = useState(false)
@@ -76,7 +74,6 @@ export default function PropertyDetailsPage() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [activeSection])
-  console.log(activeSection)
 
   const scrollToSection = (sectionId) => {
     const element = sectionRefs.current[sectionId]
@@ -123,12 +120,6 @@ export default function PropertyDetailsPage() {
             <Typography variant="h4" component="h1" fontWeight="bold">
               {ViewProperty.placeName}
             </Typography>
-            {/* <Box display="flex" alignItems="center" gap={0.5}>
-              <Star sx={{ color: "gold", fontSize: 20 }} />
-              <Typography variant="body1" fontWeight="semibold">
-                {ViewProperty.placeRating}
-              </Typography>
-            </Box> */}
           </Box>
           
           <Box display="flex" alignItems="center" gap={1} mb={2} color="text.secondary">
@@ -153,7 +144,7 @@ export default function PropertyDetailsPage() {
             top: isSticky ? 0 : "auto",
             left: 0,
             right: 0,
-            zIndex: 1000,
+            zIndex: 30,
             borderRadius: isSticky ? 0 : 1,
             mb: 3,
           }}
@@ -201,43 +192,21 @@ export default function PropertyDetailsPage() {
         <Box sx={{ space: 6 }}>
           {sections.map((section) => (
            <Box 
-    key={section.id} 
-    ref={(el) => (sectionRefs.current[section.id] = el)}
-    sx={{ mb: 6 }}
-  >
-    {/* Only render the component if we have ViewProperty data */}
-    {section?.component && ViewProperty && (
-      <section.component 
-        setActiveSection={scrollToSection}
-        data={ViewProperty}
-        propertyId={ViewProperty?._id}
-        location={ViewProperty?.location} // Ensure this contains lat/lng
-        rooms={ViewProperty?.rooms}
-        amenities={ViewProperty?.amenities}
-      />
-    )}
-              
-              {/* {section.id === "reviews" && (
-                <Paper sx={{ p: 4, textAlign: "center" }}>
-                  <Typography variant="h5" fontWeight="semibold" gutterBottom>
-                    User Reviews
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Reviews section coming soon...
-                  </Typography>
-                </Paper>
-              )}
-              
-              {section.id === "similar" && (
-                <Paper sx={{ p: 4, textAlign: "center" }}>
-                  <Typography variant="h5" fontWeight="semibold" gutterBottom>
-                    Similar Properties
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Similar properties section coming soon...
-                  </Typography>
-                </Paper>
-              )} */}
+            key={section.id} 
+            ref={(el) => (sectionRefs.current[section.id] = el)}
+            sx={{ mb: 6 }}
+           >
+            {/* Only render the component if we have ViewProperty data */}
+            {section?.component && ViewProperty && (
+              <section.component 
+                setActiveSection={scrollToSection}
+                data={ViewProperty}
+                propertyId={ViewProperty?._id}
+                location={ViewProperty?.location}
+                rooms={ViewProperty?.rooms}
+                amenities={ViewProperty?.amenities}
+              />
+            )}
             </Box>
           ))}
         </Box>

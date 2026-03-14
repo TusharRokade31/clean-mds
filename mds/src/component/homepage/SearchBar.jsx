@@ -26,8 +26,7 @@ const [holidayData, setHolidayData] = useState({});
 const [hoveredDateInfo, setHoveredDateInfo] = useState(null);
   const [guests, setGuests] = useState({
     adults: 2,
-    children: 0,
-    infants: 0
+    rooms: 1
   });
   const [selectedDates, setSelectedDates] = useState({
     checkin: '',
@@ -247,8 +246,7 @@ const handleSuggestionClick = (suggestion, type, location = null) => {
     });
     setGuests({
       adults: searchData.adults,
-      children: searchData.children,
-      infants: searchData.infants
+      rooms: searchData.rooms || 1
     });
     setShowRecentSearches(false);
   };
@@ -316,9 +314,8 @@ const handleSearch = async () => {
     checkin: selectedDates.checkin,
     checkout: selectedDates.checkout,
     adults: guests.adults,
-    children: guests.children,
-    infants: guests.infants,
-    persons: (guests.adults + guests.children + guests.infants).toString()
+    rooms: guests.rooms,
+    persons: guests.adults.toString()
   };
 
   // Save to cache
@@ -335,6 +332,7 @@ const handleSearch = async () => {
       checkin: selectedDates.checkin,
       checkout: selectedDates.checkout,
       persons: searchData.persons,
+      rooms: guests.rooms,
       skip: 0,
       limit: 10,
       locationData: selectedLocation
@@ -514,7 +512,7 @@ const renderCalendar = () => {
     setGuests(newGuests);
   };
 
-  const totalGuests = guests.adults + guests.children + guests.infants;
+  const totalGuests = guests.adults;
 
   return (
     <div className="max-w-4xl hidden lg:block px-14 sm:px-6 relative">
@@ -565,7 +563,7 @@ const renderCalendar = () => {
             <div className="flex flex-col">
               <label className="text-lg font-semibold">{totalGuests} Guests</label>
               <span className="text-gray-500">
-                {guests.adults} Adults, {guests.children} Children
+                {guests.adults} Adults, {guests.rooms} {guests.rooms === 1 ? 'Room' : 'Rooms'}
               </span>
             </div>
           </div>
@@ -685,7 +683,7 @@ const renderCalendar = () => {
           <div className="flex items-center justify-between py-4">
             <div>
               <h4 className="font-semibold">Adults</h4>
-              <p className="text-lg text-gray-500">Ages 13 or above</p>
+              <p className="text-md text-gray-500">Ages 13 or above</p>
             </div>
             <div className="flex items-center space-x-3">
               <button 
@@ -707,43 +705,20 @@ const renderCalendar = () => {
           
           <div className="flex items-center justify-between py-4 border-t border-gray-100">
             <div>
-              <h4 className="font-semibold">Children</h4>
-              <p className="text-lg text-gray-500">Ages 3-12</p>
+              <h4 className="font-semibold">Rooms</h4>
+              <p className="text-md text-gray-500">Number of rooms</p>
             </div>
             <div className="flex items-center space-x-3">
               <button 
-                onClick={() => adjustGuests('children', 'decrease')}
+                onClick={() => adjustGuests('rooms', 'decrease')}
                 className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-gray-500"
-                disabled={guests.children <= 0}
+                disabled={guests.rooms <= 1}
               >
                 -
               </button>
-              <span className="w-5 text-center">{guests.children}</span>
+              <span className="w-5 text-center">{guests.rooms}</span>
               <button 
-                onClick={() => adjustGuests('children', 'increase')}
-                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-gray-500"
-              >
-                +
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between py-4 border-t border-gray-100">
-            <div>
-              <h4 className="font-semibold">Infants</h4>
-              <p className="text-lg text-gray-500">Ages 0-2</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button 
-                onClick={() => adjustGuests('infants', 'decrease')}
-                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-gray-500"
-                disabled={guests.infants <= 0}
-              >
-                -
-              </button>
-              <span className="w-5 text-center">{guests.infants}</span>
-              <button 
-                onClick={() => adjustGuests('infants', 'increase')}
+                onClick={() => adjustGuests('rooms', 'increase')}
                 className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-gray-500"
               >
                 +

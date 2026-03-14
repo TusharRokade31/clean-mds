@@ -13,6 +13,12 @@ import {
   FireExtinguisher,
   Luggage,
   CheckCircle,
+  ArrowUpDown, // Added for Elevator
+  Brush,       // Added for Housekeeping
+  UserSquare2, // Added for Caretaker
+  Accessibility, // Added for Wheelchair
+  Users,       // Added for Common Area
+  Baby,        // Added for Kids Play Area
 } from "lucide-react"
 import { useState } from "react"
 import { Card, CardContent } from "@mui/material" 
@@ -36,6 +42,12 @@ export default function AmenitiesSection({ amenities }) {
       case "restaurantbhojnalay": return <Utensils className={iconClass} />
       case "fireextinguishers": return <FireExtinguisher className={iconClass} />
       case "luggageassistance": return <Luggage className={iconClass} />
+      case "elevatorlift": return <ArrowUpDown className={iconClass} />
+      case "housekeeping": return <Brush className={iconClass} />
+      case "caretaker": return <UserSquare2 className={iconClass} />
+      case "wheelchair": return <Accessibility className={iconClass} />
+      case "commonarea": return <Users className={iconClass} />
+      case "kidsplayarea": return <Baby className={iconClass} />
       default: return <CheckCircle className={iconClass} />
     }
   }
@@ -74,14 +86,28 @@ export default function AmenitiesSection({ amenities }) {
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
             
           {/* Render Visible Amenities */}
-          {visibleAmenities.map(([name]) => (
-            <div key={name} className="flex items-center gap-2 text-gray-700">
-              {getAmenityIcon(name)}
-              <span className="text-sm font-medium">
-                {formatAmenityName(name)}
-              </span>
-            </div>
-          ))}
+          {visibleAmenities.map(([name, details]) => {
+            // Combine options and subOptions into a single array
+            const options = details.option || []
+            const subOptions = details.subOptions || []
+            const extraDetails = [...options, ...subOptions]
+            
+            // Format the extra details string (e.g., "(Veg, Breakfast)")
+            const detailsText = extraDetails.length > 0 
+              ? ` (${extraDetails.join(", ")})` 
+              : ""
+
+            return (
+              <div key={name} className="flex items-center gap-2 text-gray-700">
+                {getAmenityIcon(name)}
+                <span className="text-sm font-medium">
+                  {formatAmenityName(name)}
+                  {/* Append the Free/Paid or extra options here */}
+                  <span className="text-gray-500 font-normal">{detailsText}</span>
+                </span>
+              </div>
+            )
+          })}
 
           {/* "+ More" Link */}
           {!isExpanded && remainingCount > 0 && (
@@ -93,7 +119,7 @@ export default function AmenitiesSection({ amenities }) {
             </button>
           )}
           
-          {/* Optional: "Show Less" button if expanded */}
+          {/* "Show Less" button if expanded */}
           {isExpanded && (
              <button
              onClick={() => setIsExpanded(false)}

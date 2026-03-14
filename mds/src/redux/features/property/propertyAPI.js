@@ -156,11 +156,13 @@ export const propertyAPI = {
     return response.data;
   },
 
-   getPropertiesByQuery: async (queryParams) => {
-    const { location, checkin, checkout, persons, skip = 0, limit = 10 } = queryParams;
-     const response = await axiosInstance.get(`/properties/property-listing?location=${encodeURIComponent(location)}&checkin=${checkin}&checkout=${checkout}&persons=${persons}&skip=${skip}&limit=${limit}`);
-     return response.data
-  },
+getPropertiesByQuery: async (queryParams) => {
+  const { location, checkin, checkout, persons, rooms = 1, skip = 0, limit = 10 } = queryParams;
+  const response = await axiosInstance.get(
+    `/properties/property-listing?location=${encodeURIComponent(location)}&checkin=${checkin}&checkout=${checkout}&persons=${persons}&rooms=${rooms}&skip=${skip}&limit=${limit}`
+  );
+  return response.data;
+},
 
   getFilteredProperties: async (queryParams) => {
   const { 
@@ -210,8 +212,8 @@ export const propertyAPI = {
     return response.data;
   },
 
-  changePropertyStatus: async (id, status) => {
-    const response = await axiosInstance.put(`/properties/${id}/status`, {status:status});
+  changePropertyStatus: async (id, status, rejectionReason) => {
+    const response = await axiosInstance.put(`/properties/${id}/status`, { status: status, rejectionReason: rejectionReason });
     return response.data;
   },
 

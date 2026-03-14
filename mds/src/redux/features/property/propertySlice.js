@@ -511,9 +511,9 @@ export const reviewProperty = createAsyncThunk(
 
 export const changePropertyStatus = createAsyncThunk(
   'property/changePropertyStatus',
-  async ({ id, status }, { rejectWithValue }) => {
+  async ({ id, status, rejectionReason }, { rejectWithValue }) => {
     try {
-      const response = await propertyAPI.changePropertyStatus(id, status);
+      const response = await propertyAPI.changePropertyStatus(id, status, rejectionReason);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update property status');

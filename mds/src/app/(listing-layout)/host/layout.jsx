@@ -111,7 +111,7 @@ export default function HotelDashboardLayout({ children }) {
         </nav>
 
         {/* Selected Property Display */}
-        {selectedProperty && (
+        {/* {selectedProperty && (
           <div className="absolute bottom-16 left-0 right-0 px-4">
             <div className="bg-blue-800 rounded-lg p-3">
               <div className="text-xs text-blue-200">Active Property:</div>
@@ -121,7 +121,7 @@ export default function HotelDashboardLayout({ children }) {
               </div>
             </div>
           </div>
-        )}
+        )} */}
       </aside>
 
       {/* Main content */}

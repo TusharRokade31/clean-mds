@@ -587,12 +587,16 @@ export default function PropertyForm() {
           </TabPanel>
         </Box>
 
-        {activeTab <= SAVE_BUTTON_MAX_TAB && (
-          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-            <Button variant="outlined" disabled={activeTab === 0} onClick={handlePrevious}>
-              Previous
-            </Button>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0.5 }}>
+       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4, width: "100%" }}>
+          {/* Always show Previous on the left (except tab 0) */}
+          <Button variant="outlined" disabled={activeTab === 0} onClick={handlePrevious}>
+            Previous
+          </Button>
+
+          {/* Right-aligned container for main actions */}
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0.5 }}>
+            
+            {activeTab <= SAVE_BUTTON_MAX_TAB && (
               <Button
                 variant="contained"
                 onClick={handleNext}
@@ -600,27 +604,28 @@ export default function PropertyForm() {
               >
                 {isLoading ? "Saving..." : "Save & Continue"}
               </Button>
-            </Box>
-          </Box>
-        )}
-
-        {activeTab === steps.length - 1 && (
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mt: 3 }}>
-            {!isAllStepsCompleted && (
-              <Typography color="error" variant="caption" sx={{ mb: 1 }}>
-                Please complete all previous sections before submitting.
-              </Typography>
             )}
-            <Button
-              variant="contained"
-              onClick={handleComplete}
-              disabled={isLoading || !isAllStepsCompleted}
-              size="large"
-            >
-              {isLoading ? "Completing..." : "Complete Listing"}
-            </Button>
+
+            {activeTab === steps.length - 1 && (
+              <>
+                {!isAllStepsCompleted && (
+                  <Typography color="error" variant="caption" sx={{ mb: 1 }}>
+                    Please complete all previous sections before submitting.
+                  </Typography>
+                )}
+                <Button
+                  variant="contained"
+                  onClick={handleComplete}
+                  disabled={isLoading || !isAllStepsCompleted}
+                  size="large"
+                >
+                  {isLoading ? "Completing..." : "Complete Listing"}
+                </Button>
+              </>
+            )}
+
           </Box>
-        )}
+        </Box>
       </Paper>
     </>
   );

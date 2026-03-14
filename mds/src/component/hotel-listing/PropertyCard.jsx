@@ -159,7 +159,7 @@ export function PropertyCard({
                 </div>
                 <div className="text-xs text-gray-500">per night + taxes</div>
               </div>
-              <Link href={`/hotel-details/${slug}`} className="block">
+              <a href={`/hotel-details/${slug}`} className="block">
                 <Button 
                   variant="contained"
                   sx={{
@@ -182,7 +182,7 @@ export function PropertyCard({
                 >
                   View Details
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -297,7 +297,7 @@ export function PropertyCard({
                   <div className="text-sm text-gray-500 mb-1">per night</div>
                 </div>
                 
-                <Link href={`/hotel-details/${slug}`} className="block">
+                <a href={`/hotel-details/${slug}`} className="block">
                   <Button sx={{
                     background: 'linear-gradient(135deg, #1035ac 0%, #7c3aed 100%)',
                     color: 'white',
@@ -318,7 +318,7 @@ export function PropertyCard({
                   }} >
                     View Details
                   </Button>
-                </Link>
+                </a>
               </div>
             </div>
           </div>

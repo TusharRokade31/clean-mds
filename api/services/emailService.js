@@ -126,3 +126,73 @@ export const sendBookingConfirmationEmail = async (booking, policy = {}) => {
     console.error('Email Dispatch Error:', error);
   }
 };
+
+
+export const sendPropertyPublishedEmail = async (email, placeName) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Property Approved – Your Listing is Live! 🎉',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
+        <h2 style="color: #2e7d32;">Congratulations!</h2>
+        <p>We are thrilled to let you know that your property <strong>${placeName}</strong> has been approved by our admin team.</p>
+        <p>Your listing is now officially <strong>published</strong> and live on MyDivineStays. Guests can now view your property and start booking their stays.</p>
+        <div style="background-color: #f9f9f9; padding: 15px; margin: 20px 0; border-left: 4px solid #2e7d32;">
+          <p style="margin: 0;"><strong>What's next?</strong> Keep an eye on your dashboard for incoming bookings and ensure your calendar is up to date.</p>
+        </div>
+        <p>Thank you for partnering with us!</p>
+        <p>Warm regards,<br>
+        <strong>MyDivineStays Team</strong></p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Published email sent successfully to ${email}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending published email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Add this to emailService.js
+
+export const sendPropertyRejectedEmail = async (email, placeName, reason) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Action Required: Update on your Property Listing',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
+        <h2 style="color: #d32f2f;">Update regarding your listing</h2>
+        <p>Thank you for submitting <strong>${placeName}</strong> to MyDivineStays.</p>
+        <p>Our admin team has reviewed your property details. Unfortunately, we are unable to approve your listing at this time.</p>
+        
+        <div style="background-color: #ffebee; padding: 15px; margin: 20px 0; border-left: 4px solid #d32f2f;">
+          <p style="margin: 0; font-weight: bold;">Reason for rejection:</p>
+          <p style="margin: 10px 0 0 0;">${reason || 'Your listing did not meet our community guidelines. Please review your details and try again.'}</p>
+        </div>
+
+        <p><strong>What to do next:</strong></p>
+        <p>Please log in to your dashboard, make the necessary corrections based on the feedback above, and submit your property for review again.</p>
+        
+        <p>If you have any questions or need clarification, please reach out to our support team.</p>
+        
+        <p>Warm regards,<br>
+        <strong>MyDivineStays Team</strong></p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Rejection email sent successfully to ${email}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending rejection email:', error);
+    return { success: false, error: error.message };
+  }
+};

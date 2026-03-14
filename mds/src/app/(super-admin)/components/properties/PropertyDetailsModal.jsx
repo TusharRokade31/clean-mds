@@ -10,7 +10,7 @@ import {
 // Admin Slice Actions
 import { fetchUserById, clearSelectedUser } from "@/redux/features/admin/adminSlice"; 
 // Property Slice Actions
-import { reviewProperty, getAllProperties, getFinanceLegal } from "@/redux/features/property/propertySlice";
+import { reviewProperty, getAllProperties, getFinanceLegal, changePropertyStatus } from "@/redux/features/property/propertySlice";
 import toast from "react-hot-toast";
 
 const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
@@ -19,6 +19,8 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [showReviewPopup, setShowReviewPopup] = useState(false);
   const [reviewAction, setReviewAction] = useState("");
+  // NEW: Added state for rejection reason
+  const [rejectionReason, setRejectionReason] = useState(""); 
 
   const { selectedUser, isUserLoading } = useSelector((state) => ({
     selectedUser: state.admin.selectedUser,
@@ -51,7 +53,7 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
     switch (property.status?.toLowerCase()) {
       case "draft": return 0;
       case "pending": return 1;
-      case "published": return 3;
+      case 'published': return 3;
       default: return 2;
     }
   };
@@ -60,7 +62,7 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
   const verificationSteps = [
     { label: "Draft" },
     { label: "Approved" },
-    { label: "published" }
+    { label: 'published' }
   ];
 
   const availableAmenities = property.amenities?.basicFacilities 
@@ -71,18 +73,34 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
 
   const primaryRoom = property.rooms?.[0] || {};
 
+  // UPDATED: Include rejection reason logic
   const handleReviewConfirm = async () => {
     if (!property || !reviewAction) return;
+
+    // Prevent submitting without a reason if rejecting
+    if (reviewAction === "reject" && !rejectionReason.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
+
     try {
       setReviewLoading(true);
       
       // Map actions to statuses
       let newStatus = "pending";
-      if (reviewAction === "approve") newStatus = "published";
-      if (reviewAction === "reject") newStatus = "rejected";
-      if (reviewAction === "draft") newStatus = "draft";
+      if (reviewAction === "approve") newStatus = 'published';
+      if (reviewAction === "reject") newStatus = 'rejected';
+      if (reviewAction === "draft") newStatus = 'draft';
 
-      await dispatch(reviewProperty({ id: property._id, status: { status: newStatus } })).unwrap();
+      // Updated to match the payload structure we used in page.jsx
+      await dispatch(
+        changePropertyStatus({ 
+          id: property._id, 
+          status: newStatus,
+          rejectionReason: reviewAction === "reject" ? rejectionReason : undefined
+        })
+      ).unwrap();
+      
       dispatch(getAllProperties());
       toast.success(`Property status updated to ${newStatus} successfully!`);
       onClose();
@@ -91,12 +109,21 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
     } finally {
       setReviewLoading(false);
       setShowReviewPopup(false);
+      setRejectionReason(""); // Reset on finish
+      setReviewAction(""); // Reset on finish
     }
+  };
+
+  // NEW: Handle canceling the popup properly to reset state
+  const handleCancelReview = () => {
+    setShowReviewPopup(false);
+    setRejectionReason("");
+    setReviewAction("");
   };
 
   return (
     <>
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-60 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 overflow-y-auto backdrop-blur-sm bg-[#0000004f] bg-opacity-60 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[92vh] overflow-hidden flex flex-col shadow-2xl">
           
           {/* Header */}
@@ -229,8 +256,6 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
                   </div>
                 </div>
 
-               
-
                 {/* 4. Amenities */}
                 <div className="bg-white p-6 rounded-xl border border-gray-200">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">Amenities & Basic Facilities</h3>
@@ -288,66 +313,65 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
                 </div>
 
                 {/* Admin Actions */}
-                {/* Admin Actions */}
-{isAdmin && (
-  <div className="space-y-3">
-    {property.status?.toLowerCase() === 'published' ? (
-      // Actions for Published Properties
-      <>
-        <button 
-          onClick={() => { setReviewAction("pending"); setShowReviewPopup(true); }}
-          className="w-full bg-white border-2 border-orange-500 text-orange-600 hover:bg-orange-50 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-        >
-          <FileEdit className="w-5 h-5" /> Unpublish & Move to Draft
-        </button>
-        <button 
-          onClick={() => { setReviewAction("reject"); setShowReviewPopup(true); }}
-          className="w-full bg-white border-2 border-red-500 text-red-500 hover:bg-red-50 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-        >
-          <XIcon className="w-5 h-5" /> Reject Property
-        </button>
-      </>
-    ) : property.status?.toLowerCase() === 'rejected' ? (
-      // Actions for Rejected Properties
-      <>
-        <button 
-          onClick={() => { setReviewAction("approve"); setShowReviewPopup(true); }}
-          className="w-full bg-green-500 hover:bg-green-600 text-white py-3.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
-        >
-          <Check className="w-5 h-5" /> Approve & Publish
-        </button>
-        <button 
-          onClick={() => { setReviewAction("draft"); setShowReviewPopup(true); }}
-          className="w-full bg-white border-2 border-gray-400 text-gray-600 hover:bg-gray-50 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-        >
-          <FileEdit className="w-5 h-5" /> Move to Draft
-        </button>
-      </>
-    ) : (
-      // Actions for Pending/Draft Properties
-      <>
-        <button 
-          onClick={() => { setReviewAction("approve"); setShowReviewPopup(true); }}
-          className="w-full bg-green-500 hover:bg-green-600 text-white py-3.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
-        >
-          <Check className="w-5 h-5" /> Approve & Publish
-        </button>
-        <button 
-          onClick={() => { setReviewAction("reject"); setShowReviewPopup(true); }}
-          className="w-full bg-white border-2 border-red-500 text-red-500 hover:bg-red-50 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-        >
-          <XIcon className="w-5 h-5" /> Reject Property
-        </button>
-        <button 
-          onClick={() => { setReviewAction("draft"); setShowReviewPopup(true); }}
-          className="w-full bg-white border-2 border-gray-400 text-gray-600 hover:bg-gray-50 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-        >
-          <FileEdit className="w-5 h-5" /> Move to Draft
-        </button>
-      </>
-    )}
-  </div>
-)}
+                {isAdmin && (
+                  <div className="space-y-3">
+                    {property.status?.toLowerCase() === 'published' ? (
+                      // Actions for Published Properties
+                      <>
+                        <button 
+                          onClick={() => { setReviewAction("pending"); setShowReviewPopup(true); }}
+                          className="w-full bg-white border-2 border-orange-500 text-orange-600 hover:bg-orange-50 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                        >
+                          <FileEdit className="w-5 h-5" /> Unpublish & Move to Draft
+                        </button>
+                        <button 
+                          onClick={() => { setReviewAction("reject"); setShowReviewPopup(true); }}
+                          className="w-full bg-white border-2 border-red-500 text-red-500 hover:bg-red-50 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                        >
+                          <XIcon className="w-5 h-5" /> Reject Property
+                        </button>
+                      </>
+                    ) : property.status?.toLowerCase() === 'rejected' ? (
+                      // Actions for Rejected Properties
+                      <>
+                        <button 
+                          onClick={() => { setReviewAction("approve"); setShowReviewPopup(true); }}
+                          className="w-full bg-green-500 hover:bg-green-600 text-white py-3.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
+                        >
+                          <Check className="w-5 h-5" /> Approve & Publish
+                        </button>
+                        <button 
+                          onClick={() => { setReviewAction("draft"); setShowReviewPopup(true); }}
+                          className="w-full bg-white border-2 border-gray-400 text-gray-600 hover:bg-gray-50 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                        >
+                          <FileEdit className="w-5 h-5" /> Move to Draft
+                        </button>
+                      </>
+                    ) : (
+                      // Actions for Pending/Draft Properties
+                      <>
+                        <button 
+                          onClick={() => { setReviewAction("approve"); setShowReviewPopup(true); }}
+                          className="w-full bg-green-500 hover:bg-green-600 text-white py-3.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
+                        >
+                          <Check className="w-5 h-5" /> Approve & Publish
+                        </button>
+                        <button 
+                          onClick={() => { setReviewAction("reject"); setShowReviewPopup(true); }}
+                          className="w-full bg-white border-2 border-red-500 text-red-500 hover:bg-red-50 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                        >
+                          <XIcon className="w-5 h-5" /> Reject Property
+                        </button>
+                        <button 
+                          onClick={() => { setReviewAction("draft"); setShowReviewPopup(true); }}
+                          className="w-full bg-white border-2 border-gray-400 text-gray-600 hover:bg-gray-50 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                        >
+                          <FileEdit className="w-5 h-5" /> Move to Draft
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -356,8 +380,8 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
 
       {/* Action Confirmation Popup */}
       {showReviewPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
+        <div className="fixed inset-0 bg-[#0000004f] backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-lg w-full text-center shadow-2xl">
             <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
               reviewAction === 'approve' ? 'bg-green-100 text-green-600' : 
               reviewAction === 'reject' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'
@@ -366,16 +390,33 @@ const PropertyDetailsModal = ({ property, isOpen, onClose }) => {
                reviewAction === 'reject' ? <XIcon className="w-8 h-8" /> : <FileEdit className="w-8 h-8" />}
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Confirm {reviewAction.charAt(0).toUpperCase() + reviewAction.slice(1)}</h3>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-gray-500 mb-4">
               Are you sure you want to {reviewAction} "{property.placeName}"?
               {reviewAction === 'draft' && " This will allow the host to edit the property details again."}
             </p>
+
+            {/* NEW: Rejection Reason Input field */}
+            {reviewAction === 'reject' && (
+              <div className="mb-6 text-left">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason for rejection (Required)
+                </label>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Please explain what the host needs to fix..."
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 min-h-[100px]"
+                  required
+                />
+              </div>
+            )}
+
             <div className="flex gap-3">
-              <button onClick={() => setShowReviewPopup(false)} className="flex-1 py-3 border border-gray-300 rounded-lg font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
+              <button onClick={handleCancelReview} className="flex-1 py-3 border border-gray-300 rounded-lg font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
               <button 
                 onClick={handleReviewConfirm}
-                disabled={reviewLoading}
-                className={`flex-1 py-3 text-white rounded-lg font-bold ${
+                disabled={reviewLoading || (reviewAction === 'reject' && !rejectionReason.trim())}
+                className={`flex-1 py-3 text-white rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed ${
                   reviewAction === 'approve' ? 'bg-green-600' : 
                   reviewAction === 'reject' ? 'bg-red-600' : 'bg-gray-600'
                 }`}

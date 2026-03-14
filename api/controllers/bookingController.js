@@ -56,23 +56,29 @@ const aggregatePricing = (roomPricings, totalDays) => {
 };
 
 /**
- * Returns true when the room has NO confirmed/active booking overlapping the
- * requested dates. Optionally excludes one booking (for update checks).
+ * Returns true when the number of active bookings for this room on the
+ * requested dates is LESS than the room's physical unit count (numberRoom).
+ * e.g. if numberRoom = 3 and 2 bookings already exist, a 3rd is still allowed.
+ * Optionally excludes one booking (for update checks).
  */
-const checkRoomAvailability = async (roomId, checkIn, checkOut, excludeBookingId = null) => {
+const checkRoomAvailability = async (roomId, checkIn, checkOut, numberRoom = 1, excludeBookingId = null) => {
   const query = {
-    // Search inside the rooms array
     'rooms.room': roomId,
     status: { $nin: ['cancelled', 'no-show', 'draft'] },
-    $or: [{ checkIn: { $lt: checkOut }, checkOut: { $gt: checkIn } }],
+    // Overlap condition: existing booking overlaps if it starts before our checkOut
+    // AND ends after our checkIn
+    checkIn:  { $lt: checkOut },
+    checkOut: { $gt: checkIn },
   };
 
   if (excludeBookingId) {
     query._id = { $ne: excludeBookingId };
   }
 
-  const conflicts = await Booking.find(query);
-  return conflicts.length === 0;
+  const bookedCount = await Booking.countDocuments(query);
+
+  // Available if currently booked units are fewer than total physical rooms
+  return bookedCount < numberRoom;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -287,12 +293,12 @@ export const bookingController = {
             message: `Room "${room.roomName}" can accommodate maximum ${room.occupancy.maximumOccupancy} guests`,
           });
         }
-        if (adults > room.occupancy.maximumAdults) {
-          return res.status(400).json({
-            success: false,
-            message: `Room "${room.roomName}" can accommodate maximum ${room.occupancy.maximumAdults} adults`,
-          });
-        }
+        // if (adults > room.occupancy.maximumAdults) {
+        //   return res.status(400).json({
+        //     success: false,
+        //     message: `Room "${room.roomName}" can accommodate maximum ${room.occupancy.maximumAdults} adults`,
+        //   });
+        // }
         if (children > room.occupancy.maximumChildren) {
           return res.status(400).json({
             success: false,
@@ -300,12 +306,17 @@ export const bookingController = {
           });
         }
 
-        // Check availability for each room
-        const isAvailable = await checkRoomAvailability(roomId, checkInDate, checkOutDate);
+        // Check availability — compares active bookings against numberRoom physical units
+        const isAvailable = await checkRoomAvailability(
+          roomId,
+          checkInDate,
+          checkOutDate,
+          room.numberRoom ?? 1,   // how many physical rooms of this type exist
+        );
         if (!isAvailable) {
           return res.status(400).json({
             success: false,
-            message: `Room "${room.roomName}" is not available for the selected dates`,
+            message: `Room "${room.roomName}" is not available for the selected dates (all ${room.numberRoom ?? 1} unit(s) are booked)`,
           });
         }
 
@@ -418,19 +429,23 @@ export const bookingController = {
         const newCheckIn  = updates.checkIn  ? new Date(updates.checkIn)  : booking.checkIn;
         const newCheckOut = updates.checkOut ? new Date(updates.checkOut) : booking.checkOut;
 
+        // Fetch property first so we have numberRoom for each room
+        const property  = await Property.findById(booking.property);
+        const totalDays = Math.ceil((newCheckOut - newCheckIn) / (1000 * 60 * 60 * 24));
+
         for (const br of booking.rooms) {
-          const isAvail = await checkRoomAvailability(br.room, newCheckIn, newCheckOut, booking._id);
+          const roomDoc    = property?.rooms.id(br.room);
+          const numberRoom = roomDoc?.numberRoom ?? 1;
+          const isAvail    = await checkRoomAvailability(br.room, newCheckIn, newCheckOut, numberRoom, booking._id);
           if (!isAvail) {
             return res.status(400).json({
               success: false,
-              message: `Room "${br.roomName}" is not available for the updated dates`,
+              message: `Room "${br.roomName}" is not available for the updated dates (all ${numberRoom} unit(s) are booked)`,
             });
           }
         }
 
         // Recalculate pricing for all rooms
-        const property  = await Property.findById(booking.property);
-        const totalDays = Math.ceil((newCheckOut - newCheckIn) / (1000 * 60 * 60 * 24));
 
         const newRooms = booking.rooms.map((br) => {
           const room        = property.rooms.id(br.room);
