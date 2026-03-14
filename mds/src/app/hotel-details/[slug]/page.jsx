@@ -11,7 +11,7 @@ import {
   Paper, 
   Button,
 } from "@mui/material"
-import { Star, LocationOn } from "@mui/icons-material"
+import { LocationOn } from "@mui/icons-material"
 
 import RoomsSection from "@/component/hotel-details/rooms-section"
 import LocationSection from "@/component/hotel-details/location-section"
@@ -20,12 +20,13 @@ import { getViewProperty } from "@/redux/features/property/propertySlice"
 import PropertyOverview from "@/component/hotel-details/PropertyOverview"
 import SimilarProperties from "@/component/hotel-details/SimilarProperties"
 
+// Remove components from the array; keep it just for the Navigation logic
 const sections = [
-  { id: "overview",  label: "OVERVIEW",            component: PropertyOverview    },
-  { id: "rooms",     label: "ROOMS",               component: RoomsSection        },
-  { id: "location",  label: "LOCATION",            component: LocationSection     },
-  { id: "rules",     label: "PROPERTY RULES",      component: PropertyRules       },
-  { id: "similar",   label: "SIMILAR PROPERTIES",  component: SimilarProperties  },
+  { id: "overview",  label: "OVERVIEW" },
+  { id: "rooms",     label: "ROOMS" },
+  { id: "location",  label: "LOCATION" },
+  { id: "rules",     label: "PROPERTY RULES" },
+  { id: "similar",   label: "SIMILAR PROPERTIES" },
 ]
 
 export default function PropertyDetailsPage() {
@@ -56,14 +57,17 @@ export default function PropertyDetailsPage() {
       // Check if navigation should be sticky
       setIsSticky(scrollTop > navTop)
 
-      // Find current section
-      const sectionOffsets = sections.map((section) => ({
-        id: section.id,
-        offset: sectionRefs.current[section.id]?.offsetTop - navHeight - 20 || 0,
-      }))
+      // Use getBoundingClientRect for accurate offset calculation when elements are nested
+      const sectionOffsets = sections.map((section) => {
+        const element = sectionRefs.current[section.id]
+        return {
+          id: section.id,
+          offset: element ? (element.getBoundingClientRect().top + window.pageYOffset - navHeight - 20) : 0,
+        }
+      })
 
       const currentSection = sectionOffsets
-        .filter((section) => scrollTop >= section.offset)
+        .filter((section) => scrollTop >= section.offset - 50) // Added small buffer
         .pop()
 
       if (currentSection && currentSection.id !== activeSection) {
@@ -79,7 +83,7 @@ export default function PropertyDetailsPage() {
     const element = sectionRefs.current[sectionId]
     if (element) {
       const navHeight = navRef.current?.offsetHeight || 0
-      const elementTop = element.offsetTop - navHeight - 20
+      const elementTop = element.getBoundingClientRect().top + window.pageYOffset - navHeight - 20
       window.scrollTo({
         top: elementTop,
         behavior: "smooth",
@@ -109,6 +113,15 @@ export default function PropertyDetailsPage() {
         <Typography>Property not found</Typography>
       </Box>
     )
+  }
+
+  const commonProps = {
+    setActiveSection: scrollToSection,
+    data: ViewProperty,
+    propertyId: ViewProperty?._id,
+    location: ViewProperty?.location,
+    rooms: ViewProperty?.rooms,
+    amenities: ViewProperty?.amenities,
   }
 
   return (
@@ -185,30 +198,33 @@ export default function PropertyDetailsPage() {
           </Container>
         </Paper>
 
-        {/* Add spacing when nav is sticky */}
         {isSticky && <Box sx={{ height: "64px" }} />}
 
-        {/* Sections */}
-        <Box sx={{ space: 6 }}>
-          {sections.map((section) => (
-           <Box 
-            key={section.id} 
-            ref={(el) => (sectionRefs.current[section.id] = el)}
-            sx={{ mb: 6 }}
-           >
-            {/* Only render the component if we have ViewProperty data */}
-            {section?.component && ViewProperty && (
-              <section.component 
-                setActiveSection={scrollToSection}
-                data={ViewProperty}
-                propertyId={ViewProperty?._id}
-                location={ViewProperty?.location}
-                rooms={ViewProperty?.rooms}
-                amenities={ViewProperty?.amenities}
-              />
-            )}
-            </Box>
-          ))}
+        {/* Sections - Manually structured to fix layout gap */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          
+          <Box ref={(el) => (sectionRefs.current["overview"] = el)}>
+            <PropertyOverview {...commonProps} />
+          </Box>
+
+          <Box ref={(el) => (sectionRefs.current["rooms"] = el)}>
+            <RoomsSection {...commonProps} />
+          </Box>
+
+          {/* Location & Rules Grouped Grid */}
+          <Box ref={(el) => (sectionRefs.current["location"] = el)}>
+            <LocationSection location={ViewProperty?.location}>
+               {/* PropertyRules renders underneath the map here */}
+               <Box ref={(el) => (sectionRefs.current["rules"] = el)}>
+                  <PropertyRules propertyId={ViewProperty?._id} />
+               </Box>
+            </LocationSection>
+          </Box>
+
+          <Box ref={(el) => (sectionRefs.current["similar"] = el)}>
+            <SimilarProperties {...commonProps} />
+          </Box>
+
         </Box>
       </Container>
     </Box>

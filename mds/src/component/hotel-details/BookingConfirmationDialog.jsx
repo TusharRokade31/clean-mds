@@ -440,15 +440,12 @@ const handleConfirm = async () => {
     </Alert>
             )}
 
-            <Box display="flex" flexDirection="column" gap={2.5}>
+            <Box display="flex" flexDirection="column" gap={3.5}>
 
               {/* ── Property + rooms ── */}
               <Box>
-                <Box sx={styles.sectionLabel}>
-                  <LocationOnIcon />
-                  <Typography>Property</Typography>
-                </Box>
-                <Box sx={{ ...styles.propertyCard, pl: { xs: 2.5, sm: 3 } }}>
+                
+                <Box sx={{ ...styles.propertyCard, mt:{ xs: 2.5, sm: 3 }, pl: { xs: 2.5, sm: 3 } }}>
                   <Box mb={1.5}>
                     <Typography variant="subtitle1" fontWeight={700} color="primary.main" sx={{ lineHeight: 1.3 }}>
                       {property.placeName}

@@ -102,6 +102,12 @@ export default function PropertyOverview({ data, setActiveSection }) {
 
   const hasCart = cartRooms.length > 0
 
+  const displayMaxOccupancy = (room) => {
+  const bedSlots   = room?.beds?.reduce((s, b) => s + (b.count * b.accommodates), 0) || 0
+  const gaddiSlots = parseInt(room?.FloorBedding?.count || 0) * parseInt(room?.FloorBedding?.peoplePerFloorBedding || 1)
+  return bedSlots + gaddiSlots
+}
+
   return (
     <Box>
       {/* Images + Booking Card */}
@@ -178,15 +184,14 @@ export default function PropertyOverview({ data, setActiveSection }) {
                   <Typography variant="body2" color="text.secondary">/night</Typography>
                 </Box>
                 <Typography variant="caption" color="text.secondary">
-                  Fits up to {data.rooms?.[0]?.occupancy?.maximumAdults || 2} adults
+                  {displayMaxOccupancy(data.rooms?.[0]) > 0
+                    ? `Fits up to ${displayMaxOccupancy(data.rooms[0])} guests`
+                    : `Fits up to ${data.rooms?.[0]?.occupancy?.maximumAdults || 2} adults`}
                 </Typography>
               </Box>
             )}
 
-            <Box mb={2}>
-              <Chip label="No meals included" size="small" sx={{ mr: 1, mb: 1 }} />
-              <Chip label="Non-Refundable"    size="small" />
-            </Box>
+           
 
             {hasCart ? (
               <>

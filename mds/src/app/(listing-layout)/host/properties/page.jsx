@@ -38,6 +38,15 @@ export default function Listing() {
     dispatch(getDraftProperties())
   }, [dispatch])
 
+  useEffect(() => {
+  if (properties && properties.length > 0) {
+    const hasPending = properties.some(p => p.status === 'pending');
+    if (hasPending) {
+      setActiveTab('pending');
+    }
+  }
+}, [properties]);
+
   const publishedProperties = properties?.filter(p => p.status === 'published') || []
   const draftProperties_filtered = properties?.filter(p => p.status === 'draft') || []
   const pendingProperties = properties?.filter(p => p.status === 'pending') || []
